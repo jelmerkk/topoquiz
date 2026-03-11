@@ -757,6 +757,7 @@ function startQuiz(mode) {
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'block';
   map.invalidateSize(); // kaart wist afmetingen bij verborgen init
+  map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
   document.getElementById('question-box').style.display = 'block';
   document.getElementById('score-bar').style.display    = 'flex';
   document.getElementById('qtot').textContent = activeCities.length;
