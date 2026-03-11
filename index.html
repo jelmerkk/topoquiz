@@ -331,8 +331,6 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="cities.js"></script>
 <script>
-const CITIES = ALL_CITIES.filter(c => c.sets.includes(1));
-
 const NL_BOUNDS = [[50.699, 3.325], [53.566, 7.261]];
 
 const map = L.map('leaflet-map', {
@@ -377,9 +375,7 @@ map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
 const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#4caf50', fillOpacity: 1   };
 
-CITIES.forEach(c => {
-  c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false }).addTo(map);
-});
+const markerLayer = L.layerGroup().addTo(map);
 
 const pulseIcon = L.divIcon({
   className: '',
@@ -400,7 +396,7 @@ function setHighlight(city) {
 const MASTERY_MC   = 3; // meerkeuze: 3× goed
 const MASTERY_TEXT = 1; // typen: 1× goed
 function mastery() { return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC; }
-const TOTAL   = CITIES.length;
+let activeCities = [];
 let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
 let currentCity = null, answered = false;
@@ -477,17 +473,27 @@ function showHint() {
 // ── Core game logic ──────────────────────────────────────────
 
 function masteredCount() {
-  return CITIES.filter(c => streak[c.name] >= mastery()).length;
+  return activeCities.filter(c => streak[c.name] >= mastery()).length;
+}
+
+function initLevel(setNumber) {
+  markerLayer.clearLayers();
+  activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
+  activeCities.forEach(c => {
+    c._hadWrong = false;
+    c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
+      .addTo(markerLayer);
+  });
 }
 
 function initStreak() {
   streak = {};
-  CITIES.forEach(c => { streak[c.name] = 0; c._hadWrong = false; c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) }); });
+  activeCities.forEach(c => { streak[c.name] = 0; c._hadWrong = false; c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) }); });
 }
 
 function buildPool() {
   const pool = [];
-  CITIES.forEach(c => {
+  activeCities.forEach(c => {
     const s = streak[c.name];
     if (s >= mastery()) return;
     for (let i = 0; i < mastery() - s; i++) pool.push(c);
@@ -517,8 +523,8 @@ function dist(a, b) {
 }
 
 function nearbyDistractors(city, n) {
-  const sorted = CITIES.filter(c => c !== city)
-                       .sort((a, b) => dist(a, city) - dist(b, city));
+  const sorted = activeCities.filter(c => c !== city)
+                             .sort((a, b) => dist(a, city) - dist(b, city));
   const candidates = sorted.slice(0, Math.min(8, sorted.length));
   return shuffle(candidates).slice(0, n);
 }
@@ -604,13 +610,7 @@ function checkTextAnswer() {
   if (result === 'exact') {
     recordCorrect(correct, fb);
   } else if (result === 'close') {
-    // Bijna goed: telt als correct maar met spellingtip
-    streak[correct.name]++;
-    sessionOk++;
-    if (streak[correct.name] >= mastery()) correct.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(correct) });
-    fb.innerHTML = `😊 Bijna! Het heet <strong>${correct.name}</strong> — let de volgende keer op de spelling.`;
-    fb.className = 'fb-close';
-    updateScoreboard();
+    recordCorrect(correct, fb, true);
   } else {
     recordWrong(correct, fb);
   }
@@ -620,16 +620,21 @@ function checkTextAnswer() {
 
 // ── Shared result helpers ────────────────────────────────────
 
-function recordCorrect(city, fb) {
+function recordCorrect(city, fb, close = false) {
   streak[city.name]++;
   sessionOk++;
   if (streak[city.name] >= mastery()) {
     city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
-    fb.innerHTML = `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
+    fb.innerHTML = close
+      ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
+      : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
+    fb.className = close ? 'fb-close' : 'fb-ok';
   } else {
-    fb.textContent = `✅ Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm! 💪`;
+    fb.innerHTML = close
+      ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling.`
+      : `✅ Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm! 💪`;
+    fb.className = close ? 'fb-close' : 'fb-ok';
   }
-  fb.className = 'fb-ok';
   updateScoreboard();
 }
 
@@ -647,18 +652,18 @@ function updateScoreboard() {
   document.getElementById('sc-ok').textContent       = sessionOk;
   document.getElementById('sc-err').textContent      = sessionErr;
   document.getElementById('sc-mastered').textContent = mc;
-  document.getElementById('progress-bar').style.width = Math.round(mc / TOTAL * 100) + '%';
+  document.getElementById('progress-bar').style.width = Math.round(mc / activeCities.length * 100) + '%';
   updateHardList();
 }
 
 function finishAnswer() {
   const mc = masteredCount();
-  setTimeout(mc >= TOTAL ? showEnd : renderQuestion, 2000);
+  setTimeout(mc >= activeCities.length ? showEnd : renderQuestion, 2000);
 }
 
 function updateHardList() {
   const panel = document.getElementById('hard-panel');
-  const hard  = CITIES.filter(c => c._hadWrong && streak[c.name] < mastery())
+  const hard  = activeCities.filter(c => c._hadWrong && streak[c.name] < mastery())
                       .sort((a, b) => streak[a.name] - streak[b.name]);
   if (!hard.length) { panel.style.display = 'none'; return; }
   panel.style.display = 'block';
@@ -676,7 +681,7 @@ function showEnd() {
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
   document.getElementById('end-text').innerHTML =
-    `Je kent nu alle <strong>${TOTAL} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+    `Je kent nu alle <strong>${activeCities.length} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
 function showStartScreen() {
@@ -688,8 +693,9 @@ function showStartScreen() {
   document.getElementById('start-screen').style.display = 'block';
 }
 
-function startQuiz(mode) {
+function startQuiz(mode, setNumber = 1) {
   gameMode = mode;
+  initLevel(setNumber);
 
   // Toon/verberg de juiste invoer-UI
   document.getElementById('options').style.display          = mode === 'mc'   ? '' : 'none';
@@ -708,7 +714,7 @@ function startQuiz(mode) {
   map.invalidateSize(); // kaart wist afmetingen bij verborgen init
   document.getElementById('question-box').style.display = 'block';
   document.getElementById('score-bar').style.display    = 'flex';
-  document.getElementById('qtot').textContent = TOTAL;
+  document.getElementById('qtot').textContent = activeCities.length;
 
   renderQuestion();
 }
