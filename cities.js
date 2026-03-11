@@ -9,21 +9,22 @@
 // ongeacht welke set je speelt.
 
 const ALL_CITIES = [
+  // ── Set 1: Grote steden (landelijk) ──────────────────────────
   { name: "Amsterdam",           lat: 52.37, lon: 4.90, pop:  921000, sets: [1] },
   { name: "Haarlem",             lat: 52.38, lon: 4.63, pop:  163000, sets: [1] },
   { name: "Alkmaar",             lat: 52.63, lon: 4.75, pop:  108000, sets: [1] },
   { name: "Purmerend",           lat: 52.50, lon: 4.96, pop:   81000, sets: [1] },
   { name: "Zaanstad",            lat: 52.44, lon: 4.81, pop:  156000, sets: [1] },
   { name: "Hoorn",               lat: 52.64, lon: 5.06, pop:   73000, sets: [1] },
-  { name: "Den Haag",            lat: 52.08, lon: 4.30, pop:  548000, sets: [1], aliases: ["'s-Gravenhage", "s-Gravenhage", "Den haag"] },
-  { name: "Rotterdam",           lat: 51.93, lon: 4.48, pop:  651000, sets: [1] },
-  { name: "Leiden",              lat: 52.16, lon: 4.50, pop:  123000, sets: [1] },
-  { name: "Delft",               lat: 52.01, lon: 4.36, pop:  103000, sets: [1] },
-  { name: "Gouda",               lat: 52.01, lon: 4.70, pop:   73000, sets: [1] },
-  { name: "Dordrecht",           lat: 51.82, lon: 4.69, pop:  119000, sets: [1] },
-  { name: "Spijkenisse",         lat: 51.85, lon: 4.33, pop:   73000, sets: [1] },
-  { name: "Zoetermeer",          lat: 52.06, lon: 4.49, pop:  124000, sets: [1] },
-  { name: "Alphen aan den Rijn", lat: 52.13, lon: 4.66, pop:  110000, sets: [1], aliases: ["Alphen"] },
+  { name: "Den Haag",            lat: 52.08, lon: 4.30, pop:  548000, sets: [1, 2], aliases: ["'s-Gravenhage", "s-Gravenhage", "Den haag"] },
+  { name: "Rotterdam",           lat: 51.93, lon: 4.48, pop:  651000, sets: [1, 2] },
+  { name: "Leiden",              lat: 52.16, lon: 4.50, pop:  123000, sets: [1, 2] },
+  { name: "Delft",               lat: 52.01, lon: 4.36, pop:  103000, sets: [1, 2] },
+  { name: "Gouda",               lat: 52.01, lon: 4.70, pop:   73000, sets: [1, 2] },
+  { name: "Dordrecht",           lat: 51.82, lon: 4.69, pop:  119000, sets: [1, 2] },
+  { name: "Spijkenisse",         lat: 51.85, lon: 4.33, pop:   73000, sets: [1, 2] },
+  { name: "Zoetermeer",          lat: 52.06, lon: 4.49, pop:  124000, sets: [1, 2] },
+  { name: "Alphen aan den Rijn", lat: 52.13, lon: 4.66, pop:  110000, sets: [1, 2], aliases: ["Alphen"] },
   { name: "Utrecht",             lat: 52.09, lon: 5.12, pop:  361000, sets: [1] },
   { name: "Amersfoort",          lat: 52.16, lon: 5.39, pop:  158000, sets: [1] },
   { name: "Zeist",               lat: 52.09, lon: 5.23, pop:   65000, sets: [1] },
@@ -55,11 +56,21 @@ const ALL_CITIES = [
   { name: "Heerlen",             lat: 50.88, lon: 5.98, pop:   86000, sets: [1] },
   { name: "Kerkrade",            lat: 50.87, lon: 6.07, pop:   45000, sets: [1] },
   { name: "Maastricht",          lat: 50.85, lon: 5.69, pop:  122000, sets: [1] },
+
+  // ── Set 2: Zuid-Holland (extra steden) ───────────────────────
+  { name: "Noordwijk",           lat: 52.24, lon: 4.45, pop:   44000, sets: [2] },
+  { name: "Wassenaar",           lat: 52.14, lon: 4.40, pop:   26000, sets: [2] },
+  { name: "Scheveningen",        lat: 52.11, lon: 4.27, pop:   38000, sets: [2] },
+  { name: "Hoek van Holland",    lat: 51.98, lon: 4.13, pop:   10000, sets: [2] },
+  { name: "Vlaardingen",         lat: 51.91, lon: 4.34, pop:   71000, sets: [2] },
+  { name: "Schiedam",            lat: 51.92, lon: 4.40, pop:   84000, sets: [2] },
+  { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [2] },
 ];
 
 // Set-definities: setNumber → weergavenaam
 const SETS = {
   1: { name: '5.6 – Grote steden' },
+  2: { name: '6.6 – Zuid-Holland' },
 };
 
 // Radius op logaritmische schaal (4–12px), gebaseerd op globale min/max.

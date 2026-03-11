@@ -55,6 +55,16 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   color: #8ab4f8;
   margin-top: 3px;
 }
+#back-btn {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: #8ab4f8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+#back-btn:hover { color: #fff; }
 
 /* ── Score bar ── */
 #score-bar {
@@ -281,16 +291,26 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 <h1>🗺️ Topografie Quiz</h1>
 
 <div id="start-screen">
-  <h2 id="start-level-name"></h2>
-  <p>Hoe wil jij oefenen?</p>
-  <button class="mode-btn" onclick="startQuiz('mc')">
-    🔤 Meerkeuze
-    <span class="mode-desc">Kies het juiste antwoord uit vier opties</span>
-  </button>
-  <button class="mode-btn" onclick="startQuiz('text')">
-    ✏️ Zelf typen
-    <span class="mode-desc">Typ de naam van de stad zelf in</span>
-  </button>
+  <!-- Stap 1: kies een toets -->
+  <div id="level-select">
+    <h2>🗺️ Topografie Quiz</h2>
+    <p>Kies een toets:</p>
+    <!-- dynamisch gevuld door showStartScreen() -->
+  </div>
+  <!-- Stap 2: kies een oefenmodus -->
+  <div id="mode-select" style="display:none">
+    <h2 id="start-level-name"></h2>
+    <p>Hoe wil jij oefenen?</p>
+    <button class="mode-btn" onclick="startQuiz('mc')">
+      🔤 Meerkeuze
+      <span class="mode-desc">Kies het juiste antwoord uit vier opties</span>
+    </button>
+    <button class="mode-btn" onclick="startQuiz('text')">
+      ✏️ Zelf typen
+      <span class="mode-desc">Typ de naam van de stad zelf in</span>
+    </button>
+    <button id="back-btn" onclick="showLevelSelect()">← Andere toets</button>
+  </div>
 </div>
 
 <div id="score-bar" style="display:none">
@@ -684,19 +704,43 @@ function showEnd() {
     `Je kent nu alle <strong>${activeCities.length} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
-function showStartScreen(setNumber = 1) {
+let selectedSet = 1;
+
+function showLevelSelect() {
+  const el = document.getElementById('level-select');
+  // Genereer knoppen vanuit SETS
+  el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Kies een toets:</p>';
+  Object.entries(SETS).forEach(([num, set]) => {
+    const btn = document.createElement('button');
+    btn.className = 'mode-btn';
+    btn.textContent = set.name;
+    btn.onclick = () => selectLevel(Number(num));
+    el.appendChild(btn);
+  });
+  document.getElementById('level-select').style.display = 'block';
+  document.getElementById('mode-select').style.display  = 'none';
+}
+
+function selectLevel(setNumber) {
+  selectedSet = setNumber;
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
+  document.getElementById('level-select').style.display = 'none';
+  document.getElementById('mode-select').style.display  = 'block';
+}
+
+function showStartScreen() {
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'none';
   document.getElementById('question-box').style.display = 'none';
   document.getElementById('score-bar').style.display    = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('start-screen').style.display = 'block';
+  showLevelSelect();
 }
 
-function startQuiz(mode, setNumber = 1) {
+function startQuiz(mode) {
   gameMode = mode;
-  initLevel(setNumber);
+  initLevel(selectedSet);
 
   // Toon/verberg de juiste invoer-UI
   document.getElementById('options').style.display          = mode === 'mc'   ? '' : 'none';
