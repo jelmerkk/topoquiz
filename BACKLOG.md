@@ -16,10 +16,18 @@
 
 - [x] **Dot size op bevolking** — populatiedata toevoegen aan `CITIES` en de `radius` van de markers schalen op basis van inwoneraantal.
 - [x] **Vrije tekstinvoer** — naast meerkeuze een modus waarbij de speler de stadsnaam intypt. Spellingsvarianten per stad definiëren (bijv. `'s-Hertogenbosch` / `Den Bosch`). Modus te kiezen op het startscherm.
-- [ ] **Level/set kiezer** — steden groeperen per toets/hoofdstuk, zodat je gericht kunt oefenen voor een specifieke toets.
+- [x] **Level/set kiezer** — steden groeperen per toets/hoofdstuk, zodat je gericht kunt oefenen voor een specifieke toets.
 
 
 ## Changelog
+
+### 2026-03-11 (vervolg 3)
+- Level/set kiezer toegevoegd: startscherm toont eerst levelkeuze, dan modusbeuze
+- Level 6.6 – Zuid-Holland toegevoegd (16 steden, incl. 7 nieuwe)
+- `SETS`-object in `cities.js` centraliseert naam en zoomgedrag per level
+- `fitOnStart` per level: 6.6 zoomt in op de regio, 5.6 toont heel Nederland
+- Kaartcode gerefactord: `activeCities`, `initLevel()`, `markerLayer` — klaar voor meerdere levels
+- Provinciegrenzen-overlay vereenvoudigd; landsgrenspoging verwijderd
 
 ### 2026-03-11 (vervolg 2)
 - Tekstinvoer-modus toegevoegd naast meerkeuze (keuze op startscherm)
