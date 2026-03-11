@@ -232,55 +232,9 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="cities.js"></script>
 <script>
-const CITIES = [
-  { name: "Amsterdam",           lat: 52.37, lon: 4.90 },
-  { name: "Haarlem",             lat: 52.38, lon: 4.63 },
-  { name: "Alkmaar",             lat: 52.63, lon: 4.75 },
-  { name: "Purmerend",           lat: 52.50, lon: 4.96 },
-  { name: "Zaanstad",            lat: 52.44, lon: 4.81 },
-  { name: "Hoorn",               lat: 52.64, lon: 5.06 },
-  { name: "Den Haag",            lat: 52.08, lon: 4.30 },
-  { name: "Rotterdam",           lat: 51.93, lon: 4.48 },
-  { name: "Leiden",              lat: 52.16, lon: 4.50 },
-  { name: "Delft",               lat: 52.01, lon: 4.36 },
-  { name: "Gouda",               lat: 52.01, lon: 4.70 },
-  { name: "Dordrecht",           lat: 51.82, lon: 4.69 },
-  { name: "Spijkenisse",         lat: 51.85, lon: 4.33 },
-  { name: "Zoetermeer",          lat: 52.06, lon: 4.49 },
-  { name: "Alphen aan den Rijn", lat: 52.13, lon: 4.66 },
-  { name: "Utrecht",             lat: 52.09, lon: 5.12 },
-  { name: "Amersfoort",          lat: 52.16, lon: 5.39 },
-  { name: "Zeist",               lat: 52.09, lon: 5.23 },
-  { name: "Hilversum",           lat: 52.22, lon: 5.18 },
-  { name: "Groningen",           lat: 53.22, lon: 6.57 },
-  { name: "Leeuwarden",          lat: 53.20, lon: 5.80 },
-  { name: "Assen",               lat: 52.99, lon: 6.55 },
-  { name: "Emmen",               lat: 52.78, lon: 6.90 },
-  { name: "Zwolle",              lat: 52.51, lon: 6.09 },
-  { name: "Almelo",              lat: 52.35, lon: 6.66 },
-  { name: "Hengelo",             lat: 52.27, lon: 6.79 },
-  { name: "Enschede",            lat: 52.22, lon: 6.89 },
-  { name: "Deventer",            lat: 52.25, lon: 6.16 },
-  { name: "Lelystad",            lat: 52.50, lon: 5.47 },
-  { name: "Almere",              lat: 52.37, lon: 5.21 },
-  { name: "Apeldoorn",           lat: 52.21, lon: 5.97 },
-  { name: "Arnhem",              lat: 51.98, lon: 5.91 },
-  { name: "Nijmegen",            lat: 51.84, lon: 5.85 },
-  { name: "Ede",                 lat: 52.04, lon: 5.66 },
-  { name: "Middelburg",          lat: 51.50, lon: 3.61 },
-  { name: "Roosendaal",          lat: 51.53, lon: 4.46 },
-  { name: "Breda",               lat: 51.59, lon: 4.78 },
-  { name: "Tilburg",             lat: 51.56, lon: 5.09 },
-  { name: "'s-Hertogenbosch",    lat: 51.69, lon: 5.31 },
-  { name: "Oss",                 lat: 51.76, lon: 5.52 },
-  { name: "Helmond",             lat: 51.48, lon: 5.66 },
-  { name: "Eindhoven",           lat: 51.44, lon: 5.48 },
-  { name: "Sittard",             lat: 50.99, lon: 5.87 },
-  { name: "Heerlen",             lat: 50.88, lon: 5.98 },
-  { name: "Kerkrade",            lat: 50.87, lon: 6.07 },
-  { name: "Maastricht",          lat: 50.85, lon: 5.69 },
-];
+const CITIES = ALL_CITIES.filter(c => c.sets.includes(1));
 
 const NL_BOUNDS = [[50.699, 3.325], [53.566, 7.261]];
 
@@ -315,11 +269,11 @@ tileLayer.addTo(map);
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
-const NORMAL_STYLE   = { radius: 4, color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
-const MASTERED_STYLE = { radius: 4, color: '#1b5e20', weight: 1.5, fillColor: '#4caf50', fillOpacity: 1   };
+const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
+const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#4caf50', fillOpacity: 1   };
 
 CITIES.forEach(c => {
-  c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, interactive: false }).addTo(map);
+  c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false }).addTo(map);
 });
 
 const pulseIcon = L.divIcon({
@@ -345,7 +299,7 @@ function masteredCount() {
 
 function initStreak() {
   streak = {};
-  CITIES.forEach(c => { streak[c.name] = 0; c._hadWrong = false; c.marker.setStyle(NORMAL_STYLE); });
+  CITIES.forEach(c => { streak[c.name] = 0; c._hadWrong = false; c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) }); });
 }
 
 function buildPool() {
@@ -424,7 +378,7 @@ function checkAnswer(chosen, btn) {
     streak[correct.name]++;
     sessionOk++;
     if (streak[correct.name] >= MASTERY) {
-      correct.marker.setStyle(MASTERED_STYLE);
+      correct.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(correct) });
       fb.innerHTML = `✅ Goed! <span style="color:#f0c040">⭐ ${correct.name} geleerd!</span>`;
     } else {
       fb.textContent = `✅ Goed! (nog ${MASTERY - streak[correct.name]}× voor volledig geleerd)`;

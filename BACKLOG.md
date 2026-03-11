@@ -9,7 +9,7 @@
 
 ## Open
 
-- [ ] **Dot size op bevolking** — populatiedata toevoegen aan `CITIES` en de `radius` van de markers schalen op basis van inwoneraantal.
+- [x] **Dot size op bevolking** — populatiedata toevoegen aan `CITIES` en de `radius` van de markers schalen op basis van inwoneraantal.
 - [ ] **Vrije tekstinvoer** — naast meerkeuze een modus waarbij de speler de stadsnaam intypt. Spellingsvarianten per stad definiëren (bijv. `'s-Hertogenbosch` / `Den Bosch`). Modus te kiezen op het startscherm.
 - [ ] **Level/set kiezer** — steden groeperen per toets/hoofdstuk, zodat je gericht kunt oefenen voor een specifieke toets.
 - [ ] **Open-source kaarttiles zonder plaatsnamen** — huidige topomania.net tiles vervangen door een vrij beschikbare alternatief dat geen stadsnamen toont. Kandidaten om te evalueren:
@@ -19,6 +19,11 @@
   - Overwegingen: licentie (CC BY), schaalbaarheid, visuele stijl passend bij donker thema
 
 ## Changelog
+
+### 2026-03-11 (vervolg)
+- Stadsdata (naam, coördinaten, bevolking, set-nummers) verplaatst naar `cities.js`
+- Radius-berekening gebaseerd op globale min/max over alle steden (consistent over sets)
+- `index.html` filtert steden op `sets.includes(1)`
 
 ### 2026-03-11
 - Spel gaat automatisch door na 2s (was: klikken op "Volgende →")
