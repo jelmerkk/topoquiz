@@ -65,6 +65,16 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   text-decoration: underline;
 }
 #back-btn:hover { color: #fff; }
+#quit-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0 2px;
+  line-height: 1;
+}
+#quit-btn:hover { opacity: 1; }
 
 /* ── Score bar ── */
 #score-bar {
@@ -317,6 +327,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <span>🌟 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
+  <button id="quit-btn" onclick="showStartScreen()" title="Andere quiz kiezen">🗺️</button>
 </div>
 
 <div id="map-wrap" style="display:none">
