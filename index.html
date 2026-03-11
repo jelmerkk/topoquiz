@@ -281,20 +281,20 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 <h1>🗺️ Topografie Quiz — Grote steden</h1>
 
 <div id="start-screen">
-  <h2>Kies een speelwijze</h2>
-  <p>Hoe wil je oefenen?</p>
+  <h2>🗺️ Topo Quiz — Grote steden</h2>
+  <p>Hoe wil jij oefenen?</p>
   <button class="mode-btn" onclick="startQuiz('mc')">
     🔤 Meerkeuze
-    <span class="mode-desc">Kies het goede antwoord uit vier opties</span>
+    <span class="mode-desc">Kies het juiste antwoord uit vier opties</span>
   </button>
   <button class="mode-btn" onclick="startQuiz('text')">
-    ✏️ Naam typen
+    ✏️ Zelf typen
     <span class="mode-desc">Typ de naam van de stad zelf in</span>
   </button>
 </div>
 
 <div id="score-bar" style="display:none">
-  <span>🎓 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
+  <span>🌟 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
 </div>
@@ -318,14 +318,14 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 </div>
 
 <div id="hard-panel">
-  <h3>⚠️ Lastige steden – komen vaker terug</h3>
+  <h3>🔁 Nog even oefenen:</h3>
   <ul id="hard-list"></ul>
 </div>
 
 <div id="end-screen">
-  <h2>🎉 Alle steden geleerd!</h2>
+  <h2>🎉 Gefeliciteerd!</h2>
   <p id="end-text"></p>
-  <button id="restart-btn" onclick="showStartScreen()">Opnieuw spelen</button>
+  <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -600,7 +600,7 @@ function checkTextAnswer() {
     streak[correct.name]++;
     sessionOk++;
     if (streak[correct.name] >= mastery()) correct.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(correct) });
-    fb.innerHTML = `✅ Bijna! Het is <strong>${correct.name}</strong> — let de volgende keer op de spelling.`;
+    fb.innerHTML = `😊 Bijna! Het heet <strong>${correct.name}</strong> — let de volgende keer op de spelling.`;
     fb.className = 'fb-close';
     updateScoreboard();
   } else {
@@ -617,9 +617,9 @@ function recordCorrect(city, fb) {
   sessionOk++;
   if (streak[city.name] >= mastery()) {
     city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
-    fb.innerHTML = `✅ Goed! <span style="color:#f0c040">⭐ ${city.name} geleerd!</span>`;
+    fb.innerHTML = `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
   } else {
-    fb.textContent = `✅ Goed! (nog ${mastery() - streak[city.name]}× voor volledig geleerd)`;
+    fb.textContent = `✅ Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm! 💪`;
   }
   fb.className = 'fb-ok';
   updateScoreboard();
@@ -629,7 +629,7 @@ function recordWrong(city, fb) {
   streak[city.name] = 0;
   city._hadWrong = true;
   sessionErr++;
-  fb.textContent = `❌ Fout — het was ${city.name}`;
+  fb.textContent = `Helaas! 😅 Het was ${city.name}. Komt nog terug!`;
   fb.className = 'fb-err';
   updateScoreboard();
 }
@@ -668,7 +668,7 @@ function showEnd() {
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
   document.getElementById('end-text').innerHTML =
-    `🌟 Alle <strong>${TOTAL} steden</strong> geleerd!<br>${sessionOk} goed van ${total} pogingen — ${pct}% raak`;
+    `Je kent nu alle <strong>${TOTAL} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
 function showStartScreen() {

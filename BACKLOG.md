@@ -9,7 +9,7 @@
 
 ## Bugs / verbeteringen
 
-- [ ] **Teksten op niveau** — pas taalgebruik en feedback aan de doelgroep aan (groep 5, ~8-9 jaar).
+- [x] **Teksten op niveau** — pas taalgebruik en feedback aan de doelgroep aan (groep 5, ~9-10 jaar).
 - [ ] **Beter leesbare kaart** — huidige CARTO-kaart toont lands- en provinciegrenzen slecht. Voor groep 5 zijn die grenzen essentieel als oriëntatiepunt.
 
 ## Features
