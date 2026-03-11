@@ -303,11 +303,11 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
     <p>Hoe wil jij oefenen?</p>
     <button class="mode-btn" onclick="startQuiz('mc')">
       🔤 Meerkeuze
-      <span class="mode-desc">Kies het juiste antwoord uit vier opties</span>
+      <span class="mode-desc">Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!</span>
     </button>
     <button class="mode-btn" onclick="startQuiz('text')">
       ✏️ Zelf typen
-      <span class="mode-desc">Typ de naam van de stad zelf in</span>
+      <span class="mode-desc">Je typt de naam van de stad zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
     <button id="back-btn" onclick="showLevelSelect()">← Andere toets</button>
   </div>
@@ -709,7 +709,7 @@ let selectedSet = 1;
 function showLevelSelect() {
   const el = document.getElementById('level-select');
   // Genereer knoppen vanuit SETS
-  el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Kies een toets:</p>';
+  el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
   Object.entries(SETS).forEach(([num, set]) => {
     const btn = document.createElement('button');
     btn.className = 'mode-btn';
