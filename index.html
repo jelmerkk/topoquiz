@@ -20,6 +20,43 @@ body {
 }
 h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 
+/* ── Start screen ── */
+#start-screen {
+  display: none;
+  background: #243060;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 680px;
+  width: 100%;
+}
+#start-screen h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }
+#start-screen p  { color: #8ab4f8; font-size: 0.9rem; margin-bottom: 22px; }
+.mode-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+}
+.mode-btn:hover { background: #2c3d6e; border-color: #6080cc; }
+.mode-btn .mode-desc {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #8ab4f8;
+  margin-top: 3px;
+}
+
+/* ── Score bar ── */
 #score-bar {
   display: flex;
   justify-content: space-between;
@@ -48,6 +85,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 .sc-ok  { color: #4caf50; font-weight: 700; }
 .sc-err { color: #f44336; font-weight: 700; }
 
+/* ── Map ── */
 #map-wrap {
   width: 100%;
   max-width: 680px;
@@ -61,6 +99,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 }
 .leaflet-control-attribution { font-size: 9px !important; }
 
+/* ── Pulse marker ── */
 .pulse-wrap { position: relative; width: 0; height: 0; }
 .pulse-ring {
   position: absolute;
@@ -85,6 +124,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   100% { transform: scale(2.4); opacity: 0; }
 }
 
+/* ── Question box ── */
 #question-box {
   background: #243060;
   border-radius: 12px;
@@ -99,6 +139,8 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   margin-bottom: 12px;
   font-weight: 600;
 }
+
+/* Multiple choice options */
 #options {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -122,17 +164,54 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 .opt.wrong   { background: #b71c1c; border-color: #f44336; }
 .opt:disabled { cursor: default; }
 
+/* Text input mode */
+#text-input-wrap { display: none; margin-bottom: 10px; }
+#hint-display {
+  font-size: 0.85rem;
+  color: #f0c040;
+  min-height: 20px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+#text-row { display: flex; gap: 6px; }
+#city-input {
+  flex: 1;
+  padding: 10px 12px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 0.95rem;
+}
+#city-input:focus { outline: none; border-color: #6080cc; }
+#city-input:disabled { opacity: 0.6; }
+#hint-btn {
+  padding: 10px 12px;
+  background: #1a2744;
+  border: 2px solid #f0c04066;
+  border-radius: 9px;
+  color: #f0c040;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#hint-btn:hover:not(:disabled) { background: #2c3d6e; }
+#hint-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* Feedback */
 #feedback {
   font-size: 0.95rem;
   font-weight: 600;
   min-height: 22px;
   margin-bottom: 8px;
 }
-.fb-ok  { color: #4caf50; }
-.fb-err { color: #f44336; }
+.fb-ok    { color: #4caf50; }
+.fb-close { color: #f0c040; }
+.fb-err   { color: #f44336; }
 
 #next-btn { display: none; }
 
+/* ── Hard panel ── */
 #hard-panel {
   display: none;
   background: #243060;
@@ -153,6 +232,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 }
 #hard-list li b { color: #fff; }
 
+/* ── End screen ── */
 #end-screen {
   display: none;
   background: #243060;
@@ -175,15 +255,13 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   cursor: pointer;
 }
 
-/* Tablet (768px+): bredere layout, grotere kaart */
+/* ── Responsive ── */
 @media (min-width: 768px) {
   body { padding: 14px; gap: 12px; }
   h1 { font-size: 1.3rem; }
-  #map-wrap, #question-box, #score-bar, #hard-panel, #end-screen { max-width: 900px; }
+  #map-wrap, #question-box, #score-bar, #hard-panel, #end-screen, #start-screen { max-width: 900px; }
   #leaflet-map { height: clamp(500px, 66dvh, 740px); }
 }
-
-/* Mobiel (<= 480px): vul het volledige scherm, kaart groeit mee */
 @media (max-width: 480px) {
   body { padding: 6px; gap: 5px; height: 100dvh; overflow: hidden; }
   h1 { font-size: 0.82rem; }
@@ -195,7 +273,6 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   #options { gap: 6px; margin-bottom: 7px; }
   .opt { padding: 9px 6px; font-size: 0.82rem; }
   #feedback { font-size: 0.82rem; min-height: 18px; margin-bottom: 5px; }
-  #next-btn { padding: 9px; font-size: 0.9rem; }
 }
 </style>
 </head>
@@ -203,19 +280,39 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 
 <h1>🗺️ Topografie Quiz — Grote steden</h1>
 
-<div id="score-bar">
+<div id="start-screen">
+  <h2>Kies een speelwijze</h2>
+  <p>Hoe wil je oefenen?</p>
+  <button class="mode-btn" onclick="startQuiz('mc')">
+    🔤 Meerkeuze
+    <span class="mode-desc">Kies het goede antwoord uit vier opties</span>
+  </button>
+  <button class="mode-btn" onclick="startQuiz('text')">
+    ✏️ Naam typen
+    <span class="mode-desc">Typ de naam van de stad zelf in</span>
+  </button>
+</div>
+
+<div id="score-bar" style="display:none">
   <span>🎓 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
 </div>
 
-<div id="map-wrap">
+<div id="map-wrap" style="display:none">
   <div id="leaflet-map"></div>
 </div>
 
-<div id="question-box">
+<div id="question-box" style="display:none">
   <div id="question-text">Welke stad is dit?</div>
   <div id="options"></div>
+  <div id="text-input-wrap">
+    <div id="hint-display"></div>
+    <div id="text-row">
+      <input id="city-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Typ de stadsnaam…">
+      <button id="hint-btn" onclick="showHint()">Hint 💡</button>
+    </div>
+  </div>
   <div id="feedback"></div>
   <button id="next-btn">Volgende →</button>
 </div>
@@ -228,7 +325,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 <div id="end-screen">
   <h2>🎉 Alle steden geleerd!</h2>
   <p id="end-text"></p>
-  <button id="restart-btn" onclick="startQuiz()">Opnieuw spelen</button>
+  <button id="restart-btn" onclick="showStartScreen()">Opnieuw spelen</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -288,13 +385,88 @@ function setHighlight(city) {
   highlightMarker = L.marker([city.lat, city.lon], { icon: pulseIcon, interactive: false }).addTo(map);
 }
 
-const MASTERY = 3;
+// ── Game state ──────────────────────────────────────────────
+const MASTERY_MC   = 3; // meerkeuze: 3× goed
+const MASTERY_TEXT = 1; // typen: 1× goed
+function mastery() { return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC; }
 const TOTAL   = CITIES.length;
+let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
 let currentCity = null, answered = false;
+let hintRevealed = 0; // aantal tekens van de hint dat getoond is
+
+// ── Text answer helpers ──────────────────────────────────────
+
+// Normaliseer voor vergelijking: lowercase, trim, verwijder '-/'/spaties
+function normalize(s) {
+  return s.toLowerCase().trim().replace(/['\-\s]/g, '');
+}
+
+// Levenshtein afstand tussen twee strings
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+// Maximaal toegestane typefouten op basis van naamlengte (na normalisatie)
+function typoThreshold(normalizedName) {
+  const l = normalizedName.length;
+  if (l <= 4) return 0;
+  if (l <= 8) return 1;
+  return 2;
+}
+
+// Geeft 'exact', 'close' of false terug
+function matchInput(input, city) {
+  const normInput = normalize(input);
+  if (!normInput) return false;
+
+  // Controleer exacte naam + aliassen
+  const allNames = [city.name, ...(city.aliases || [])];
+  for (const name of allNames) {
+    if (normalize(name) === normInput) return 'exact';
+  }
+
+  // Fuzzy match op naam en aliassen
+  for (const name of allNames) {
+    const normName = normalize(name);
+    const dist = levenshtein(normInput, normName);
+    if (dist <= typoThreshold(normName)) return 'close';
+  }
+
+  return false;
+}
+
+// ── Hint ────────────────────────────────────────────────────
+
+// Maximaal te onthullen tekens (helft van de naam, afgerond naar boven, max 4)
+function maxHintChars(city) {
+  return Math.min(Math.ceil(city.name.length / 2), 4);
+}
+
+function showHint() {
+  if (answered) return;
+  hintRevealed = Math.min(hintRevealed + 1, maxHintChars(currentCity));
+  const shown = currentCity.name.slice(0, hintRevealed);
+  const dots  = '…';
+  document.getElementById('hint-display').textContent = `Hint: ${shown}${dots}`;
+  if (hintRevealed >= maxHintChars(currentCity)) {
+    document.getElementById('hint-btn').disabled = true;
+  }
+  document.getElementById('city-input').focus();
+}
+
+// ── Core game logic ──────────────────────────────────────────
 
 function masteredCount() {
-  return CITIES.filter(c => streak[c.name] >= MASTERY).length;
+  return CITIES.filter(c => streak[c.name] >= mastery()).length;
 }
 
 function initStreak() {
@@ -306,8 +478,8 @@ function buildPool() {
   const pool = [];
   CITIES.forEach(c => {
     const s = streak[c.name];
-    if (s >= MASTERY) return;
-    for (let i = 0; i < MASTERY - s; i++) pool.push(c);
+    if (s >= mastery()) return;
+    for (let i = 0; i < mastery() - s; i++) pool.push(c);
   });
   return pool;
 }
@@ -336,7 +508,6 @@ function dist(a, b) {
 function nearbyDistractors(city, n) {
   const sorted = CITIES.filter(c => c !== city)
                        .sort((a, b) => dist(a, city) - dist(b, city));
-  // Pick from the closest candidates, with some randomness to vary the pool
   const candidates = sorted.slice(0, Math.min(8, sorted.length));
   return shuffle(candidates).slice(0, n);
 }
@@ -344,25 +515,38 @@ function nearbyDistractors(city, n) {
 function renderQuestion() {
   document.activeElement?.blur();
   answered = false;
+  hintRevealed = 0;
   currentCity = pickCity();
   setHighlight(currentCity);
 
-  const options = shuffle([currentCity, ...nearbyDistractors(currentCity, 3)]);
-  const optDiv = document.getElementById('options');
-  optDiv.innerHTML = '';
-  options.forEach(c => {
-    const btn = document.createElement('button');
-    btn.className = 'opt';
-    btn.textContent = c.name;
-    btn.onclick = () => checkAnswer(c, btn);
-    optDiv.appendChild(btn);
-  });
   document.getElementById('feedback').textContent = '';
   document.getElementById('feedback').className   = '';
   document.getElementById('next-btn').style.display = 'none';
+
+  if (gameMode === 'mc') {
+    const options = shuffle([currentCity, ...nearbyDistractors(currentCity, 3)]);
+    const optDiv = document.getElementById('options');
+    optDiv.innerHTML = '';
+    options.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.textContent = c.name;
+      btn.onclick = () => checkMcAnswer(c, btn);
+      optDiv.appendChild(btn);
+    });
+  } else {
+    document.getElementById('hint-display').textContent = '';
+    document.getElementById('hint-btn').disabled = false;
+    const input = document.getElementById('city-input');
+    input.value = '';
+    input.disabled = false;
+    setTimeout(() => input.focus(), 50);
+  }
 }
 
-function checkAnswer(chosen, btn) {
+// ── Multiple choice answer ───────────────────────────────────
+
+function checkMcAnswer(chosen, btn) {
   if (answered) return;
   answered = true;
   const correct = currentCity;
@@ -375,44 +559,104 @@ function checkAnswer(chosen, btn) {
   const fb = document.getElementById('feedback');
   if (chosen === correct) {
     btn.classList.add('correct');
-    streak[correct.name]++;
-    sessionOk++;
-    if (streak[correct.name] >= MASTERY) {
-      correct.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(correct) });
-      fb.innerHTML = `✅ Goed! <span style="color:#f0c040">⭐ ${correct.name} geleerd!</span>`;
-    } else {
-      fb.textContent = `✅ Goed! (nog ${MASTERY - streak[correct.name]}× voor volledig geleerd)`;
-    }
-    fb.className = 'fb-ok';
+    recordCorrect(correct, fb);
   } else {
     btn.classList.add('wrong');
-    streak[correct.name] = 0;
-    correct._hadWrong = true;
-    sessionErr++;
-    fb.textContent = `❌ Fout — het was ${correct.name}`;
-    fb.className = 'fb-err';
+    recordWrong(correct, fb);
   }
 
+  finishAnswer();
+}
+
+// ── Text input answer ────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('city-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !answered && gameMode === 'text') checkTextAnswer();
+  });
+});
+
+function checkTextAnswer() {
+  if (answered) return;
+  const input = document.getElementById('city-input');
+  const value = input.value;
+  if (!value.trim()) return;
+
+  answered = true;
+  input.disabled = true;
+  document.getElementById('hint-btn').disabled = true;
+
+  const correct = currentCity;
+  const result  = matchInput(value, correct);
+  const fb      = document.getElementById('feedback');
+
+  if (result === 'exact') {
+    recordCorrect(correct, fb);
+  } else if (result === 'close') {
+    // Bijna goed: telt als correct maar met spellingtip
+    streak[correct.name]++;
+    sessionOk++;
+    if (streak[correct.name] >= mastery()) correct.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(correct) });
+    fb.innerHTML = `✅ Bijna! Het is <strong>${correct.name}</strong> — let de volgende keer op de spelling.`;
+    fb.className = 'fb-close';
+    updateScoreboard();
+  } else {
+    recordWrong(correct, fb);
+  }
+
+  finishAnswer();
+}
+
+// ── Shared result helpers ────────────────────────────────────
+
+function recordCorrect(city, fb) {
+  streak[city.name]++;
+  sessionOk++;
+  if (streak[city.name] >= mastery()) {
+    city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
+    fb.innerHTML = `✅ Goed! <span style="color:#f0c040">⭐ ${city.name} geleerd!</span>`;
+  } else {
+    fb.textContent = `✅ Goed! (nog ${mastery() - streak[city.name]}× voor volledig geleerd)`;
+  }
+  fb.className = 'fb-ok';
+  updateScoreboard();
+}
+
+function recordWrong(city, fb) {
+  streak[city.name] = 0;
+  city._hadWrong = true;
+  sessionErr++;
+  fb.textContent = `❌ Fout — het was ${city.name}`;
+  fb.className = 'fb-err';
+  updateScoreboard();
+}
+
+function updateScoreboard() {
   const mc = masteredCount();
   document.getElementById('sc-ok').textContent       = sessionOk;
   document.getElementById('sc-err').textContent      = sessionErr;
   document.getElementById('sc-mastered').textContent = mc;
   document.getElementById('progress-bar').style.width = Math.round(mc / TOTAL * 100) + '%';
   updateHardList();
+}
 
+function finishAnswer() {
+  const mc = masteredCount();
   setTimeout(mc >= TOTAL ? showEnd : renderQuestion, 2000);
 }
 
 function updateHardList() {
   const panel = document.getElementById('hard-panel');
-  const hard  = CITIES.filter(c => c._hadWrong && streak[c.name] < MASTERY)
+  const hard  = CITIES.filter(c => c._hadWrong && streak[c.name] < mastery())
                       .sort((a, b) => streak[a.name] - streak[b.name]);
   if (!hard.length) { panel.style.display = 'none'; return; }
   panel.style.display = 'block';
   document.getElementById('hard-list').innerHTML = hard.map(c =>
-    `<li>${c.name} <b>${'●'.repeat(streak[c.name])}${'○'.repeat(MASTERY - streak[c.name])}</b></li>`
+    `<li>${c.name} <b>${'●'.repeat(streak[c.name])}${'○'.repeat(mastery() - streak[c.name])}</b></li>`
   ).join('');
 }
+
+// ── Screens ──────────────────────────────────────────────────
 
 function showEnd() {
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
@@ -424,22 +668,41 @@ function showEnd() {
     `🌟 Alle <strong>${TOTAL} steden</strong> geleerd!<br>${sessionOk} goed van ${total} pogingen — ${pct}% raak`;
 }
 
-function startQuiz() {
+function showStartScreen() {
+  document.getElementById('end-screen').style.display   = 'none';
+  document.getElementById('map-wrap').style.display     = 'none';
+  document.getElementById('question-box').style.display = 'none';
+  document.getElementById('score-bar').style.display    = 'none';
+  document.getElementById('hard-panel').style.display   = 'none';
+  document.getElementById('start-screen').style.display = 'block';
+}
+
+function startQuiz(mode) {
+  gameMode = mode;
+
+  // Toon/verberg de juiste invoer-UI
+  document.getElementById('options').style.display          = mode === 'mc'   ? '' : 'none';
+  document.getElementById('text-input-wrap').style.display  = mode === 'text' ? 'block' : 'none';
+
   initStreak();
   sessionOk = sessionErr = 0;
   currentCity = null;
   ['sc-ok','sc-err','sc-mastered'].forEach(id => document.getElementById(id).textContent = '0');
   document.getElementById('progress-bar').style.width = '0%';
-  document.getElementById('end-screen').style.display  = 'none';
-  document.getElementById('hard-panel').style.display  = 'none';
-  document.getElementById('map-wrap').style.display    = 'block';
+
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('end-screen').style.display   = 'none';
+  document.getElementById('hard-panel').style.display   = 'none';
+  document.getElementById('map-wrap').style.display     = 'block';
+  map.invalidateSize(); // kaart wist afmetingen bij verborgen init
   document.getElementById('question-box').style.display = 'block';
-  document.getElementById('score-bar').style.display   = 'flex';
+  document.getElementById('score-bar').style.display    = 'flex';
   document.getElementById('qtot').textContent = TOTAL;
+
   renderQuestion();
 }
 
-startQuiz();
+showStartScreen();
 </script>
 </body>
 </html>
