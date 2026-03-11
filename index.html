@@ -383,6 +383,9 @@ let highlightMarker = null;
 function setHighlight(city) {
   if (highlightMarker) map.removeLayer(highlightMarker);
   highlightMarker = L.marker([city.lat, city.lon], { icon: pulseIcon, interactive: false }).addTo(map);
+  if (!map.getBounds().contains([city.lat, city.lon])) {
+    map.panTo([city.lat, city.lon], { animate: true });
+  }
 }
 
 // ── Game state ──────────────────────────────────────────────
