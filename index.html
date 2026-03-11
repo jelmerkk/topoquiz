@@ -278,10 +278,10 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 </head>
 <body>
 
-<h1>🗺️ Topografie Quiz — Grote steden</h1>
+<h1>🗺️ Topografie Quiz</h1>
 
 <div id="start-screen">
-  <h2>🗺️ Topo Quiz — Grote steden</h2>
+  <h2 id="start-level-name"></h2>
   <p>Hoe wil jij oefenen?</p>
   <button class="mode-btn" onclick="startQuiz('mc')">
     🔤 Meerkeuze
@@ -684,7 +684,8 @@ function showEnd() {
     `Je kent nu alle <strong>${activeCities.length} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
-function showStartScreen() {
+function showStartScreen(setNumber = 1) {
+  document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'none';
   document.getElementById('question-box').style.display = 'none';

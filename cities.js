@@ -57,6 +57,11 @@ const ALL_CITIES = [
   { name: "Maastricht",          lat: 50.85, lon: 5.69, pop:  122000, sets: [1] },
 ];
 
+// Set-definities: setNumber → weergavenaam
+const SETS = {
+  1: { name: '5.6 – Grote steden' },
+};
+
 // Radius op logaritmische schaal (4–12px), gebaseerd op globale min/max.
 // Altijd berekend over ALL_CITIES zodat groottes consistent zijn over sets.
 const _POP_LOG_MIN = Math.log(Math.min(...ALL_CITIES.map(c => c.pop)));
