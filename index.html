@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topografie Quiz – Grote Steden</title>
+<title>Topografie Quiz</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -317,7 +317,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
     </button>
     <button class="mode-btn" onclick="startQuiz('text')">
       ✏️ Zelf typen
-      <span class="mode-desc">Je typt de naam van de stad zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
+      <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
     <button id="back-btn" onclick="showLevelSelect()">← Andere toets</button>
   </div>
@@ -335,12 +335,12 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 </div>
 
 <div id="question-box" style="display:none">
-  <div id="question-text">Welke stad is dit?</div>
+  <div id="question-text">Welke plaats is dit?</div>
   <div id="options"></div>
   <div id="text-input-wrap">
     <div id="hint-display"></div>
     <div id="text-row">
-      <input id="city-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Typ de stadsnaam…">
+      <input id="city-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Typ de naam…">
       <button id="hint-btn" onclick="showHint()">Hint 💡</button>
     </div>
   </div>
@@ -712,7 +712,7 @@ function showEnd() {
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
   document.getElementById('end-text').innerHTML =
-    `Je kent nu alle <strong>${activeCities.length} steden</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+    `Je kent nu alle <strong>${activeCities.length} plaatsen</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
 let selectedSet = 1;

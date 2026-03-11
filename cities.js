@@ -1,11 +1,11 @@
-// Stadsdata voor de Topo Quiz.
-// Veld 'sets':    array van set-nummers waarin de stad voorkomt.
+// Plaatsdata voor de Topo Quiz.
+// Veld 'sets':    array van set-nummers waarin de plaats voorkomt.
 // Veld 'aliases': alternatieve spellingen die als correct antwoord worden geaccepteerd
 //                 bij de tekstinvoer-modus.
 // Bevolkingscijfers: CBS 2023 (afgerond op duizendtallen).
 //
 // De radius van elke stip wordt berekend op basis van de GLOBALE
-// min/max over ALLE steden, zodat groottes consistent blijven
+// min/max over ALLE plaatsen, zodat groottes consistent blijven
 // ongeacht welke set je speelt.
 
 const ALL_CITIES = [
@@ -57,7 +57,7 @@ const ALL_CITIES = [
   { name: "Kerkrade",            lat: 50.87, lon: 6.07, pop:   45000, sets: [1] },
   { name: "Maastricht",          lat: 50.85, lon: 5.69, pop:  122000, sets: [1] },
 
-  // ── Set 2: Zuid-Holland (extra steden) ───────────────────────
+  // ── Set 2: Zuid-Holland (extra plaatsen) ─────────────────────
   { name: "Noordwijk",           lat: 52.24, lon: 4.45, pop:   44000, sets: [2] },
   { name: "Wassenaar",           lat: 52.14, lon: 4.40, pop:   26000, sets: [2] },
   { name: "Scheveningen",        lat: 52.11, lon: 4.27, pop:   38000, sets: [2] },
@@ -68,7 +68,7 @@ const ALL_CITIES = [
 ];
 
 // Set-definities: setNumber → weergavenaam
-// fitOnStart: true  → zoom in op de steden van dit level bij de start
+// fitOnStart: true  → zoom in op de plaatsen van dit level bij de start
 //             false → toon heel Nederland (geschikt voor landelijke levels)
 const SETS = {
   1: { name: '5.6 – Grote steden', fitOnStart: false },
