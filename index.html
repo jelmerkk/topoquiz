@@ -294,10 +294,24 @@ const map = L.map('leaflet-map', {
   touchZoom: true,
 });
 
-L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
-  minZoom: 6, maxZoom: 10,
-}).addTo(map);
+// FEATURE FLAG: zet op true voor CARTO Positron tiles (geen plaatsnamen, open-source)
+//               zet op false voor originele TopoMania tiles
+// Let op: donkere kaart (dark_nolabels) is NIET geschikt — doelgroep zijn kinderen in groep 5
+// die de kaart moeten kunnen herkennen. Gebruik altijd een lichte, vertrouwde kaartstijl.
+const USE_CARTO_TILES = true;
+
+const tileLayer = USE_CARTO_TILES
+  ? L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+      subdomains: 'abcd',
+      minZoom: 6, maxZoom: 19,
+    })
+  : L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
+      minZoom: 6, maxZoom: 10,
+    });
+
+tileLayer.addTo(map);
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
