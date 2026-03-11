@@ -68,9 +68,11 @@ const ALL_CITIES = [
 ];
 
 // Set-definities: setNumber → weergavenaam
+// fitOnStart: true  → zoom in op de steden van dit level bij de start
+//             false → toon heel Nederland (geschikt voor landelijke levels)
 const SETS = {
-  1: { name: '5.6 – Grote steden' },
-  2: { name: '6.6 – Zuid-Holland' },
+  1: { name: '5.6 – Grote steden', fitOnStart: false },
+  2: { name: '6.6 – Zuid-Holland', fitOnStart: true  },
 };
 
 // Radius op logaritmische schaal (4–12px), gebaseerd op globale min/max.
