@@ -505,13 +505,49 @@ const tileLayer = USE_CARTO_TILES
 
 tileLayer.addTo(map);
 
+// Provincie-stijlen
+const PROV_BORDER    = { color: '#666', weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
+const PROV_DEFAULT   = { color: '#5a7aaa', weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8', fillOpacity: 0.2  };
+const PROV_HIGHLIGHT = { color: '#c07000', weight: 2.5, opacity: 1,    fillColor: '#f0a500', fillOpacity: 0.6  };
+const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#4caf50', fillOpacity: 0.4  };
+
 // Provinciegrenzen — cartomap.github.io (MIT, WGS84, CORS-enabled)
-fetch('https://cartomap.github.io/nl/wgs84/provincie_2023.geojson')
+// Data wordt ook bewaard voor de provincies-quiz (set 54).
+let provinceFeatureData = null;
+let provinceLayers = {};    // statnaam → Leaflet layer (alleen actief tijdens province-quiz)
+let provinceQuizLayer = null;
+
+const provinceDataPromise = fetch('https://cartomap.github.io/nl/wgs84/provincie_2023.geojson')
   .then(r => r.json())
-  .then(data => L.geoJSON(data, {
-    style: { color: '#666', weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' },
+  .then(data => {
+    provinceFeatureData = data;
+    L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
+  });
+
+// Bouw een interactieve provincielaag voor de quiz (één keer per speelsessie).
+function buildProvinceLayer() {
+  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); }
+  provinceLayers = {};
+  provinceQuizLayer = L.geoJSON(provinceFeatureData, {
+    style: PROV_DEFAULT,
     interactive: false,
-  }).addTo(map));
+    onEachFeature: (feature, layer) => {
+      const name = feature.properties.statnaam;
+      if (name) provinceLayers[name] = layer;
+    },
+  }).addTo(map);
+}
+
+function setHighlightProvince(province) {
+  Object.entries(provinceLayers).forEach(([name, layer]) => {
+    layer.setStyle(name === province.name
+      ? PROV_HIGHLIGHT
+      : (streak[name] >= mastery() ? PROV_MASTERED : PROV_DEFAULT));
+  });
+  if (provinceLayers[province.name]) provinceLayers[province.name].bringToFront();
+  const latlng = [province.lat, province.lon];
+  if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+}
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
@@ -621,17 +657,30 @@ function masteredCount() {
 
 function initLevel(setNumber) {
   markerLayer.clearLayers();
-  activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
-  activeCities.forEach(c => {
-    c._hadWrong = false;
-    c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
-      .addTo(markerLayer);
-  });
+  if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
+
+  if (SETS[setNumber].quizType === 'province') {
+    activeCities = ALL_PROVINCES;
+    buildProvinceLayer();
+  } else {
+    activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
+    activeCities.forEach(c => {
+      c._hadWrong = false;
+      c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
+        .addTo(markerLayer);
+    });
+  }
 }
 
 function initStreak() {
   streak = {};
-  activeCities.forEach(c => { streak[c.name] = 0; c._hadWrong = false; c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) }); });
+  activeCities.forEach(c => {
+    streak[c.name] = 0;
+    c._hadWrong = false;
+    if (c.marker) c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) });
+    if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_DEFAULT);
+  });
 }
 
 function buildPool() {
@@ -677,7 +726,15 @@ function renderQuestion() {
   answered = false;
   hintRevealed = 0;
   currentCity = pickCity();
-  setHighlight(currentCity);
+
+  const isProvince = SETS[selectedSet].quizType === 'province';
+  document.getElementById('question-text').textContent = isProvince ? 'Welke provincie is dit?' : 'Welke plaats is dit?';
+  if (isProvince) {
+    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+    setHighlightProvince(currentCity);
+  } else {
+    setHighlight(currentCity);
+  }
 
   document.getElementById('feedback').textContent = '';
   document.getElementById('feedback').className   = '';
@@ -767,7 +824,8 @@ function recordCorrect(city, fb, close = false) {
   streak[city.name]++;
   sessionOk++;
   if (streak[city.name] >= mastery()) {
-    city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
+    if (city.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
+    if (provinceLayers[city.name]) provinceLayers[city.name].setStyle(PROV_MASTERED);
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
       : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
@@ -823,11 +881,12 @@ function showEnd() {
   document.getElementById('end-screen').style.display = 'block';
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
+  const isProvince = SETS[selectedSet].quizType === 'province';
   document.getElementById('end-text').innerHTML =
-    `Je kent nu alle <strong>${activeCities.length} plaatsen</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+    `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 }
 
-let selectedSet = 1;
+let selectedSet = 54;
 
 function showLevelSelect() {
   const el = document.getElementById('level-select');
@@ -849,6 +908,15 @@ function selectLevel(setNumber) {
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
   document.getElementById('level-select').style.display = 'none';
   document.getElementById('mode-select').style.display  = 'block';
+
+  const isProvince = SETS[setNumber].quizType === 'province';
+  const descs = document.querySelectorAll('#mode-select .mode-desc');
+  descs[0].textContent = isProvince
+    ? 'Je ziet een provincie gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
+    : 'Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!';
+  descs[1].textContent = isProvince
+    ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
+    : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
@@ -902,6 +970,7 @@ function submitFeedback() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
 function showStartScreen() {
+  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'none';
   document.getElementById('question-box').style.display = 'none';
@@ -912,8 +981,9 @@ function showStartScreen() {
   showLevelSelect();
 }
 
-function startQuiz(mode) {
+async function startQuiz(mode) {
   gameMode = mode;
+  if (SETS[selectedSet].quizType === 'province') await provinceDataPromise;
   initLevel(selectedSet);
 
   // Toon/verberg de juiste invoer-UI
