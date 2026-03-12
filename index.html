@@ -129,6 +129,13 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 }
 .leaflet-control-attribution { font-size: 9px !important; }
 
+/* ── Hoofdstad-markering (vierkant) ── */
+.capital-marker {
+  background: #4a5a80;
+  border: 1.5px solid #1a2744;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
 /* ── Pulse marker ── */
 .pulse-wrap { position: relative; width: 0; height: 0; }
 .pulse-ring {
@@ -667,8 +674,24 @@ function initLevel(setNumber) {
     activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
     activeCities.forEach(c => {
       c._hadWrong = false;
-      c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
-        .addTo(markerLayer);
+      if (c.capital) {
+        const s = cityRadius(c) * 2;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="capital-marker" style="width:${s}px;height:${s}px"></div>`,
+          iconSize: [s, s], iconAnchor: [s / 2, s / 2],
+        });
+        c.marker = L.marker([c.lat, c.lon], { icon, interactive: false }).addTo(markerLayer);
+        c.marker.setStyle = function(style) {
+          const el = this.getElement()?.querySelector('.capital-marker');
+          if (!el) return;
+          el.style.backgroundColor = style.fillColor;
+          el.style.borderColor     = style.color;
+        };
+      } else {
+        c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
+          .addTo(markerLayer);
+      }
     });
   }
 }
