@@ -75,6 +75,16 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   line-height: 1;
 }
 #quit-btn:hover { opacity: 1; }
+#fb-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0 2px;
+  line-height: 1;
+}
+#fb-btn:hover { opacity: 1; }
 
 /* ── Score bar ── */
 #score-bar {
@@ -275,6 +285,84 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   cursor: pointer;
 }
 
+/* ── Feedback modal ── */
+#fb-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+}
+#fb-overlay.open { display: flex; }
+#fb-modal {
+  background: #243060;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: min(460px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#fb-modal h3 { color: #f0c040; font-size: 1.05rem; }
+#fb-modal > p { color: #8ab4f8; font-size: 0.83rem; line-height: 1.5; }
+.fb-type-row { display: flex; gap: 8px; }
+.fb-type-btn {
+  flex: 1;
+  padding: 10px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  color: #fff;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.fb-type-btn.selected { border-color: #f0c040; background: #2c3d6e; }
+#fb-desc, #fb-name {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 0.92rem;
+  font-family: inherit;
+}
+#fb-desc { resize: vertical; min-height: 80px; }
+#fb-desc:focus, #fb-name:focus { outline: none; border-color: #6080cc; }
+#fb-name::placeholder, #fb-desc::placeholder { color: #4a5a80; }
+.fb-btn-row { display: flex; gap: 8px; justify-content: flex-end; }
+#fb-cancel {
+  padding: 9px 18px;
+  background: none;
+  border: 2px solid #3a4f88;
+  color: #8ab4f8;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#fb-submit {
+  padding: 9px 20px;
+  background: #f0c040;
+  color: #1a2744;
+  border: none;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#fb-submit:disabled { opacity: 0.5; cursor: default; }
+#fb-thanks { display: none; text-align: center; padding: 12px 0; color: #4caf50; font-weight: 600; }
+.fb-open-btn {
+  background: none; border: none;
+  color: #3a4f88; font-size: 0.78rem;
+  cursor: pointer; text-decoration: underline;
+  display: block; margin: 8px auto 0;
+}
+.fb-open-btn:hover { color: #8ab4f8; }
+
 /* ── Responsive ── */
 @media (min-width: 768px) {
   body { padding: 14px; gap: 12px; }
@@ -320,6 +408,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
       <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
     <button id="back-btn" onclick="showLevelSelect()">← Andere toets</button>
+    <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
   </div>
 </div>
 
@@ -328,6 +417,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
   <button id="quit-btn" onclick="showStartScreen()" title="Andere quiz kiezen">🗺️</button>
+  <button id="fb-btn" onclick="openFeedback()" title="Feedback geven" style="margin-left:-4px">💬</button>
 </div>
 
 <div id="map-wrap" style="display:none">
@@ -357,6 +447,28 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <h2>🎉 Gefeliciteerd!</h2>
   <p id="end-text"></p>
   <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
+  <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
+</div>
+
+<!-- Feedback modal -->
+<div id="fb-overlay" onclick="if(event.target===this)closeFeedback()">
+  <div id="fb-modal">
+    <h3>💬 Feedback geven</h3>
+    <p>Iets gevonden dat niet klopt, of een idee? Laat het weten!</p>
+    <div id="fb-form">
+      <div class="fb-type-row">
+        <button class="fb-type-btn selected" onclick="selectFbType(this,'Bug 🐛')">🐛 Iets klopt niet</button>
+        <button class="fb-type-btn" onclick="selectFbType(this,'Suggestie 💡')">💡 Idee / suggestie</button>
+      </div>
+      <textarea id="fb-desc" placeholder="Beschrijf het hier…"></textarea>
+      <input id="fb-name" type="text" placeholder="Jouw naam (optioneel)">
+      <div class="fb-btn-row">
+        <button id="fb-cancel" onclick="closeFeedback()">Annuleren</button>
+        <button id="fb-submit" onclick="submitFeedback()">Versturen →</button>
+      </div>
+    </div>
+    <div id="fb-thanks">✅ Bedankt voor je feedback!</div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -738,6 +850,56 @@ function selectLevel(setNumber) {
   document.getElementById('level-select').style.display = 'none';
   document.getElementById('mode-select').style.display  = 'block';
 }
+
+// ── Feedback ──────────────────────────────────────────────────────────────────
+const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
+let fbType = 'Bug 🐛';
+
+function openFeedback() {
+  fbType = 'Bug 🐛';
+  document.querySelectorAll('.fb-type-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
+  document.getElementById('fb-desc').value = '';
+  document.getElementById('fb-name').value = '';
+  document.getElementById('fb-form').style.display  = '';
+  document.getElementById('fb-thanks').style.display = 'none';
+  document.getElementById('fb-submit').disabled = false;
+  document.getElementById('fb-overlay').classList.add('open');
+}
+
+function closeFeedback() {
+  document.getElementById('fb-overlay').classList.remove('open');
+}
+
+function selectFbType(btn, type) {
+  fbType = type;
+  document.querySelectorAll('.fb-type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function submitFeedback() {
+  const desc = document.getElementById('fb-desc').value.trim();
+  if (!desc) { document.getElementById('fb-desc').focus(); return; }
+
+  const name    = document.getElementById('fb-name').value.trim();
+  const level   = SETS[selectedSet] ? SETS[selectedSet].name : '—';
+  const context = `Level: ${level} | Modus: ${gameMode || '—'}`;
+  const body    = `${desc}\n\n— ${context}`;
+
+  const data = new FormData();
+  data.append('entry.583836025', fbType);
+  data.append('entry.502100028', body);
+  data.append('entry.2120483293', name);
+
+  document.getElementById('fb-submit').disabled = true;
+  fetch(FB_ENDPOINT, { method: 'POST', mode: 'no-cors', body: data })
+    .finally(() => {
+      document.getElementById('fb-form').style.display   = 'none';
+      document.getElementById('fb-thanks').style.display = 'block';
+      setTimeout(closeFeedback, 2000);
+    });
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
 function showStartScreen() {
   document.getElementById('end-screen').style.display   = 'none';
