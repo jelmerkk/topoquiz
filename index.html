@@ -414,7 +414,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
       ✏️ Zelf typen
       <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
-    <button id="back-btn" onclick="showLevelSelect()">← Andere toets</button>
+    <button id="back-btn" onclick="history.back()">← Andere toets</button>
     <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
   </div>
 </div>
@@ -860,6 +860,7 @@ function recordCorrect(city, fb, close = false) {
     fb.className = close ? 'fb-close' : 'fb-ok';
   }
   updateScoreboard();
+  saveProgress();
 }
 
 function recordWrong(city, fb) {
@@ -869,6 +870,7 @@ function recordWrong(city, fb) {
   fb.textContent = `Helaas! 😅 Het was ${city.name}. Komt nog terug!`;
   fb.className = 'fb-err';
   updateScoreboard();
+  saveProgress();
 }
 
 function updateScoreboard() {
@@ -899,6 +901,7 @@ function updateHardList() {
 // ── Screens ──────────────────────────────────────────────────
 
 function showEnd() {
+  clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
     document.getElementById(id).style.display = 'none');
   document.getElementById('end-screen').style.display = 'block';
@@ -911,9 +914,10 @@ function showEnd() {
 
 let selectedSet = 54;
 
-function showLevelSelect() {
+// ── Internal render helpers (geen history-aanpassingen) ──────
+
+function _renderLevelSelect() {
   const el = document.getElementById('level-select');
-  // Genereer knoppen vanuit SETS
   el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
   Object.entries(SETS).forEach(([num, set]) => {
     const btn = document.createElement('button');
@@ -926,8 +930,17 @@ function showLevelSelect() {
   document.getElementById('mode-select').style.display  = 'none';
 }
 
-function selectLevel(setNumber) {
-  selectedSet = setNumber;
+function _renderModeSelect(setNumber) {
+  // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt
+  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
+  if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
+  markerLayer.clearLayers();
+
+  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
+    document.getElementById(id).style.display = 'none');
+  document.getElementById('start-screen').style.display = 'block';
+  document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
+
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
   document.getElementById('level-select').style.display = 'none';
   document.getElementById('mode-select').style.display  = 'block';
@@ -940,6 +953,14 @@ function selectLevel(setNumber) {
   descs[1].textContent = isProvince
     ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
     : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
+}
+
+// ── Publieke navigatiefuncties (met history) ─────────────────
+
+function selectLevel(setNumber) {
+  selectedSet = setNumber;
+  history.pushState({ screen: 'mode-select', set: setNumber }, '');
+  _renderModeSelect(setNumber);
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
@@ -992,38 +1013,62 @@ function submitFeedback() {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
-function showStartScreen() {
+function _renderStartScreen() {
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  document.getElementById('end-screen').style.display   = 'none';
-  document.getElementById('map-wrap').style.display     = 'none';
-  document.getElementById('question-box').style.display = 'none';
-  document.getElementById('score-bar').style.display    = 'none';
-  document.getElementById('hard-panel').style.display   = 'none';
+  if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
+  markerLayer.clearLayers();
+  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
+    document.getElementById(id).style.display = 'none');
   document.getElementById('start-screen').style.display = 'block';
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
-  showLevelSelect();
+  _renderLevelSelect();
+}
+
+function showStartScreen() {
+  // replaceState: terugknop vanuit startscherm verlaat de pagina (zoals verwacht),
+  // niet terug naar een verlaten quiz.
+  history.replaceState({ screen: 'level-select' }, '');
+  _renderStartScreen();
 }
 
 async function startQuiz(mode) {
   gameMode = mode;
+  history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
   if (SETS[selectedSet].quizType === 'province') await provinceDataPromise;
   initLevel(selectedSet);
 
   // Toon/verberg de juiste invoer-UI
-  document.getElementById('options').style.display          = mode === 'mc'   ? '' : 'none';
-  document.getElementById('text-input-wrap').style.display  = mode === 'text' ? 'block' : 'none';
+  document.getElementById('options').style.display         = mode === 'mc'   ? '' : 'none';
+  document.getElementById('text-input-wrap').style.display = mode === 'text' ? 'block' : 'none';
 
-  initStreak();
-  sessionOk = sessionErr = 0;
+  // Herstel eerdere sessie als die er is, anders begin vers
+  const restored = restoreProgress();
+  if (!restored) {
+    initStreak();
+    sessionOk = sessionErr = 0;
+  } else {
+    // Herstel visuele staat van gememoreerde plaatsen/provincies
+    activeCities.forEach(c => {
+      if (streak[c.name] >= mastery()) {
+        if (c.marker) c.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(c) });
+        if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_MASTERED);
+      }
+    });
+    updateHardList();
+  }
   currentCity = null;
-  ['sc-ok','sc-err','sc-mastered'].forEach(id => document.getElementById(id).textContent = '0');
-  document.getElementById('progress-bar').style.width = '0%';
+
+  document.getElementById('sc-ok').textContent       = sessionOk;
+  document.getElementById('sc-err').textContent      = sessionErr;
+  document.getElementById('sc-mastered').textContent = masteredCount();
+  document.getElementById('progress-bar').style.width =
+    Math.round(masteredCount() / activeCities.length * 100) + '%';
 
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'block';
-  map.invalidateSize(); // kaart wist afmetingen bij verborgen init
+  map.invalidateSize();
   if (SETS[selectedSet].fitOnStart)
     map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
   else
@@ -1035,6 +1080,58 @@ async function startQuiz(mode) {
 
   renderQuestion();
 }
+
+// ── Voortgang opslaan in sessionStorage ──────────────────────
+// Gesaved per combinatie van level + modus, zodat terugnavigeren
+// de quiz herstelt naar het punt waar de gebruiker was.
+
+function saveProgress() {
+  const hadWrong = {};
+  activeCities.forEach(c => { hadWrong[c.name] = c._hadWrong; });
+  try {
+    sessionStorage.setItem(
+      `qp_${selectedSet}_${gameMode}`,
+      JSON.stringify({ streak, sessionOk, sessionErr, hadWrong })
+    );
+  } catch (_) {}
+}
+
+function restoreProgress() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(`qp_${selectedSet}_${gameMode}`));
+    if (!saved) return false;
+    streak     = saved.streak     || {};
+    sessionOk  = saved.sessionOk  || 0;
+    sessionErr = saved.sessionErr || 0;
+    // Zorg dat elke actieve stad/provincie een streak-waarde heeft
+    activeCities.forEach(c => { if (!(c.name in streak)) streak[c.name] = 0; });
+    if (saved.hadWrong) {
+      activeCities.forEach(c => { c._hadWrong = saved.hadWrong[c.name] || false; });
+    }
+    return true;
+  } catch (_) { return false; }
+}
+
+function clearSavedProgress() {
+  try { sessionStorage.removeItem(`qp_${selectedSet}_${gameMode}`); } catch (_) {}
+}
+
+// ── Browser-navigatie (terug/vooruit-knop) ───────────────────
+
+window.addEventListener('popstate', e => {
+  const s = e.state;
+  if (!s || s.screen === 'level-select') {
+    _renderStartScreen();
+  } else if (s.screen === 'mode-select' || s.screen === 'quiz') {
+    // quiz-state via popstate = gebruiker navigeerde terug vanuit de quiz;
+    // toon het moduscherm zodat ze hun voortgang kunnen hervatten.
+    selectedSet = s.set;
+    _renderModeSelect(s.set);
+  }
+});
+
+// Geef de initiële paginastate een naam zodat popstate correct werkt
+history.replaceState({ screen: 'level-select' }, '');
 
 showStartScreen();
 </script>
