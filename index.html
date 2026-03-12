@@ -47,7 +47,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   text-align: left;
   transition: all 0.12s;
 }
-.mode-btn:hover { background: #2c3d6e; border-color: #6080cc; }
+@media (hover: hover) { .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; } }
 .mode-btn .mode-desc {
   display: block;
   font-size: 0.8rem;
@@ -64,7 +64,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   cursor: pointer;
   text-decoration: underline;
 }
-#back-btn:hover { color: #fff; }
+@media (hover: hover) { #back-btn:hover { color: #fff; } }
 #quit-btn {
   background: none;
   border: none;
@@ -74,7 +74,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   padding: 0 2px;
   line-height: 1;
 }
-#quit-btn:hover { opacity: 1; }
+@media (hover: hover) { #quit-btn:hover { opacity: 1; } }
 #fb-btn {
   background: none;
   border: none;
@@ -84,7 +84,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   padding: 0 2px;
   line-height: 1;
 }
-#fb-btn:hover { opacity: 1; }
+@media (hover: hover) { #fb-btn:hover { opacity: 1; } }
 
 /* ── Score bar ── */
 #score-bar {
@@ -196,7 +196,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   font-weight: 500;
   line-height: 1.2;
 }
-.opt:hover:not(:disabled) { background: #2c3d6e; border-color: #6080cc; }
+@media (hover: hover) { .opt:hover:not(:disabled) { background: #2c3d6e; border-color: #6080cc; } }
 .opt.correct { background: #1b5e20; border-color: #4caf50; }
 .opt.wrong   { background: #b71c1c; border-color: #f44336; }
 .opt:disabled { cursor: default; }
@@ -232,7 +232,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   cursor: pointer;
   white-space: nowrap;
 }
-#hint-btn:hover:not(:disabled) { background: #2c3d6e; }
+@media (hover: hover) { #hint-btn:hover:not(:disabled) { background: #2c3d6e; } }
 #hint-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* Feedback */
@@ -368,7 +368,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   cursor: pointer; text-decoration: underline;
   display: block; margin: 8px auto 0;
 }
-.fb-open-btn:hover { color: #8ab4f8; }
+@media (hover: hover) { .fb-open-btn:hover { color: #8ab4f8; } }
 
 /* ── Responsive ── */
 @media (min-width: 768px) {
