@@ -886,9 +886,9 @@ function submitFeedback() {
   const body    = `${desc}\n\n— ${context}`;
 
   const data = new URLSearchParams();
-  data.append('entry.583836025', fbType);
-  data.append('entry.502100028', body);
-  data.append('entry.2120483293', name);
+  data.append('entry.1776174070', fbType);
+  data.append('entry.686569598',  body);
+  data.append('entry.45677083',   name);
 
   document.getElementById('fb-submit').disabled = true;
   fetch(FB_ENDPOINT, { method: 'POST', mode: 'no-cors', body: data })
