@@ -885,7 +885,7 @@ function submitFeedback() {
   const context = `Level: ${level} | Modus: ${gameMode || '—'}`;
   const body    = `${desc}\n\n— ${context}`;
 
-  const data = new FormData();
+  const data = new URLSearchParams();
   data.append('entry.583836025', fbType);
   data.append('entry.502100028', body);
   data.append('entry.2120483293', name);
