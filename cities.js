@@ -13,6 +13,7 @@ const ALL_CITIES = [
   { name: "Amsterdam",           lat: 52.37, lon: 4.90, pop:  921000, sets: [1] },
   { name: "Haarlem",             lat: 52.38, lon: 4.63, pop:  163000, sets: [1] },
   { name: "Alkmaar",             lat: 52.63, lon: 4.75, pop:  108000, sets: [1] },
+  { name: "Den Helder",          lat: 52.96, lon: 4.76, pop:   55000, sets: [1] },
   { name: "Purmerend",           lat: 52.50, lon: 4.96, pop:   81000, sets: [1] },
   { name: "Zaanstad",            lat: 52.44, lon: 4.81, pop:  156000, sets: [1] },
   { name: "Hoorn",               lat: 52.64, lon: 5.06, pop:   73000, sets: [1] },
