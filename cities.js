@@ -183,3 +183,6 @@ const _POP_LOG_MAX = Math.log(Math.max(...ALL_CITIES.map(c => c.pop)));
 function cityRadius(city) {
   return Math.round(4 + 8 * (Math.log(city.pop) - _POP_LOG_MIN) / (_POP_LOG_MAX - _POP_LOG_MIN));
 }
+
+// Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, SETS, cityRadius };

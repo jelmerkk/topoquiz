@@ -4,6 +4,8 @@ Een topografie-oefentool voor groep 5, gebaseerd op de Geobas-methode. Kinderen 
 
 **Live:** open `index.html` in een browser — geen buildstap, geen server vereist.
 
+**Tests:** `node test.js` — draai dit lokaal voor je pusht.
+
 ---
 
 ## Projectstructuur
