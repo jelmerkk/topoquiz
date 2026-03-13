@@ -1,0 +1,27 @@
+{
+  "name": "topoquiz",
+  "version": "1.0.0",
+  "description": "Een topografie-oefentool voor groep 5, gebaseerd op de Geobas-methode. Kinderen leren plaatsen en provincies via meerkeuze of zelf typen, met spaced repetition.",
+  "main": "cities.js",
+  "scripts": {
+    "test": "node test.js && npx playwright test",
+    "test:unit": "node test.js",
+    "test:e2e": "npx playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jelmerkk/topoquiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jelmerkk/topoquiz/issues"
+  },
+  "homepage": "https://github.com/jelmerkk/topoquiz#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "serve": "^14.2.6"
+  }
+}

@@ -1,3 +1,7 @@
+node_modules/
+playwright-report/
+test-results/
+
 # wrangler files
 .wrangler
 .dev.vars*
