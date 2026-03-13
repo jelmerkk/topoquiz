@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.6.1">
+<meta name="version" content="1.6.2">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1253,11 +1253,13 @@ async function startQuiz(mode) {
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'block';
-  map.invalidateSize();
-  if (SETS[selectedSet].fitOnStart)
-    map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
-  else
-    map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
+  requestAnimationFrame(() => {
+    map.invalidateSize();
+    if (SETS[selectedSet].fitOnStart)
+      map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
+    else
+      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
+  });
   document.getElementById('question-box').style.display = 'block';
   document.getElementById('score-bar').style.display    = 'flex';
   document.getElementById('qtot').textContent = activeCities.length;
@@ -1367,6 +1369,6 @@ history.replaceState({ screen: 'level-select' }, '');
 
 showStartScreen();
 </script>
-<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.6.1</footer>
+<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.6.2</footer>
 </body>
 </html>
