@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.4.1">
+<meta name="version" content="1.5.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -18,6 +18,12 @@
 <meta property="og:locale" content="nl_NL">
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TopoQuiz">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a2744">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -385,6 +391,32 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   color: #3a4f88; font-size: 0.78rem;
   cursor: pointer; text-decoration: underline;
   display: block; margin: 8px auto 0;
+}
+#install-btn {
+  display: none;
+  background: none;
+  border: 1px solid #3a4f88;
+  color: #8ab4f8;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  margin: 12px auto 0;
+  font-family: inherit;
+}
+@media (hover: hover) { #install-btn:hover { border-color: #6080cc; color: #fff; } }
+#install-tooltip {
+  display: none;
+  background: #243060;
+  border: 1px solid #3a4f88;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  color: #8ab4f8;
+  line-height: 1.5;
+  margin: 8px auto 0;
+  max-width: 320px;
+  text-align: left;
 }
 @media (hover: hover) { .fb-open-btn:hover { color: #8ab4f8; } }
 
@@ -1016,6 +1048,16 @@ function _renderLevelSelect() {
     btn.onclick = () => selectLevel(Number(num));
     el.appendChild(btn);
   });
+  // Installeerknop
+  const installBtn = document.createElement('button');
+  installBtn.id = 'install-btn';
+  installBtn.textContent = '📲 Voeg toe aan beginscherm';
+  installBtn.onclick = handleInstall;
+  el.appendChild(installBtn);
+  const tooltip = document.createElement('div');
+  tooltip.id = 'install-tooltip';
+  el.appendChild(tooltip);
+  updateInstallButton();
   document.getElementById('level-select').style.display = 'block';
   document.getElementById('mode-select').style.display  = 'none';
 }
@@ -1230,11 +1272,51 @@ window.addEventListener('popstate', e => {
   }
 });
 
+// ── PWA: installeer-knop ─────────────────────────────────────
+
+let _installPrompt = null;
+const _isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const _isInStandalone = window.matchMedia('(display-mode: standalone)').matches
+  || navigator.standalone === true;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  updateInstallButton();
+});
+
+function updateInstallButton() {
+  const btn = document.getElementById('install-btn');
+  const tip = document.getElementById('install-tooltip');
+  if (!btn) return;
+  if (_isInStandalone) {
+    btn.style.display = 'none';
+    return;
+  }
+  if (_installPrompt || _isIOS) btn.style.display = 'block';
+}
+
+function handleInstall() {
+  const tip = document.getElementById('install-tooltip');
+  if (_installPrompt) {
+    _installPrompt.prompt();
+    _installPrompt.userChoice.then(() => { _installPrompt = null; updateInstallButton(); });
+  } else if (_isIOS) {
+    tip.style.display = tip.style.display === 'block' ? 'none' : 'block';
+    tip.innerHTML = 'Druk op het deel-icoon <strong>⬆</strong> onder in Safari, en kies <strong>\'Zet op beginscherm\'</strong>.';
+  }
+}
+
+// Service worker registratie
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+
 // Geef de initiële paginastate een naam zodat popstate correct werkt
 history.replaceState({ screen: 'level-select' }, '');
 
 showStartScreen();
 </script>
-<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.4.1</footer>
+<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.5.0</footer>
 </body>
 </html>

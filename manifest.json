@@ -1,0 +1,13 @@
+{
+  "name": "Topografie Quiz",
+  "short_name": "TopoQuiz",
+  "description": "Oefen de topografie van Nederland voor groep 5 en 6.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a2744",
+  "theme_color": "#1a2744",
+  "lang": "nl",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
