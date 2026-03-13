@@ -326,6 +326,27 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 }
 #end-screen h2 { font-size: 2rem; color: #f0c040; margin-bottom: 12px; }
 #end-screen p  { color: #8ab4f8; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; }
+#rating-wrap { margin-bottom: 24px; }
+#rating-question { margin-bottom: 12px; }
+#rating-btns { display: flex; justify-content: center; gap: 12px; }
+#rating-btns button {
+  background: #1a2744;
+  border: 2px solid #2c3d6e;
+  border-radius: 12px;
+  color: #c8d8f8;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 10px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+#rating-btns button span { font-size: 0.75rem; opacity: 0.7; }
+@media (hover: hover) { #rating-btns button:hover { background: #2c3d6e; border-color: #6080cc; } }
+#rating-thanks { color: #58CC02; font-weight: 700; margin-bottom: 0; }
 #restart-btn {
   padding: 13px 30px;
   background: #f0c040;
@@ -587,6 +608,15 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   <div id="end-stars"></div>
   <h2>🎉 Gefeliciteerd!</h2>
   <p id="end-text"></p>
+  <div id="rating-wrap">
+    <p id="rating-question">Wat vond je van deze quiz?</p>
+    <div id="rating-btns">
+      <button onclick="rateQuiz(1)">😐<span>Saai</span></button>
+      <button onclick="rateQuiz(2)">😊<span>Leuk</span></button>
+      <button onclick="rateQuiz(3)">🤩<span>Top!</span></button>
+    </div>
+    <p id="rating-thanks" style="display:none">Bedankt! 🙏</p>
+  </div>
   <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
   <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
 </div>
@@ -1099,6 +1129,20 @@ function showEnd() {
     s.style.animation = `star-pop 0.5s ease-out ${i * 250}ms forwards`;
     starsEl.appendChild(s);
   }
+  // Reset rating widget
+  document.getElementById('rating-btns').style.display  = 'flex';
+  document.getElementById('rating-question').style.display = 'block';
+  document.getElementById('rating-thanks').style.display   = 'none';
+}
+
+function rateQuiz(score) {
+  document.getElementById('rating-btns').style.display    = 'none';
+  document.getElementById('rating-question').style.display = 'none';
+  document.getElementById('rating-thanks').style.display   = 'block';
+  if (typeof _paq !== 'undefined') {
+    const label = SETS[selectedSet].name + ' (' + (gameMode === 'mc' ? 'meerkeuze' : 'typen') + ')';
+    _paq.push(['trackEvent', 'quiz', 'rating', label, score]);
+  }
 }
 
 let selectedSet = 54;
@@ -1172,7 +1216,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v1.6.4';
+const APP_VERSION = 'v1.6.5';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
