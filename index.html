@@ -18,11 +18,13 @@
 <meta property="og:locale" content="nl_NL">
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
   background: #1a2744;
   color: #fff;
   min-height: 100dvh;
@@ -121,14 +123,14 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 }
 #progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  background: linear-gradient(90deg, #58CC02, #7bdd00);
   border-radius: 8px;
-  transition: width 0.5s;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   width: 0%;
 }
-.sc-mastered { color: #4caf50; font-weight: 700; }
-.sc-ok  { color: #4caf50; font-weight: 700; }
-.sc-err { color: #f44336; font-weight: 700; }
+.sc-mastered { color: #58CC02; font-weight: 700; }
+.sc-ok  { color: #58CC02; font-weight: 700; }
+.sc-err { color: #FF4B4B; font-weight: 700; }
 
 /* ── Map ── */
 #map-wrap {
@@ -156,7 +158,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 .pulse-ring {
   position: absolute;
   width: 30px; height: 30px;
-  border: 3px solid #f44336;
+  border: 3px solid #FF4B4B;
   border-radius: 50%;
   top: -15px; left: -15px;
   animation: pulse 1.4s ease-out infinite;
@@ -165,7 +167,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 .pulse-dot {
   position: absolute;
   width: 14px; height: 14px;
-  background: #f44336;
+  background: #FF4B4B;
   border: 2px solid #fff;
   border-radius: 50%;
   top: -7px; left: -7px;
@@ -204,16 +206,17 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   border: 2px solid #3a4f88;
   color: #fff;
   padding: 11px 8px;
+  min-height: 56px;
   border-radius: 9px;
   font-size: 0.92rem;
   cursor: pointer;
   transition: all 0.12s;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
 }
 @media (hover: hover) { .opt:hover:not(:disabled) { background: #2c3d6e; border-color: #6080cc; } }
-.opt.correct { background: #1b5e20; border-color: #4caf50; }
-.opt.wrong   { background: #b71c1c; border-color: #f44336; }
+.opt.correct { background: #1a4a00; border-color: #58CC02; }
+.opt.wrong   { background: #5c0000; border-color: #FF4B4B; }
 .opt:disabled { cursor: default; }
 
 /* Text input mode */
@@ -257,9 +260,9 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   min-height: 22px;
   margin-bottom: 8px;
 }
-.fb-ok    { color: #4caf50; }
+.fb-ok    { color: #58CC02; }
 .fb-close { color: #f0c040; }
-.fb-err   { color: #f44336; }
+.fb-err   { color: #FF4B4B; }
 
 #next-btn { display: none; }
 
@@ -276,7 +279,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 #hard-list { list-style: none; display: flex; flex-wrap: wrap; gap: 5px; }
 #hard-list li {
   background: #b71c1c33;
-  border: 1px solid #f4433644;
+  border: 1px solid #FF4B4B44;
   padding: 2px 9px;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -376,7 +379,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   font-size: 0.9rem;
 }
 #fb-submit:disabled { opacity: 0.5; cursor: default; }
-#fb-thanks { display: none; text-align: center; padding: 12px 0; color: #4caf50; font-weight: 600; }
+#fb-thanks { display: none; text-align: center; padding: 12px 0; color: #58CC02; font-weight: 600; }
 .fb-open-btn {
   background: none; border: none;
   color: #3a4f88; font-size: 0.78rem;
@@ -384,6 +387,26 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   display: block; margin: 8px auto 0;
 }
 @media (hover: hover) { .fb-open-btn:hover { color: #8ab4f8; } }
+
+/* ── Animaties ── */
+@keyframes bounce-pop {
+  0%   { transform: scale(0.75); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-7px); }
+  40%       { transform: translateX(7px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+@keyframes confetti-fly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+.pop   { animation: bounce-pop 0.3s ease-out; }
+.shake { animation: shake 0.4s ease-out; }
 
 /* ── Responsive ── */
 @media (min-width: 768px) {
@@ -546,7 +569,7 @@ tileLayer.addTo(map);
 const PROV_BORDER    = { color: '#666', weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
 const PROV_DEFAULT   = { color: '#5a7aaa', weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8', fillOpacity: 0.2  };
 const PROV_HIGHLIGHT = { color: '#c07000', weight: 2.5, opacity: 1,    fillColor: '#f0a500', fillOpacity: 0.6  };
-const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#4caf50', fillOpacity: 0.4  };
+const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#58CC02', fillOpacity: 0.4  };
 
 // Provinciegrenzen — cartomap.github.io (MIT, WGS84, CORS-enabled)
 // Data wordt ook bewaard voor de provincies-quiz (set 54).
@@ -589,7 +612,7 @@ function setHighlightProvince(province) {
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
 const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
-const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#4caf50', fillOpacity: 1   };
+const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#58CC02', fillOpacity: 1   };
 
 const markerLayer = L.layerGroup().addTo(map);
 
@@ -873,22 +896,46 @@ function checkTextAnswer() {
 
 // ── Shared result helpers ────────────────────────────────────
 
+function spawnConfetti() {
+  const box = document.getElementById('question-box');
+  const rect = box.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const colors = ['#58CC02', '#FFD93D', '#8ab4f8', '#FF9C39', '#ffffff', '#FF4B4B'];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    const angle = (i / 18) * Math.PI * 2;
+    const dist = 60 + Math.random() * 100;
+    el.style.cssText = `position:fixed;width:8px;height:8px;border-radius:50%;
+      background:${colors[i % colors.length]};left:${cx}px;top:${cy}px;
+      pointer-events:none;z-index:9999;
+      --dx:${Math.cos(angle) * dist}px;--dy:${Math.sin(angle) * dist - 40}px;
+      animation:confetti-fly 0.7s ease-out forwards;
+      animation-delay:${i * 20}ms`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
 function recordCorrect(city, fb, close = false) {
   streak[city.name]++;
   sessionOk++;
-  if (streak[city.name] >= mastery()) {
+  const mastered = streak[city.name] >= mastery();
+  if (mastered) {
     if (city.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
     if (provinceLayers[city.name]) provinceLayers[city.name].setStyle(PROV_MASTERED);
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
       : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
-    fb.className = close ? 'fb-close' : 'fb-ok';
+    spawnConfetti();
   } else {
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling.`
       : `✅ Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm! 💪`;
-    fb.className = close ? 'fb-close' : 'fb-ok';
   }
+  fb.className = close ? 'fb-close' : 'fb-ok';
+  fb.classList.add('pop');
+  fb.addEventListener('animationend', () => fb.classList.remove('pop'), { once: true });
   updateScoreboard();
   saveProgress();
 }
@@ -899,6 +946,9 @@ function recordWrong(city, fb) {
   sessionErr++;
   fb.textContent = `Helaas! 😅 Het was ${city.name}. Komt nog terug!`;
   fb.className = 'fb-err';
+  const qbox = document.getElementById('question-box');
+  qbox.classList.add('shake');
+  qbox.addEventListener('animationend', () => qbox.classList.remove('shake'), { once: true });
   updateScoreboard();
   saveProgress();
 }
