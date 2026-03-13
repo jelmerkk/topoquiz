@@ -1483,6 +1483,13 @@ showStartScreen();
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
   <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
 </footer>
-<script>document.getElementById('version-tag').textContent = APP_VERSION;</script>
+<script>
+  document.getElementById('version-tag').textContent = APP_VERSION;
+  if (!['topoquiz.com', 'www.topoquiz.com'].includes(location.hostname)) {
+    const tag = document.getElementById('version-tag');
+    tag.textContent += ' [DEV]';
+    tag.style.color = '#f0c040';
+  }
+</script>
 </body>
 </html>
