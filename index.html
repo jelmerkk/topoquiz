@@ -1364,11 +1364,23 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js');
 }
 
+async function hardRefresh() {
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  location.reload();
+}
+
 // Geef de initiële paginastate een naam zodat popstate correct werkt
 history.replaceState({ screen: 'level-select' }, '');
 
 showStartScreen();
 </script>
-<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.6.2</footer>
+<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
+  <span onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden">v1.6.2</span>
+</footer>
 </body>
 </html>
