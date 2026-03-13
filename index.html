@@ -78,7 +78,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   text-decoration: underline;
 }
 @media (hover: hover) { #back-btn:hover { color: #fff; } }
-#quit-btn {
+#reset-btn, #quit-btn {
   background: none;
   border: none;
   font-size: 1rem;
@@ -87,6 +87,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   padding: 0 2px;
   line-height: 1;
 }
+@media (hover: hover) { #reset-btn:hover { opacity: 1; } }
 @media (hover: hover) { #quit-btn:hover { opacity: 1; } }
 #fb-btn {
   background: none;
@@ -450,6 +451,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <span>🌟 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
+  <button id="reset-btn" onclick="resetQuiz()" title="Opnieuw beginnen">🔄</button>
   <button id="quit-btn" onclick="showStartScreen()" title="Andere quiz kiezen">🗺️</button>
   <button id="fb-btn" onclick="openFeedback()" title="Feedback geven" style="margin-left:-4px">💬</button>
 </div>
@@ -1141,6 +1143,11 @@ function restoreProgress() {
 
 function clearSavedProgress() {
   try { sessionStorage.removeItem(`qp_${selectedSet}_${gameMode}`); } catch (_) {}
+}
+
+function resetQuiz() {
+  clearSavedProgress();
+  startQuiz(gameMode);
 }
 
 // ── Browser-navigatie (terug/vooruit-knop) ───────────────────
