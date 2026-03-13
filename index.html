@@ -944,7 +944,7 @@ function recordWrong(city, fb) {
   streak[city.name] = 0;
   city._hadWrong = true;
   sessionErr++;
-  fb.textContent = `Helaas! 😅 Het was ${city.name}. Komt nog terug!`;
+  fb.textContent = `Helaas! 😅 Het was ${city.name} — je krijgt nog een kans! 💪`;
   fb.className = 'fb-err';
   const qbox = document.getElementById('question-box');
   qbox.classList.add('shake');
