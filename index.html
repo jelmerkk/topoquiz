@@ -40,7 +40,8 @@ body {
   padding: 10px;
   gap: 8px;
 }
-h1 { font-size: 1rem; color: #f0c040; text-align: center; }
+h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
+#title-bar { display: flex; align-items: center; width: 100%; max-width: 680px; position: relative; }
 
 /* ── Start screen ── */
 #start-screen {
@@ -516,7 +517,17 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
 </head>
 <body>
 
-<h1>🗺️ Topografie Quiz</h1>
+<div id="title-bar">
+  <h1>🗺️ Topografie Quiz</h1>
+  <div style="position:relative">
+    <button id="menu-btn" onclick="toggleQuizMenu()" aria-label="Menu" style="display:none">☰</button>
+    <div id="quiz-menu">
+      <button onclick="resetQuiz(); closeQuizMenu()">🔄 Opnieuw beginnen</button>
+      <button onclick="showStartScreen(); closeQuizMenu()">🗺️ Andere quiz kiezen</button>
+      <button onclick="openFeedback(); closeQuizMenu()">💬 Feedback geven</button>
+    </div>
+  </div>
+</div>
 
 <div id="start-screen">
   <!-- Stap 1: kies een toets -->
@@ -547,14 +558,6 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span id="sc-streak-wrap" style="display:none">🔥 <span id="sc-streak" class="sc-mastered">0</span></span>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
-  <div style="position:relative">
-    <button id="menu-btn" onclick="toggleQuizMenu()" aria-label="Menu">☰</button>
-    <div id="quiz-menu">
-      <button onclick="resetQuiz(); closeQuizMenu()">🔄 Opnieuw beginnen</button>
-      <button onclick="showStartScreen(); closeQuizMenu()">🗺️ Andere quiz kiezen</button>
-      <button onclick="openFeedback(); closeQuizMenu()">💬 Feedback geven</button>
-    </div>
-  </div>
 </div>
 
 <div id="map-wrap" style="display:none">
@@ -1241,6 +1244,8 @@ function _renderStartScreen() {
     document.getElementById(id).style.display = 'none');
   document.getElementById('start-screen').style.display = 'block';
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
+  document.getElementById('menu-btn').style.display = 'none';
+  closeQuizMenu();
   _renderLevelSelect();
 }
 
@@ -1303,6 +1308,7 @@ async function startQuiz(mode) {
   document.getElementById('score-bar').style.display    = 'flex';
   document.getElementById('qtot').textContent = activeCities.length;
   document.querySelector('h1').textContent = `🗺️ ${SETS[selectedSet].name}`;
+  document.getElementById('menu-btn').style.display = 'inline-block';
 
   renderQuestion();
 }
@@ -1419,7 +1425,7 @@ history.replaceState({ screen: 'level-select' }, '');
 showStartScreen();
 </script>
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
-  <span onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden">v1.6.2</span>
+  <span onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden">v1.6.4</span>
 </footer>
 </body>
 </html>
