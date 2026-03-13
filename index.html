@@ -87,27 +87,47 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   text-decoration: underline;
 }
 @media (hover: hover) { #back-btn:hover { color: #fff; } }
-#reset-btn, #quit-btn {
+#menu-btn {
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 1.15rem;
   cursor: pointer;
-  opacity: 0.5;
-  padding: 0 2px;
+  opacity: 0.55;
+  padding: 0 4px;
   line-height: 1;
+  color: #8ab4f8;
+  position: relative;
 }
-@media (hover: hover) { #reset-btn:hover { opacity: 1; } }
-@media (hover: hover) { #quit-btn:hover { opacity: 1; } }
-#fb-btn {
+@media (hover: hover) { #menu-btn:hover { opacity: 1; } }
+#quiz-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #1a2744;
+  border: 1px solid #2c3d6e;
+  border-radius: 10px;
+  padding: 6px 0;
+  z-index: 900;
+  min-width: 190px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+#quiz-menu.open { display: block; }
+#quiz-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
   background: none;
   border: none;
-  font-size: 1rem;
+  color: #c8d8f8;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  padding: 9px 16px;
   cursor: pointer;
-  opacity: 0.5;
-  padding: 0 2px;
-  line-height: 1;
+  text-align: left;
 }
-@media (hover: hover) { #fb-btn:hover { opacity: 1; } }
+@media (hover: hover) { #quiz-menu button:hover { background: #2c3d6e; } }
 
 /* ── Score bar ── */
 #score-bar {
@@ -527,9 +547,14 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span id="sc-streak-wrap" style="display:none">🔥 <span id="sc-streak" class="sc-mastered">0</span></span>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
-  <button id="reset-btn" onclick="resetQuiz()" title="Opnieuw beginnen">🔄</button>
-  <button id="quit-btn" onclick="showStartScreen()" title="Andere quiz kiezen">🗺️</button>
-  <button id="fb-btn" onclick="openFeedback()" title="Feedback geven" style="margin-left:-4px">💬</button>
+  <div style="position:relative">
+    <button id="menu-btn" onclick="toggleQuizMenu()" aria-label="Menu">☰</button>
+    <div id="quiz-menu">
+      <button onclick="resetQuiz(); closeQuizMenu()">🔄 Opnieuw beginnen</button>
+      <button onclick="showStartScreen(); closeQuizMenu()">🗺️ Andere quiz kiezen</button>
+      <button onclick="openFeedback(); closeQuizMenu()">💬 Feedback geven</button>
+    </div>
+  </div>
 </div>
 
 <div id="map-wrap" style="display:none">
@@ -1146,6 +1171,20 @@ function selectLevel(setNumber) {
 // ── Feedback ──────────────────────────────────────────────────────────────────
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
+
+function toggleQuizMenu() {
+  const menu = document.getElementById('quiz-menu');
+  menu.classList.toggle('open');
+}
+function closeQuizMenu() {
+  document.getElementById('quiz-menu').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('menu-btn').contains(e.target) &&
+      !document.getElementById('quiz-menu').contains(e.target)) {
+    closeQuizMenu();
+  }
+});
 
 function openFeedback() {
   fbType = 'Bug 🐛';
