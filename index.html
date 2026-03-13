@@ -930,6 +930,8 @@ function updateHardList() {
 // ── Screens ──────────────────────────────────────────────────
 
 function showEnd() {
+  _trackQuiz('complete');
+  quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
     document.getElementById(id).style.display = 'none');
@@ -942,6 +944,14 @@ function showEnd() {
 }
 
 let selectedSet = 54;
+let quizStartTime = null;
+
+function _trackQuiz(action) {
+  if (typeof _paq === 'undefined') return;
+  const label = SETS[selectedSet].name + ' (' + (gameMode === 'mc' ? 'meerkeuze' : 'typen') + ')';
+  const seconds = quizStartTime ? Math.round((Date.now() - quizStartTime) / 1000) : 0;
+  _paq.push(['trackEvent', 'quiz', action, label, seconds]);
+}
 
 // ── Internal render helpers (geen history-aanpassingen) ──────
 
@@ -1056,6 +1066,7 @@ function _renderStartScreen() {
 function showStartScreen() {
   // replaceState: terugknop vanuit startscherm verlaat de pagina (zoals verwacht),
   // niet terug naar een verlaten quiz.
+  if (quizStartTime) { _trackQuiz('quit'); quizStartTime = null; }
   history.replaceState({ screen: 'level-select' }, '');
   _renderStartScreen();
 }
@@ -1072,6 +1083,8 @@ async function startQuiz(mode) {
 
   // Herstel eerdere sessie als die er is, anders begin vers
   const restored = restoreProgress();
+  quizStartTime = Date.now();
+  _trackQuiz(restored ? 'resume' : 'start');
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = 0;
@@ -1146,6 +1159,8 @@ function clearSavedProgress() {
 }
 
 function resetQuiz() {
+  _trackQuiz('reset');
+  quizStartTime = null;
   clearSavedProgress();
   startQuiz(gameMode);
 }
