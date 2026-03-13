@@ -1172,6 +1172,8 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
+const APP_VERSION = 'v1.6.4';
+document.getElementById('version-tag').textContent = APP_VERSION;
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1216,7 +1218,7 @@ function submitFeedback() {
 
   const name    = document.getElementById('fb-name').value.trim();
   const level   = SETS[selectedSet] ? SETS[selectedSet].name : '—';
-  const context = `Level: ${level} | Modus: ${gameMode || '—'}`;
+  const context = `Level: ${level} | Modus: ${gameMode || '—'} | ${APP_VERSION}`;
   const body    = `${desc}\n\n— ${context}`;
 
   const data = new URLSearchParams();
@@ -1425,7 +1427,7 @@ history.replaceState({ screen: 'level-select' }, '');
 showStartScreen();
 </script>
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
-  <span onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden">v1.6.4</span>
+  <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
 </footer>
 </body>
 </html>
