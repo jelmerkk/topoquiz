@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.6.0">
+<meta name="version" content="1.6.1">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -466,7 +466,8 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; }
   #leaflet-map { height: clamp(500px, 66dvh, 740px); }
 }
 @media (max-width: 480px) {
-  body { padding: 6px; gap: 5px; height: 100dvh; overflow: hidden; }
+  body { padding: 6px; gap: 5px; }
+  body.in-quiz { height: 100dvh; overflow: hidden; }
   h1 { font-size: 0.82rem; }
   #score-bar { font-size: 0.78rem; gap: 5px; }
   #map-wrap { flex: 1; min-height: 0; }
@@ -1049,6 +1050,7 @@ function showEnd() {
   _trackQuiz('complete');
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
+  document.body.classList.remove('in-quiz');
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
     document.getElementById(id).style.display = 'none');
   document.getElementById('end-screen').style.display = 'block';
@@ -1192,6 +1194,7 @@ function submitFeedback() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
 function _renderStartScreen() {
+  document.body.classList.remove('in-quiz');
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
@@ -1245,6 +1248,7 @@ async function startQuiz(mode) {
   document.getElementById('progress-bar').style.width =
     Math.round(masteredCount() / activeCities.length * 100) + '%';
 
+  document.body.classList.add('in-quiz');
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
@@ -1363,6 +1367,6 @@ history.replaceState({ screen: 'level-select' }, '');
 
 showStartScreen();
 </script>
-<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.6.0</footer>
+<footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">v1.6.1</footer>
 </body>
 </html>
