@@ -1173,7 +1173,6 @@ function selectLevel(setNumber) {
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
 const APP_VERSION = 'v1.6.4';
-document.getElementById('version-tag').textContent = APP_VERSION;
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1429,5 +1428,6 @@ showStartScreen();
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
   <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
 </footer>
+<script>document.getElementById('version-tag').textContent = APP_VERSION;</script>
 </body>
 </html>
