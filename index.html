@@ -1144,7 +1144,8 @@ function rateQuiz(score) {
   document.getElementById('rating-question').style.display = 'none';
   document.getElementById('rating-thanks').style.display   = 'block';
   if (typeof _paq !== 'undefined') {
-    const label = SETS[selectedSet].name + ' (' + (gameMode === 'mc' ? 'meerkeuze' : 'typen') + ')';
+    const ratingLabel = ['', 'saai', 'leuk', 'top'][score] || score;
+    const label = SETS[selectedSet].name + ' (' + (gameMode === 'mc' ? 'meerkeuze' : 'typen') + ') - ' + ratingLabel;
     _paq.push(['trackEvent', 'quiz', 'rating', label, score]);
   }
 }

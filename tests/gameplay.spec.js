@@ -36,8 +36,7 @@ test('correct antwoord geeft groene feedback', async ({ page }) => {
 
 test('fout antwoord toont correcte naam in feedback', async ({ page }) => {
   await startQuiz(page, 0);
-  const question = await page.locator('#question-text').textContent();
-  const cityName = question.replace(/^.*Waar is\s+/i, '').replace('?', '').trim();
+  const cityName = await page.evaluate(() => currentCity.name);
   const wrongBtn = page.locator('.opt').filter({ hasNotText: cityName }).first();
   await wrongBtn.click();
   // feedback bevat altijd "Het was <naam>" bij een fout antwoord

@@ -2,9 +2,11 @@
 
 Een topografie-oefentool voor groep 5, gebaseerd op de Geobas-methode. Kinderen leren plaatsen en provincies via meerkeuze of zelf typen, met spaced repetition.
 
-**Live:** open `index.html` in een browser — geen buildstap, geen server vereist.
+**Live:** [topoquiz.com](https://www.topoquiz.com) — geen buildstap vereist.
 
-**Tests:** `node test.js` — draai dit lokaal voor je pusht.
+**Lokaal draaien:** `npx serve .` (vereist een lokale server vanwege GeoJSON-fetch).
+
+**Tests:** `npm run test` — draait unit tests (`node test.js`) én Playwright E2E tests. Altijd uitvoeren voor je pusht.
 
 ---
 
@@ -63,7 +65,7 @@ const SETS = {
 Elke stad krijgt een stip op de kaart. Provinciehoofdsteden (`capital: true`) krijgen een vierkante marker in plaats van een cirkel.
 
 ### `province`
-Provincievlakken worden gekleurd vanuit een GeoJSON-bestand van [cartomap.github.io](https://cartomap.github.io/nl/wgs84/provincie_2023.geojson). De vlakken worden vergeleken op `statnaam`; zorg dat `ALL_PROVINCES[].name` exact overeenkomt. Dit type gebruikt `ALL_PROVINCES` als `activeCities` in plaats van `ALL_CITIES`.
+Provincievlakken worden gekleurd vanuit het lokale bestand `provincie_2023.geojson` (gebundeld in de repo, bron: cartomap.github.io). De vlakken worden vergeleken op `statnaam`; zorg dat `ALL_PROVINCES[].name` exact overeenkomt. Dit type gebruikt `ALL_PROVINCES` als `activeCities` in plaats van `ALL_CITIES`.
 
 ---
 
@@ -99,3 +101,12 @@ De app gebruikt de History API (`pushState`/`popstate`) zodat de browserterugkno
 ## Feedback
 
 Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Google Forms endpoint). Issues worden bijgehouden op [GitHub](https://github.com/jelmerkk/topoquiz/issues).
+
+---
+
+## Deploy & CI
+
+- `dev` branch → automatische preview op Cloudflare Pages (workers.dev URL)
+- Push naar `dev` triggert GitHub Actions: unit tests + Playwright E2E tests
+- Bij groene tests wordt `dev` automatisch gemerged naar `main`
+- `main` branch → automatisch live op [topoquiz.com](https://www.topoquiz.com)

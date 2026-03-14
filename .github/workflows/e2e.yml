@@ -24,8 +24,8 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      - name: Run unit tests
-        run: node test.js
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
       - name: Run Playwright tests
         run: npx playwright test
       - name: Upload test report
