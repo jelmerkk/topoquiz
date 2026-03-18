@@ -1212,9 +1212,7 @@ function handleMapClick(e) {
   const distKm = haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
   const result = clickResult(distKm);
 
-  // Alle markers weer zichtbaar + klik-marker tonen
-  if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
-
+  // Klik-marker tonen (markerLayer blijft verborgen — geeft anders toekomstige locaties weg)
   mapClickMarker = L.circleMarker(e.latlng, {
     radius: 8, color: '#fff', weight: 2,
     fillColor: result === 'correct' ? '#58CC02' : result === 'close' ? '#f0c040' : '#FF4B4B',

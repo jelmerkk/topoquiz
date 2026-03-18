@@ -134,11 +134,11 @@ test('kaart-klik modus: klikken op de kaart toont feedback met afstand', async (
   await expect(page.locator('#feedback')).toContainText('km');
 });
 
-test('kaart-klik modus: markers zichtbaar na antwoord', async ({ page }) => {
+test('kaart-klik modus: markers blijven verborgen na antwoord (geeft locaties niet weg)', async ({ page }) => {
   await startMapClickQuiz(page);
   await page.evaluate(() => map.fire('click', { latlng: L.latLng(52.0, 5.0) }));
   const markersVisible = await page.evaluate(() => map.hasLayer(markerLayer));
-  expect(markersVisible).toBe(true);
+  expect(markersVisible).toBe(false);
 });
 
 test('kaart-klik modus: klik op exacte locatie geeft correct-feedback', async ({ page }) => {
