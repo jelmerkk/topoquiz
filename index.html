@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');else if(location.protocol==='http:'&&location.hostname!=='localhost')location.replace('https:'+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.7.0">
+<meta name="version" content="1.8.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -75,6 +75,22 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 .mode-btn.bonus-btn { border-color: #f0c040; }
 @media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
 .level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
+.daily-btn {
+  display: block; width: 100%; padding: 16px; margin-bottom: 18px;
+  background: #1a3a1a; border: 2px solid #58CC02; color: #fff;
+  border-radius: 12px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; text-align: left; transition: all 0.12s;
+}
+@media (hover: hover) { .daily-btn:hover { background: #254025; border-color: #7aee22; } }
+.daily-btn.done { opacity: 0.65; cursor: default; }
+.daily-btn .daily-sub { display: block; font-size: 0.8rem; font-weight: 400; color: #8dcc6a; margin-top: 3px; }
+.daily-emoji { font-size: 1.3rem; letter-spacing: 2px; margin: 12px 0 4px; }
+#daily-share-wrap { margin: 16px 0; }
+#share-btn {
+  padding: 11px 24px; background: #58CC02; border: none; color: #fff;
+  border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+}
+@media (hover: hover) { #share-btn:hover { background: #46a802; } }
 .mode-btn .mode-desc {
   display: block;
   font-size: 0.8rem;
@@ -612,6 +628,10 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   <div id="end-stars"></div>
   <h2>🎉 Gefeliciteerd!</h2>
   <p id="end-text"></p>
+  <div id="daily-share-wrap" style="display:none">
+    <p class="daily-emoji" id="daily-emoji"></p>
+    <button id="share-btn" onclick="shareDailyResult()">📋 Kopieer resultaat</button>
+  </div>
   <div id="rating-wrap">
     <p id="rating-question">Wat vond je van deze quiz?</p>
     <div id="rating-btns">
@@ -757,6 +777,42 @@ function mastery() {
   if (SETS[selectedSet].mastery != null) return SETS[selectedSet].mastery;
   return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC;
 }
+
+// ── Daily Challenge — pure logica ────────────────────────────
+function makeRng(seed) {
+  let s = seed;
+  return function() {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ s >>> 15, s | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function dateSeed(dateStr) {
+  return dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
+}
+function seededShuffle(arr, rng) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function dailyCities(dateStr) {
+  const rng = makeRng(dateSeed(dateStr));
+  return seededShuffle(ALL_CITIES, rng).slice(0, 10);
+}
+function dailyResultEmoji(results) {
+  return results.map(r => r ? '🟢' : '🔴').join('');
+}
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+function dailyStorageKey() { return `tq_daily_${todayStr()}`; }
+
+let dailyAnswers = {}; // { cityName: true|false } — eerste poging per stad
+
 let activeCities = [];
 let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
@@ -846,7 +902,10 @@ function initLevel(setNumber) {
     activeCities = ALL_PROVINCES;
     buildProvinceLayer();
   } else {
-    if (SETS[setNumber].bonus) {
+    if (SETS[setNumber].daily) {
+      activeCities = dailyCities(todayStr());
+      dailyAnswers = {};
+    } else if (SETS[setNumber].bonus) {
       // Bonus level: probeer opgeslagen selectie te herstellen, anders 20 willekeurig
       let cities = null;
       try {
@@ -1056,6 +1115,9 @@ function spawnConfetti() {
 }
 
 function recordCorrect(city, fb, close = false) {
+  if (SETS[selectedSet].daily && !(city.name in dailyAnswers)) {
+    dailyAnswers[city.name] = !close; // eerste poging: exact = true, close = false
+  }
   streak[city.name]++;
   sessionOk++;
   const mastered = streak[city.name] >= mastery();
@@ -1080,6 +1142,9 @@ function recordCorrect(city, fb, close = false) {
 }
 
 function recordWrong(city, fb) {
+  if (SETS[selectedSet].daily && !(city.name in dailyAnswers)) {
+    dailyAnswers[city.name] = false;
+  }
   streak[city.name] = 0;
   city._hadWrong = true;
   sessionErr++;
@@ -1142,24 +1207,44 @@ function showEnd() {
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
   const isProvince = SETS[selectedSet].quizType === 'province';
-  document.getElementById('end-text').innerHTML =
-    `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
 
-  // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
-  const stars = sessionErr === 0 ? 3 : pct >= 80 ? 2 : 1;
-  const starsEl = document.getElementById('end-stars');
-  starsEl.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const s = document.createElement('span');
-    s.textContent = i < stars ? '⭐' : '☆';
-    s.style.animationDelay = `${i * 250}ms`;
-    s.style.animation = `star-pop 0.5s ease-out ${i * 250}ms forwards`;
-    starsEl.appendChild(s);
+  const isDaily = SETS[selectedSet].daily;
+  if (isDaily) {
+    const results = activeCities.map(c => dailyAnswers[c.name] === true);
+    const correct = results.filter(Boolean).length;
+    const emoji   = dailyResultEmoji(results);
+    try { localStorage.setItem(dailyStorageKey(), emoji); } catch (_) {}
+    document.getElementById('end-text').innerHTML =
+      `<strong>${correct} van de 10</strong> steden meteen goed geraden! 🗺️`;
+    document.getElementById('daily-emoji').textContent = emoji;
+    document.getElementById('daily-share-wrap').style.display = 'block';
+    document.getElementById('rating-wrap').style.display = 'none';
+    document.getElementById('end-stars').style.display = 'none';
+  } else {
+    document.getElementById('daily-share-wrap').style.display = 'none';
+    document.getElementById('rating-wrap').style.display = '';
+    document.getElementById('end-stars').style.display = '';
+    document.getElementById('end-text').innerHTML =
+      `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
-  // Reset rating widget
-  document.getElementById('rating-btns').style.display  = 'flex';
-  document.getElementById('rating-question').style.display = 'block';
-  document.getElementById('rating-thanks').style.display   = 'none';
+
+  if (!isDaily) {
+    // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
+    const stars = sessionErr === 0 ? 3 : pct >= 80 ? 2 : 1;
+    const starsEl = document.getElementById('end-stars');
+    starsEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const s = document.createElement('span');
+      s.textContent = i < stars ? '⭐' : '☆';
+      s.style.animationDelay = `${i * 250}ms`;
+      s.style.animation = `star-pop 0.5s ease-out ${i * 250}ms forwards`;
+      starsEl.appendChild(s);
+    }
+    // Reset rating widget
+    document.getElementById('rating-btns').style.display    = 'flex';
+    document.getElementById('rating-question').style.display = 'block';
+    document.getElementById('rating-thanks').style.display   = 'none';
+  }
 }
 
 function rateQuiz(score) {
@@ -1171,6 +1256,17 @@ function rateQuiz(score) {
     const label = SETS[selectedSet].name + ' (' + (gameMode === 'mc' ? 'meerkeuze' : 'typen') + ') - ' + ratingLabel;
     _paq.push(['trackEvent', 'quiz', 'rating', label, score]);
   }
+}
+
+function shareDailyResult() {
+  const emoji = document.getElementById('daily-emoji').textContent;
+  const correct = (emoji.match(/🟢/g) || []).length;
+  const text = `TopoQuiz ${todayStr()} – ${correct}/10\n${emoji}\ntopoquiz.com`;
+  navigator.clipboard?.writeText(text).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.textContent = '✅ Gekopieerd!';
+    setTimeout(() => { btn.textContent = '📋 Kopieer resultaat'; }, 2000);
+  });
 }
 
 let selectedSet = 54;
@@ -1189,7 +1285,31 @@ function _trackQuiz(action) {
 function _renderLevelSelect() {
   const el = document.getElementById('level-select');
   el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
+
+  // Daily challenge bovenaan, apart van de reguliere sets
+  const todayResult = (() => { try { return localStorage.getItem(dailyStorageKey()); } catch (_) { return null; } })();
+  const dailyBtn = document.createElement('button');
+  dailyBtn.className = 'daily-btn' + (todayResult ? ' done' : '');
+  const sub = document.createElement('span');
+  sub.className = 'daily-sub';
+  if (todayResult) {
+    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag — al gedaan! ✓'));
+    sub.textContent = todayResult;
+    dailyBtn.onclick = null;
+  } else {
+    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag'));
+    sub.textContent = '10 steden, elke dag anders — meerkeuze';
+    dailyBtn.onclick = () => selectLevel(98);
+  }
+  dailyBtn.appendChild(sub);
+  el.appendChild(dailyBtn);
+
+  const hr0 = document.createElement('hr');
+  hr0.className = 'level-divider';
+  el.appendChild(hr0);
+
   Object.entries(SETS).forEach(([num, set]) => {
+    if (set.daily) return; // al apart weergegeven
     if (set.bonus) {
       const hr = document.createElement('hr');
       hr.className = 'level-divider';
@@ -1244,12 +1364,17 @@ function _renderModeSelect(setNumber) {
 
 function selectLevel(setNumber) {
   selectedSet = setNumber;
+  if (SETS[setNumber].daily) {
+    history.pushState({ screen: 'quiz', set: setNumber, mode: 'mc' }, '');
+    startQuiz('mc');
+    return;
+  }
   history.pushState({ screen: 'mode-select', set: setNumber }, '');
   _renderModeSelect(setNumber);
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v1.7.0';
+const APP_VERSION = 'v1.8.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 

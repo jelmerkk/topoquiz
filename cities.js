@@ -173,6 +173,8 @@ const SETS = {
    64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true  },
    65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true  },
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true  },
+   // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
+   98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
    99: { name: 'Bonus: Alle steden door elkaar', quizType: 'place', fitOnStart: false, mastery: 1, bonus: true },
 };

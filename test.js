@@ -103,7 +103,7 @@ section('ALL_CITIES — set-dekking');
 
 Object.entries(SETS).forEach(([num, set]) => {
   if (set.quizType === 'province') return; // provincies gebruiken ALL_PROVINCES
-  if (set.bonus) return;                   // bonus set gebruikt runtime-sampling, niet een vaste set-filter
+  if (set.bonus || set.daily) return;      // deze sets gebruiken runtime-sampling, niet een vaste set-filter
   const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
   expect(`Set ${set.name} heeft ≥ 4 steden (voor meerkeuze-afleiders)`, count >= 4,
     `heeft er ${count}`);
@@ -200,6 +200,82 @@ expect('Verkeerd antwoord → false',                 matchInput('Rotterdam', am
 expect('Leeg antwoord → false',                     matchInput('', amsterdam) === false);
 expect('Korte naam (Oss): geen typfouten toegestaan → false bij 1 fout',
   matchInput('Oss', oss) === 'exact' && matchInput('Osl', oss) === false);
+
+// ── Daily Challenge — pure logica (gespiegeld vanuit index.html) ──────────────
+
+function makeRng(seed) {
+  let s = seed;
+  return function() {
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ s >>> 15, s | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function dateSeed(dateStr) {
+  return dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
+}
+
+function seededShuffle(arr, rng) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function dailyCities(dateStr) {
+  const rng = makeRng(dateSeed(dateStr));
+  return seededShuffle(ALL_CITIES, rng).slice(0, 10);
+}
+
+function dailyResultEmoji(results) {
+  return results.map(r => r ? '🟢' : '🔴').join('');
+}
+
+section('makeRng() — seeded pseudo-random generator');
+
+const rng1 = makeRng(12345);
+const seq1 = [rng1(), rng1(), rng1()];
+const rng2 = makeRng(12345);
+const seq2 = [rng2(), rng2(), rng2()];
+expect('Zelfde seed geeft dezelfde reeks', JSON.stringify(seq1) === JSON.stringify(seq2));
+expect('Waarden liggen tussen 0 en 1', seq1.every(v => v >= 0 && v < 1));
+const rng3 = makeRng(99999);
+const seq3 = [rng3(), rng3(), rng3()];
+expect('Andere seed geeft andere reeks', JSON.stringify(seq1) !== JSON.stringify(seq3));
+
+section('dateSeed()');
+
+expect('dateSeed geeft een getal terug', typeof dateSeed('2026-03-18') === 'number');
+expect('Verschillende datums geven verschillende seeds',
+  dateSeed('2026-03-18') !== dateSeed('2026-03-19'));
+expect('Zelfde datum geeft altijd dezelfde seed',
+  dateSeed('2026-03-18') === dateSeed('2026-03-18'));
+
+section('dailyCities()');
+
+const dc1 = dailyCities('2026-03-18');
+const dc2 = dailyCities('2026-03-18');
+const dc3 = dailyCities('2026-03-19');
+expect('dailyCities geeft altijd 10 steden', dc1.length === 10);
+expect('Zelfde datum → zelfde steden',
+  dc1.map(c => c.name).join() === dc2.map(c => c.name).join());
+expect('Andere datum → andere steden',
+  dc1.map(c => c.name).join() !== dc3.map(c => c.name).join());
+expect('Alle steden komen uit ALL_CITIES',
+  dc1.every(c => ALL_CITIES.includes(c)));
+expect('Geen dubbele steden in dagelijkse selectie',
+  new Set(dc1.map(c => c.name)).size === 10);
+
+section('dailyResultEmoji()');
+
+expect('Correct → 🟢',               dailyResultEmoji([true])           === '🟢');
+expect('Fout → 🔴',                  dailyResultEmoji([false])          === '🔴');
+expect('Gemengd resultaat klopt',    dailyResultEmoji([true,false,true]) === '🟢🔴🟢');
+expect('10 resultaten → 10 emoji',   dailyResultEmoji(Array(10).fill(true)).length === 20); // 10 × 2-byte emoji
 
 // ── Samenvatting ──────────────────────────────────────────────
 
