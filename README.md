@@ -54,8 +54,40 @@ const SETS = {
 | `name` | Weergavenaam in het menu |
 | `quizType` | `'place'` (stippen op kaart) of `'province'` (provincievlakken) |
 | `fitOnStart` | `true` = zoom in op de actieve plaatsen; `false` = heel Nederland |
+| `mastery` | Optioneel: overschrijft `MASTERY_MC`/`MASTERY_TEXT` voor deze set |
+| `bonus` | `true` = elke sessie 20 willekeurige steden uit `ALL_CITIES` |
+| `daily` | `true` = 10 datum-geseedde steden, bypast mode-selectiescherm |
 
 **Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, enz. Gehele getallen sorteren automatisch in de juiste volgorde in het menu.
+
+---
+
+## Game modes
+
+Elke set (behalve provincies) biedt drie oefenmodi:
+
+| Modus | Beschrijving |
+|-------|-------------|
+| **Meerkeuze** (`mc`) | Een stip op de kaart, naam kiezen uit vier opties |
+| **Typen** (`text`) | Een stip op de kaart, naam zelf intypen (fuzzy matching) |
+| **Klik op de kaart** (`map`) | Stadsnaam zichtbaar, klik op de kaart waar de stad ligt |
+
+### Klik-op-de-kaart drempelwaarden
+| Afstand | Resultaat |
+|---------|-----------|
+| < 20 km | ✅ Correct |
+| 20–60 km | ⚠️ Bijna (telt als fout) |
+| > 60 km | ❌ Fout |
+
+---
+
+## Speciale sets
+
+### Dagelijkse uitdaging (set 98)
+Elke dag 10 steden, geseed op de datum — voor iedereen hetzelfde. Altijd meerkeuze, mastery = 1×. Resultaat deelbaar als emoji-grid. Bovenaan het startscherm.
+
+### Bonus level (set 99)
+Elke sessie 20 willekeurige steden uit alle sets gecombineerd. Mastery = 1×. Goud omrand op het startscherm.
 
 ---
 
@@ -71,8 +103,9 @@ Provincievlakken worden gekleurd vanuit het lokale bestand `provincie_2023.geojs
 
 ## Spaced repetition
 
-- **Meerkeuze:** een plaats is geleerd na 3× correct (`MASTERY_MC = 3`)
+- **Meerkeuze / klik op kaart:** een plaats is geleerd na 3× correct (`MASTERY_MC = 3`)
 - **Typen:** na 1× correct (`MASTERY_TEXT = 1`)
+- **Speciale sets (daily/bonus):** na 1× correct (instelbaar via `mastery`-veld in SETS)
 - Elke fout reset de streak naar 0
 - Plaatsen dichterbij de huidige vraag worden vaker als afleider gekozen (`nearbyDistractors`)
 

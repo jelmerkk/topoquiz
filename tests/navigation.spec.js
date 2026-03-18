@@ -2,9 +2,15 @@ const { test, expect } = require('@playwright/test');
 
 test('level kiezen toont modus-keuze', async ({ page }) => {
   await page.goto('/');
+  // Set 54 (Provincies) toont 2 knoppen, plaatsen-sets tonen 3 (incl. kaart-klik)
   await page.locator('#level-select .mode-btn').first().click();
   await expect(page.locator('#mode-select .mode-btn').first()).toContainText('Meerkeuze');
-  await expect(page.locator('#mode-select .mode-btn')).toHaveCount(2);
+  await expect(page.locator('#mode-select .mode-btn:visible')).toHaveCount(2);
+  await page.locator('#back-btn').click();
+  // Klik op een plaatsen-set (tweede mode-btn = set 55)
+  await page.locator('#level-select .mode-btn').nth(1).click();
+  await expect(page.locator('#mode-select .mode-btn:visible')).toHaveCount(3);
+  await expect(page.locator('#mode-select .mode-btn:visible').nth(2)).toContainText('Klik op de kaart');
 });
 
 test('meerkeuze quiz starten toont kaart en vraag', async ({ page }) => {

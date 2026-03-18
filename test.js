@@ -277,6 +277,62 @@ expect('Fout → 🔴',                  dailyResultEmoji([false])          === 
 expect('Gemengd resultaat klopt',    dailyResultEmoji([true,false,true]) === '🟢🔴🟢');
 expect('10 resultaten → 10 emoji',   dailyResultEmoji(Array(10).fill(true)).length === 20); // 10 × 2-byte emoji
 
+// ── Kaart-klik modus — pure logica (gespiegeld vanuit index.html) ─────────────
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const CLICK_CORRECT_KM = 20;
+const CLICK_CLOSE_KM   = 60;
+
+function clickResult(distKm) {
+  if (distKm < CLICK_CORRECT_KM) return 'correct';
+  if (distKm < CLICK_CLOSE_KM)   return 'close';
+  return 'wrong';
+}
+
+section('haversine()');
+
+const ams = ALL_CITIES.find(c => c.name === 'Amsterdam');
+const rot = ALL_CITIES.find(c => c.name === 'Rotterdam');
+const gro = ALL_CITIES.find(c => c.name === 'Groningen');
+const maa = ALL_CITIES.find(c => c.name === 'Maastricht');
+
+const distAmsAms = haversine(ams.lat, ams.lon, ams.lat, ams.lon);
+expect('Zelfde punt → 0 km', distAmsAms < 0.01);
+
+const distAmsRot = haversine(ams.lat, ams.lon, rot.lat, rot.lon);
+expect('Amsterdam–Rotterdam ≈ 50–80 km', distAmsRot > 50 && distAmsRot < 80,
+  `was ${Math.round(distAmsRot)} km`);
+
+const distAmsGro = haversine(ams.lat, ams.lon, gro.lat, gro.lon);
+expect('Amsterdam–Groningen ≈ 130–180 km', distAmsGro > 130 && distAmsGro < 180,
+  `was ${Math.round(distAmsGro)} km`);
+
+const distAmsMaa = haversine(ams.lat, ams.lon, maa.lat, maa.lon);
+expect('Amsterdam–Maastricht ≈ 155–220 km', distAmsMaa > 155 && distAmsMaa < 220,
+  `was ${Math.round(distAmsMaa)} km`);
+
+expect('Retourwaarde is een getal', typeof distAmsRot === 'number');
+
+section('clickResult()');
+
+expect('0 km → correct',    clickResult(0)    === 'correct');
+expect('10 km → correct',   clickResult(10)   === 'correct');
+expect('19 km → correct',   clickResult(19)   === 'correct');
+expect('20 km → close',     clickResult(20)   === 'close');
+expect('40 km → close',     clickResult(40)   === 'close');
+expect('59 km → close',     clickResult(59)   === 'close');
+expect('60 km → wrong',     clickResult(60)   === 'wrong');
+expect('150 km → wrong',    clickResult(150)  === 'wrong');
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);

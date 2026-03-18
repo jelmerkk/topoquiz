@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');else if(location.protocol==='http:'&&location.hostname!=='localhost')location.replace('https:'+location.href.slice(5));</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.8.0">
+<meta name="version" content="1.9.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -75,6 +75,15 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 .mode-btn.bonus-btn { border-color: #f0c040; }
 @media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
 .level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
+/* ── Kaart-klik modus ── */
+.map-click-mode #leaflet-map,
+.map-click-mode .leaflet-container { cursor: crosshair !important; }
+#map-click-hint {
+  font-size: 0.82rem; color: #8ab4f8; margin-top: 4px;
+  display: none;
+}
+.map-click-mode #map-click-hint { display: block; }
+
 .daily-btn {
   display: block; width: 100%; padding: 16px; margin-bottom: 18px;
   background: #1a3a1a; border: 2px solid #58CC02; color: #fff;
@@ -589,6 +598,10 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
       ✏️ Zelf typen
       <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
+    <button class="mode-btn" id="map-mode-btn" onclick="startQuiz('map')">
+      📍 Klik op de kaart
+      <span class="mode-desc">Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!</span>
+    </button>
     <button id="back-btn" onclick="history.back()">← Andere toets</button>
     <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
   </div>
@@ -607,6 +620,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 
 <div id="question-box" style="display:none">
   <div id="question-text">Welke plaats is dit?</div>
+  <div id="map-click-hint">👆 Klik op de kaart waar deze plaats ligt</div>
   <div id="options"></div>
   <div id="text-input-wrap">
     <div id="hint-display"></div>
@@ -778,6 +792,26 @@ function mastery() {
   return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC;
 }
 
+// ── Kaart-klik modus — pure logica ───────────────────────────
+const CLICK_CORRECT_KM = 20;
+const CLICK_CLOSE_KM   = 60;
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function clickResult(distKm) {
+  if (distKm < CLICK_CORRECT_KM) return 'correct';
+  if (distKm < CLICK_CLOSE_KM)   return 'close';
+  return 'wrong';
+}
+
 // ── Daily Challenge — pure logica ────────────────────────────
 function makeRng(seed) {
   let s = seed;
@@ -812,6 +846,7 @@ function todayStr() {
 function dailyStorageKey() { return `tq_daily_${todayStr()}`; }
 
 let dailyAnswers = {}; // { cityName: true|false } — eerste poging per stad
+let mapClickMarker = null; // tijdelijke marker na klik op kaart
 
 let activeCities = [];
 let gameMode = 'mc';
@@ -1000,12 +1035,21 @@ function renderQuestion() {
   hintRevealed = 0;
   currentCity = pickCity();
 
+  // Ruim vorige klik-marker op
+  if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
+
   const isProvince = SETS[selectedSet].quizType === 'province';
-  document.getElementById('question-text').textContent = isProvince ? 'Welke provincie is dit?' : 'Welke plaats is dit?';
-  if (isProvince) {
+  if (gameMode === 'map') {
+    // Verberg de marker van de te raden stad; toon alleen de naam
+    if (currentCity.marker) currentCity.marker.setStyle({ opacity: 0, fillOpacity: 0 });
+    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+    document.getElementById('question-text').textContent = currentCity.name;
+  } else if (isProvince) {
+    document.getElementById('question-text').textContent = 'Welke provincie is dit?';
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
     setHighlightProvince(currentCity);
   } else {
+    document.getElementById('question-text').textContent = 'Welke plaats is dit?';
     setHighlight(currentCity);
   }
 
@@ -1156,6 +1200,50 @@ function recordWrong(city, fb) {
   qbox.addEventListener('animationend', () => qbox.classList.remove('shake'), { once: true });
   updateScoreboard();
   saveProgress();
+}
+
+// ── Kaart-klik antwoord ──────────────────────────────────────
+
+function handleMapClick(e) {
+  if (answered) return;
+  answered = true;
+
+  const city = currentCity;
+  const distKm = haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
+  const result = clickResult(distKm);
+
+  // Toon klik-marker (blauw) en herstel de stad-marker
+  mapClickMarker = L.circleMarker(e.latlng, {
+    radius: 8, color: '#fff', weight: 2,
+    fillColor: result === 'correct' ? '#58CC02' : result === 'close' ? '#f0c040' : '#FF4B4B',
+    fillOpacity: 0.9,
+  }).addTo(map);
+
+  // Maak stad zichtbaar en highlight de echte locatie
+  if (city.marker) city.marker.setStyle(
+    streak[city.name] + 1 >= mastery()
+      ? { ...MASTERED_STYLE, radius: cityRadius(city) }
+      : { ...NORMAL_STYLE,   radius: cityRadius(city) }
+  );
+  setHighlight(city);
+
+  const fb = document.getElementById('feedback');
+  const km = Math.round(distKm);
+  if (result === 'correct') {
+    recordCorrect(city, fb);
+  } else {
+    recordWrong(city, fb);
+    // Overschrijf de generieke fout-tekst met afstandsinformatie
+    if (result === 'close') {
+      fb.innerHTML = `😊 Bijna! <strong>${city.name}</strong> was ${km} km van je klik.`;
+      fb.className = 'fb-close';
+    } else {
+      fb.innerHTML = `❌ Helaas! <strong>${city.name}</strong> lag ${km} km van je klik.`;
+      fb.className = 'fb-err';
+    }
+  }
+
+  finishAnswer();
 }
 
 function updateScoreboard() {
@@ -1358,6 +1446,8 @@ function _renderModeSelect(setNumber) {
   descs[1].textContent = isProvince
     ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
     : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
+  // Kaart-klik alleen beschikbaar voor plaatsen, niet voor provincies
+  document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
 }
 
 // ── Publieke navigatiefuncties (met history) ─────────────────
@@ -1374,7 +1464,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v1.8.0';
+const APP_VERSION = 'v1.9.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1440,6 +1530,9 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedbac
 
 function _renderStartScreen() {
   document.body.classList.remove('in-quiz');
+  map.off('click', handleMapClick);
+  document.getElementById('map-wrap').classList.remove('map-click-mode');
+  if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
@@ -1476,6 +1569,14 @@ async function startQuiz(mode) {
   // Toon/verberg de juiste invoer-UI
   document.getElementById('options').style.display         = mode === 'mc'   ? '' : 'none';
   document.getElementById('text-input-wrap').style.display = mode === 'text' ? 'block' : 'none';
+  // Kaart-klik modus: crosshair cursor en klik-listener
+  map.off('click', handleMapClick);
+  if (mode === 'map') {
+    document.getElementById('map-wrap').classList.add('map-click-mode');
+    map.on('click', handleMapClick);
+  } else {
+    document.getElementById('map-wrap').classList.remove('map-click-mode');
+  }
 
   // Herstel eerdere sessie als die er is, anders begin vers
   const restored = restoreProgress();
