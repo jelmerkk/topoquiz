@@ -100,6 +100,55 @@ test('typmodus: typfout in lang woord geeft "Bijna!" feedback', async ({ page })
   await expect(page.locator('#feedback')).toContainText('Bijna');
 });
 
+// ── Kaart-klik modus ──────────────────────────────────────────────────────────
+
+async function startMapClickQuiz(page) {
+  await page.goto('/');
+  await page.locator('#level-select .mode-btn').nth(1).click(); // set 55 (plaatsen)
+  await page.locator('#mode-select .mode-btn:visible').nth(2).click(); // kaart-klik
+  await page.waitForSelector('#question-text');
+}
+
+test('kaart-klik modus: vraagscherm toont stadsnaam als vraagtekst', async ({ page }) => {
+  await startMapClickQuiz(page);
+  const name = await page.evaluate(() => currentCity.name);
+  await expect(page.locator('#question-text')).toHaveText(name);
+});
+
+test('kaart-klik modus: alle markers zijn verborgen tijdens de vraag', async ({ page }) => {
+  await startMapClickQuiz(page);
+  const markersVisible = await page.evaluate(() => map.hasLayer(markerLayer));
+  expect(markersVisible).toBe(false);
+});
+
+test('kaart-klik modus: kaart heeft crosshair cursor', async ({ page }) => {
+  await startMapClickQuiz(page);
+  await expect(page.locator('#map-wrap')).toHaveClass(/map-click-mode/);
+});
+
+test('kaart-klik modus: klikken op de kaart toont feedback met afstand', async ({ page }) => {
+  await startMapClickQuiz(page);
+  // Simuleer klik op willekeurige locatie in Nederland via Leaflet map.fire
+  await page.evaluate(() => map.fire('click', { latlng: L.latLng(52.0, 5.0) }));
+  await expect(page.locator('#feedback')).not.toBeEmpty();
+  await expect(page.locator('#feedback')).toContainText('km');
+});
+
+test('kaart-klik modus: markers zichtbaar na antwoord', async ({ page }) => {
+  await startMapClickQuiz(page);
+  await page.evaluate(() => map.fire('click', { latlng: L.latLng(52.0, 5.0) }));
+  const markersVisible = await page.evaluate(() => map.hasLayer(markerLayer));
+  expect(markersVisible).toBe(true);
+});
+
+test('kaart-klik modus: klik op exacte locatie geeft correct-feedback', async ({ page }) => {
+  await startMapClickQuiz(page);
+  await page.evaluate(() => {
+    map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
+  });
+  await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
+});
+
 // 5b. Hint-knop
 test('hint-knop onthult beginteken(s) van het antwoord', async ({ page }) => {
   await startProvinceQuiz(page, 1);

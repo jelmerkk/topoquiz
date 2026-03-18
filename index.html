@@ -1040,8 +1040,8 @@ function renderQuestion() {
 
   const isProvince = SETS[selectedSet].quizType === 'province';
   if (gameMode === 'map') {
-    // Verberg de marker van de te raden stad; toon alleen de naam
-    if (currentCity.marker) currentCity.marker.setStyle({ opacity: 0, fillOpacity: 0 });
+    // Verberg alle markers — anders geef je locatie-informatie weg
+    if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince) {
@@ -1212,19 +1212,16 @@ function handleMapClick(e) {
   const distKm = haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
   const result = clickResult(distKm);
 
-  // Toon klik-marker (blauw) en herstel de stad-marker
+  // Alle markers weer zichtbaar + klik-marker tonen
+  if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
+
   mapClickMarker = L.circleMarker(e.latlng, {
     radius: 8, color: '#fff', weight: 2,
     fillColor: result === 'correct' ? '#58CC02' : result === 'close' ? '#f0c040' : '#FF4B4B',
     fillOpacity: 0.9,
   }).addTo(map);
 
-  // Maak stad zichtbaar en highlight de echte locatie
-  if (city.marker) city.marker.setStyle(
-    streak[city.name] + 1 >= mastery()
-      ? { ...MASTERED_STYLE, radius: cityRadius(city) }
-      : { ...NORMAL_STYLE,   radius: cityRadius(city) }
-  );
+  // Highlight de echte locatie
   setHighlight(city);
 
   const fb = document.getElementById('feedback');
@@ -1533,6 +1530,7 @@ function _renderStartScreen() {
   map.off('click', handleMapClick);
   document.getElementById('map-wrap').classList.remove('map-click-mode');
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
+  if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
