@@ -103,6 +103,7 @@ section('ALL_CITIES — set-dekking');
 
 Object.entries(SETS).forEach(([num, set]) => {
   if (set.quizType === 'province') return; // provincies gebruiken ALL_PROVINCES
+  if (set.bonus) return;                   // bonus set gebruikt runtime-sampling, niet een vaste set-filter
   const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
   expect(`Set ${set.name} heeft ≥ 4 steden (voor meerkeuze-afleiders)`, count >= 4,
     `heeft er ${count}`);

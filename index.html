@@ -72,6 +72,9 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   transition: all 0.12s;
 }
 @media (hover: hover) { .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; } }
+.mode-btn.bonus-btn { border-color: #f0c040; }
+@media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
+.level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
 .mode-btn .mode-desc {
   display: block;
   font-size: 0.8rem;
@@ -750,7 +753,10 @@ function setHighlight(city) {
 // ── Game state ──────────────────────────────────────────────
 const MASTERY_MC   = 3; // meerkeuze: 3× goed
 const MASTERY_TEXT = 1; // typen: 1× goed
-function mastery() { return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC; }
+function mastery() {
+  if (SETS[selectedSet].mastery != null) return SETS[selectedSet].mastery;
+  return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC;
+}
 let activeCities = [];
 let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
@@ -840,7 +846,23 @@ function initLevel(setNumber) {
     activeCities = ALL_PROVINCES;
     buildProvinceLayer();
   } else {
-    activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
+    if (SETS[setNumber].bonus) {
+      // Bonus level: probeer opgeslagen selectie te herstellen, anders 20 willekeurig
+      let cities = null;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(`qp_${setNumber}_${gameMode}`));
+        if (saved?.bonusCities) {
+          cities = saved.bonusCities.map(n => ALL_CITIES.find(c => c.name === n)).filter(Boolean);
+          if (cities.length < 5) cities = null;
+        }
+      } catch (_) {}
+      if (!cities) {
+        cities = shuffle([...ALL_CITIES]).slice(0, 20);
+      }
+      activeCities = cities;
+    } else {
+      activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
+    }
     activeCities.forEach(c => {
       c._hadWrong = false;
       if (c.capital) {
@@ -1168,8 +1190,13 @@ function _renderLevelSelect() {
   const el = document.getElementById('level-select');
   el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
   Object.entries(SETS).forEach(([num, set]) => {
+    if (set.bonus) {
+      const hr = document.createElement('hr');
+      hr.className = 'level-divider';
+      el.appendChild(hr);
+    }
     const btn = document.createElement('button');
-    btn.className = 'mode-btn';
+    btn.className = set.bonus ? 'mode-btn bonus-btn' : 'mode-btn';
     btn.textContent = set.name;
     btn.onclick = () => selectLevel(Number(num));
     el.appendChild(btn);
@@ -1378,11 +1405,10 @@ async function startQuiz(mode) {
 function saveProgress() {
   const hadWrong = {};
   activeCities.forEach(c => { hadWrong[c.name] = c._hadWrong; });
+  const data = { streak, sessionOk, sessionErr, hadWrong };
+  if (SETS[selectedSet].bonus) data.bonusCities = activeCities.map(c => c.name);
   try {
-    sessionStorage.setItem(
-      `qp_${selectedSet}_${gameMode}`,
-      JSON.stringify({ streak, sessionOk, sessionErr, hadWrong })
-    );
+    sessionStorage.setItem(`qp_${selectedSet}_${gameMode}`, JSON.stringify(data));
   } catch (_) {}
 }
 
