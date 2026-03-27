@@ -2,7 +2,7 @@ name: E2E Tests
 
 on:
   push:
-    branches: [dev]
+    branches: [staging]
   pull_request:
     branches: [main]
 
@@ -38,18 +38,18 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Merge dev into main
+      - name: Merge staging into main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main
-          git merge dev --ff-only
+          git merge staging --ff-only
           git push origin main
 
       - name: Deploy to Uberspace via rsync
