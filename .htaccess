@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /
+
+# Redirect non-www naar www
+RewriteCond %{HTTP_HOST} ^topoquiz\.com$ [NC]
+RewriteRule ^(.*)$ https://www.topoquiz.com/$1 [R=301,L]
+
+# Forceer HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
