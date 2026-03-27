@@ -139,7 +139,7 @@ Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Goo
 
 ## Deploy & CI
 
-- `dev` branch → automatische preview op Cloudflare Pages (workers.dev URL)
-- Push naar `dev` triggert GitHub Actions: unit tests + Playwright E2E tests
-- Bij groene tests wordt `dev` automatisch gemerged naar `main`
-- `main` branch → automatisch live op [topoquiz.com](https://www.topoquiz.com)
+- `feature/*` branches → ontwikkeling van nieuwe features
+- Push naar `staging` triggert GitHub Actions: unit tests + Playwright E2E tests
+- Bij groene tests wordt `staging` automatisch gemerged naar `main`
+- `main` branch → automatisch gedeployed naar Uberspace via rsync → live op [topoquiz.com](https://www.topoquiz.com)
