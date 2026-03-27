@@ -51,3 +51,13 @@ jobs:
           git checkout main
           git merge dev --ff-only
           git push origin main
+
+      - name: Deploy to Uberspace via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --include='index.html' --include='cities.js' --include='sw.js' --include='manifest.json' --include='provincie_2023.geojson' --include='sitemap.xml' --include='icon.svg' --include='.htaccess' --exclude='*'
+          path: ./
+          remote_path: ${{ vars.UBERSPACE_DEPLOY_PATH }}/
+          remote_host: ${{ vars.UBERSPACE_SSH_HOST }}
+          remote_user: ${{ vars.UBERSPACE_SSH_USER }}
+          remote_key: ${{ secrets.UBERSPACE_SSH_KEY }}
