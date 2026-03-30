@@ -1381,7 +1381,7 @@ function _renderLevelSelect() {
     dailyBtn.onclick = null;
   } else {
     dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag'));
-    sub.textContent = '10 steden, elke dag anders — meerkeuze!';
+    sub.textContent = '10 steden, elke dag anders — meerkeuze';
     dailyBtn.onclick = () => selectLevel(98);
   }
   dailyBtn.appendChild(sub);
@@ -1459,7 +1459,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v1.9.0';
+const APP_VERSION = 'v1.9.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
