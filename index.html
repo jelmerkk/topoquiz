@@ -75,6 +75,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 .mode-btn.bonus-btn { border-color: #f0c040; }
 @media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
 .level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
+.beta-label { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em; background: #f0a500; color: #1a1a2e; padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
 /* ── Kaart-klik modus ── */
 .map-click-mode #leaflet-map,
 .map-click-mode .leaflet-container { cursor: crosshair !important; }
@@ -1456,6 +1457,12 @@ function _renderLevelSelect() {
     const btn = document.createElement('button');
     btn.className = set.bonus ? 'mode-btn bonus-btn' : 'mode-btn';
     btn.textContent = set.name;
+    if (set.beta) {
+      const tag = document.createElement('span');
+      tag.className = 'beta-label';
+      tag.textContent = 'BETA';
+      btn.appendChild(tag);
+    }
     btn.onclick = () => selectLevel(Number(num));
     el.appendChild(btn);
   });
