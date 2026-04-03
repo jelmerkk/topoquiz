@@ -12,13 +12,13 @@
 
 const ALL_CITIES = [
   // ── Sets 55 + 56: Grote steden / Provinciehoofdsteden (landelijk) ────────────
-  { name: "Amsterdam",           lat: 52.37, lon: 4.90, pop:  921000, sets: [56] },
-  { name: "Haarlem",             lat: 52.38, lon: 4.63, pop:  163000, sets: [55, 56], capital: true },
-  { name: "Alkmaar",             lat: 52.63, lon: 4.75, pop:  108000, sets: [56] },
-  { name: "Den Helder",          lat: 52.96, lon: 4.76, pop:   55000, sets: [56] },
-  { name: "Purmerend",           lat: 52.50, lon: 4.96, pop:   81000, sets: [56] },
-  { name: "Zaanstad",            lat: 52.44, lon: 4.81, pop:  156000, sets: [56] },
-  { name: "Hoorn",               lat: 52.64, lon: 5.06, pop:   73000, sets: [56] },
+  { name: "Amsterdam",           lat: 52.37, lon: 4.90, pop:  921000, sets: [56, 67] },
+  { name: "Haarlem",             lat: 52.38, lon: 4.63, pop:  163000, sets: [55, 56, 67], capital: true },
+  { name: "Alkmaar",             lat: 52.63, lon: 4.75, pop:  108000, sets: [56, 67] },
+  { name: "Den Helder",          lat: 52.96, lon: 4.76, pop:   55000, sets: [56, 67] },
+  { name: "Purmerend",           lat: 52.50, lon: 4.96, pop:   81000, sets: [56, 67] },
+  { name: "Zaanstad",            lat: 52.44, lon: 4.81, pop:  156000, sets: [56, 67], aliases: ["Zaandam"] },
+  { name: "Hoorn",               lat: 52.64, lon: 5.06, pop:   73000, sets: [56, 67] },
   { name: "Den Haag",            lat: 52.08, lon: 4.30, pop:  548000, sets: [55, 56, 66], capital: true, aliases: ["'s-Gravenhage", "s-Gravenhage", "Den haag"] },
   { name: "Rotterdam",           lat: 51.93, lon: 4.48, pop:  651000, sets: [56, 66] },
   { name: "Leiden",              lat: 52.16, lon: 4.50, pop:  123000, sets: [56, 66] },
@@ -31,7 +31,7 @@ const ALL_CITIES = [
   { name: "Utrecht",             lat: 52.09, lon: 5.12, pop:  361000, sets: [55, 56, 64], capital: true },
   { name: "Amersfoort",          lat: 52.16, lon: 5.39, pop:  158000, sets: [56, 64] },
   { name: "Zeist",               lat: 52.09, lon: 5.23, pop:   65000, sets: [56, 64] },
-  { name: "Hilversum",           lat: 52.22, lon: 5.18, pop:   91000, sets: [56] },
+  { name: "Hilversum",           lat: 52.22, lon: 5.18, pop:   91000, sets: [56, 67] },
   { name: "Groningen",           lat: 53.22, lon: 6.57, pop:  234000, sets: [55, 56, 63], capital: true },
   { name: "Leeuwarden",          lat: 53.20, lon: 5.80, pop:  123000, sets: [55, 56], capital: true },
   { name: "Assen",               lat: 52.99, lon: 6.55, pop:   68000, sets: [55, 56, 63], capital: true },
@@ -131,6 +131,15 @@ const ALL_CITIES = [
   { name: "Valkenburg",          lat: 50.87, lon: 5.83, pop:   17000, sets: [65] },
   { name: "Vaals",               lat: 50.77, lon: 6.02, pop:   10000, sets: [65] },
 
+  // ── Set 67: Noord-Holland (extra plaatsen) ────────────────────
+  { name: "Enkhuizen",           lat: 52.71, lon: 5.29, pop:   18000, sets: [67] },
+  { name: "Volendam",            lat: 52.50, lon: 5.07, pop:   22000, sets: [67] },
+  { name: "IJmuiden",            lat: 52.46, lon: 4.62, pop:   35000, sets: [67] },
+  { name: "Zandvoort",           lat: 52.37, lon: 4.53, pop:   17000, sets: [67] },
+  { name: "Amstelveen",          lat: 52.30, lon: 4.86, pop:   93000, sets: [67] },
+  { name: "Aalsmeer",            lat: 52.26, lon: 4.76, pop:   32000, sets: [67] },
+  { name: "Bussum",              lat: 52.28, lon: 5.17, pop:   33000, sets: [67] },
+
   // ── Set 66: Zuid-Holland (extra plaatsen) ─────────────────────
   { name: "Noordwijk",           lat: 52.24, lon: 4.45, pop:   44000, sets: [66] },
   { name: "Wassenaar",           lat: 52.14, lon: 4.40, pop:   26000, sets: [66] },
@@ -173,6 +182,7 @@ const SETS = {
    64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true  },
    65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true  },
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true  },
+   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true  },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd

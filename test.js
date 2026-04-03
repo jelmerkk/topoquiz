@@ -333,6 +333,35 @@ expect('59 km → close',     clickResult(59)   === 'close');
 expect('60 km → wrong',     clickResult(60)   === 'wrong');
 expect('150 km → wrong',    clickResult(150)  === 'wrong');
 
+// ── Set 67: Noord-Holland ─────────────────────────────────────
+
+section('Set 67 — definitie');
+
+expect('Set 67 bestaat in SETS', !!SETS[67]);
+expect('Set 67 heeft naam die Noord-Holland bevat',
+  SETS[67]?.name?.includes('Noord-Holland'));
+expect('Set 67 heeft quizType place', SETS[67]?.quizType === 'place');
+expect('Set 67 heeft fitOnStart true', SETS[67]?.fitOnStart === true);
+
+section('Set 67 — steden');
+
+const SET67_VERWACHT = [
+  'Den Helder', 'Alkmaar', 'Hoorn', 'Purmerend', 'Zaanstad',
+  'Haarlem', 'Amsterdam', 'Hilversum',
+  'Enkhuizen', 'Volendam', 'IJmuiden', 'Zandvoort',
+  'Amstelveen', 'Aalsmeer', 'Bussum',
+];
+
+SET67_VERWACHT.forEach(naam => {
+  const city = ALL_CITIES.find(c => c.name === naam);
+  expect(`${naam} bestaat in ALL_CITIES`, !!city);
+  expect(`${naam} zit in set 67`, city?.sets?.includes(67));
+});
+
+const count67 = ALL_CITIES.filter(c => c.sets.includes(67)).length;
+expect(`Set 67 heeft precies ${SET67_VERWACHT.length} steden`, count67 === SET67_VERWACHT.length,
+  `heeft er ${count67}`);
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
