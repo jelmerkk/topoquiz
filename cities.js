@@ -150,6 +150,26 @@ const ALL_CITIES = [
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
 ];
 
+// De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
+const ALL_WATERS = [
+  { name: 'Noordzee',             lat: 52.50, lon: 3.60 },
+  { name: 'Waddenzee',            lat: 53.20, lon: 5.50 },
+  { name: 'Oosterschelde',        lat: 51.62, lon: 3.90 },
+  { name: 'Westerschelde',        lat: 51.40, lon: 3.80 },
+  { name: 'Rijn',                 lat: 51.92, lon: 5.95 },
+  { name: 'IJssel',               lat: 52.30, lon: 6.10 },
+  { name: 'Neder-Rijn',           lat: 51.95, lon: 5.55, aliases: ['Neder Rijn'] },
+  { name: 'Lek',                  lat: 51.90, lon: 4.80 },
+  { name: 'Waal',                 lat: 51.85, lon: 5.20 },
+  { name: 'Maas',                 lat: 51.50, lon: 5.85 },
+  { name: 'Oude Maas',            lat: 51.85, lon: 4.55, aliases: ['Oude maas'] },
+  { name: 'Bergse Maas',          lat: 51.70, lon: 5.00, aliases: ['Bergse maas'] },
+  { name: 'Eems',                 lat: 53.28, lon: 6.90 },
+  { name: 'Noordzeekanaal',       lat: 52.46, lon: 4.70 },
+  { name: 'Amsterdam-Rijnkanaal', lat: 52.20, lon: 5.00, aliases: ['Amsterdam Rijnkanaal'] },
+  { name: 'Nieuwe Waterweg',      lat: 51.90, lon: 4.10, aliases: ['Nieuwe waterweg'] },
+];
+
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
 // Namen komen exact overeen met de 'statnaam'-eigenschap in provincie_2023.geojson.
 const ALL_PROVINCES = [
@@ -174,6 +194,7 @@ const ALL_PROVINCES = [
 //             false → toon heel Nederland
 const SETS = {
    54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false },
+   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false },
    55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false },
    56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false },
    61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true  },
@@ -199,4 +220,4 @@ function cityRadius(city) {
 }
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, SETS, cityRadius };
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius };

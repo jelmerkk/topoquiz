@@ -4,7 +4,7 @@
 
 'use strict';
 
-const { ALL_CITIES, ALL_PROVINCES, SETS, cityRadius } = require('./cities.js');
+const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius } = require('./cities.js');
 
 // ── Pure logic (gespiegeld vanuit index.html) ─────────────────
 // Houd synchroon met de implementatie in index.html.
@@ -103,6 +103,7 @@ section('ALL_CITIES — set-dekking');
 
 Object.entries(SETS).forEach(([num, set]) => {
   if (set.quizType === 'province') return; // provincies gebruiken ALL_PROVINCES
+  if (set.quizType === 'water') return;    // wateren gebruiken ALL_WATERS
   if (set.bonus || set.daily) return;      // deze sets gebruiken runtime-sampling, niet een vaste set-filter
   const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
   expect(`Set ${set.name} heeft ≥ 4 steden (voor meerkeuze-afleiders)`, count >= 4,
@@ -145,8 +146,8 @@ section('SETS — structuur');
 const setEntries = Object.entries(SETS);
 expect('Er zijn sets gedefinieerd', setEntries.length > 0);
 
-const invalidQuizTypes = setEntries.filter(([, s]) => !['place', 'province'].includes(s.quizType));
-expect('Alle sets hebben een geldig quizType (place of province)',
+const invalidQuizTypes = setEntries.filter(([, s]) => !['place', 'province', 'water'].includes(s.quizType));
+expect('Alle sets hebben een geldig quizType (place, province of water)',
   invalidQuizTypes.length === 0,
   invalidQuizTypes.map(([n]) => n).join(', '));
 
@@ -332,6 +333,45 @@ expect('40 km → close',     clickResult(40)   === 'close');
 expect('59 km → close',     clickResult(59)   === 'close');
 expect('60 km → wrong',     clickResult(60)   === 'wrong');
 expect('150 km → wrong',    clickResult(150)  === 'wrong');
+
+// ── ALL_WATERS ────────────────────────────────────────────────
+
+section('ALL_WATERS — structuur');
+
+expect('ALL_WATERS is gedefinieerd', Array.isArray(ALL_WATERS));
+expect('ALL_WATERS heeft precies 16 wateren', ALL_WATERS.length === 16,
+  `heeft er ${ALL_WATERS?.length}`);
+
+const waterMissingFields = ALL_WATERS.filter(w => !w.name || w.lat == null || w.lon == null);
+expect('Elk water heeft name, lat, lon', waterMissingFields.length === 0,
+  waterMissingFields.map(w => w.name || '(naamloos)').join(', '));
+
+const waterOutOfBounds = ALL_WATERS.filter(w =>
+  w.lat < NL_LAT[0] || w.lat > NL_LAT[1] || w.lon < NL_LON[0] || w.lon > NL_LON[1]
+);
+expect('Alle watercoördinaten liggen binnen Nederland', waterOutOfBounds.length === 0,
+  waterOutOfBounds.map(w => `${w.name} (${w.lat}, ${w.lon})`).join(', '));
+
+const waterNames = ALL_WATERS.map(w => w.name);
+const waterDuplicates = waterNames.filter((n, i) => waterNames.indexOf(n) !== i);
+expect('Geen dubbele waternamen', waterDuplicates.length === 0, waterDuplicates.join(', '));
+
+const VERWACHTE_WATEREN = [
+  'Noordzee', 'Waddenzee', 'Oosterschelde', 'Westerschelde',
+  'Rijn', 'IJssel', 'Neder-Rijn', 'Lek', 'Waal',
+  'Maas', 'Oude Maas', 'Bergse Maas', 'Eems',
+  'Noordzeekanaal', 'Amsterdam-Rijnkanaal', 'Nieuwe Waterweg',
+];
+VERWACHTE_WATEREN.forEach(naam => {
+  expect(`${naam} aanwezig in ALL_WATERS`, ALL_WATERS.some(w => w.name === naam));
+});
+
+section('Set 57 — definitie');
+
+expect('Set 57 bestaat in SETS', !!SETS[57]);
+expect('Set 57 heeft naam die Wateren bevat', SETS[57]?.name?.includes('Wateren'));
+expect('Set 57 heeft quizType water', SETS[57]?.quizType === 'water');
+expect('Set 57 heeft fitOnStart false', SETS[57]?.fitOnStart === false);
 
 // ── Set 67: Noord-Holland ─────────────────────────────────────
 

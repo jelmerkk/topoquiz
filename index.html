@@ -720,6 +720,49 @@ const PROV_DEFAULT   = { color: '#5a7aaa', weight: 1.5, opacity: 0.7,  fillColor
 const PROV_HIGHLIGHT = { color: '#c07000', weight: 2.5, opacity: 1,    fillColor: '#f0a500', fillOpacity: 0.6  };
 const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#58CC02', fillOpacity: 0.4  };
 
+// Waterstijlen — blauw (zelfde kleurlogica als provincies maar blauw)
+const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5', fillOpacity: 0.2 };
+const WATER_HIGHLIGHT = { color: '#c07000', weight: 5,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5 };
+const WATER_MASTERED  = { color: '#1b5e20', weight: 3,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3 };
+
+// Waterwegen — lokaal bestand, gebundeld in de repo.
+let waterFeatureData = null;
+let waterLayers = {};     // naam → Leaflet layer (alleen actief tijdens water-quiz)
+let waterQuizLayer = null;
+
+const waterDataPromise = fetch('/wateren.geojson')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(data => { waterFeatureData = data; })
+  .catch(err => {
+    console.error('Waterdata kon niet geladen worden:', err);
+    waterFeatureData = null;
+  });
+
+function buildWaterLayer() {
+  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); }
+  waterLayers = {};
+  waterQuizLayer = L.geoJSON(waterFeatureData, {
+    style: WATER_DEFAULT,
+    interactive: false,
+    onEachFeature: (feature, layer) => {
+      const name = feature.properties.name;
+      if (name) waterLayers[name] = layer;
+    },
+  }).addTo(map);
+}
+
+function setHighlightWater(water) {
+  Object.entries(waterLayers).forEach(([name, layer]) => {
+    layer.setStyle(name === water.name
+      ? WATER_HIGHLIGHT
+      : (streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT));
+  });
+  if (waterLayers[water.name]) {
+    waterLayers[water.name].bringToFront();
+    map.fitBounds(waterLayers[water.name].getBounds(), { padding: [60, 60], maxZoom: 10 });
+  }
+}
+
 // Provinciegrenzen — lokaal bestand (oorsprong: cartomap.github.io, MIT, WGS84)
 // Gebundeld in de repo zodat de quiz offline werkt en niet afhankelijk is van een externe URL.
 let provinceFeatureData = null;
@@ -932,10 +975,14 @@ function initLevel(setNumber) {
   markerLayer.clearLayers();
   if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
+  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
 
   if (SETS[setNumber].quizType === 'province') {
     activeCities = ALL_PROVINCES;
     buildProvinceLayer();
+  } else if (SETS[setNumber].quizType === 'water') {
+    activeCities = ALL_WATERS;
+    buildWaterLayer();
   } else {
     if (SETS[setNumber].daily) {
       activeCities = dailyCities(todayStr());
@@ -988,6 +1035,7 @@ function initStreak() {
     c._hadWrong = false;
     if (c.marker) c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) });
     if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_DEFAULT);
+    if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_DEFAULT);
   });
 }
 
@@ -1039,6 +1087,7 @@ function renderQuestion() {
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
 
   const isProvince = SETS[selectedSet].quizType === 'province';
+  const isWater    = SETS[selectedSet].quizType === 'water';
   if (gameMode === 'map') {
     // Verberg alle markers — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
@@ -1048,6 +1097,10 @@ function renderQuestion() {
     document.getElementById('question-text').textContent = 'Welke provincie is dit?';
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
     setHighlightProvince(currentCity);
+  } else if (isWater) {
+    document.getElementById('question-text').textContent = 'Welk water is dit?';
+    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+    setHighlightWater(currentCity);
   } else {
     document.getElementById('question-text').textContent = 'Welke plaats is dit?';
     setHighlight(currentCity);
@@ -1168,6 +1221,7 @@ function recordCorrect(city, fb, close = false) {
   if (mastered) {
     if (city.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
     if (provinceLayers[city.name]) provinceLayers[city.name].setStyle(PROV_MASTERED);
+    if (waterLayers[city.name]) waterLayers[city.name].setStyle(WATER_MASTERED);
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
       : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
@@ -1290,6 +1344,7 @@ function showEnd() {
   const total = sessionOk + sessionErr;
   const pct   = total ? Math.round(sessionOk / total * 100) : 100;
   const isProvince = SETS[selectedSet].quizType === 'province';
+  const isWater    = SETS[selectedSet].quizType === 'water';
 
   const isDaily = SETS[selectedSet].daily;
   if (isDaily) {
@@ -1308,7 +1363,7 @@ function showEnd() {
     document.getElementById('rating-wrap').style.display = '';
     document.getElementById('end-stars').style.display = '';
     document.getElementById('end-text').innerHTML =
-      `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+      `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
 
   if (!isDaily) {
@@ -1421,6 +1476,7 @@ function _renderLevelSelect() {
 function _renderModeSelect(setNumber) {
   // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
+  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
 
@@ -1434,15 +1490,20 @@ function _renderModeSelect(setNumber) {
   document.getElementById('mode-select').style.display  = 'block';
 
   const isProvince = SETS[setNumber].quizType === 'province';
+  const isWater    = SETS[setNumber].quizType === 'water';
   const descs = document.querySelectorAll('#mode-select .mode-desc');
   descs[0].textContent = isProvince
     ? 'Je ziet een provincie gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
+    : isWater
+    ? 'Je ziet een waterweg gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
     : 'Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!';
   descs[1].textContent = isProvince
     ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
+    : isWater
+    ? 'Je typt de naam van de waterweg zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
     : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
-  // Kaart-klik alleen beschikbaar voor plaatsen, niet voor provincies
-  document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
+  // Kaart-klik alleen beschikbaar voor plaatsen, niet voor provincies of wateren
+  document.getElementById('map-mode-btn').style.display = (isProvince || isWater) ? 'none' : '';
 }
 
 // ── Publieke navigatiefuncties (met history) ─────────────────
@@ -1530,6 +1591,7 @@ function _renderStartScreen() {
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
   if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
+  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
   ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
@@ -1556,6 +1618,14 @@ async function startQuiz(mode) {
     await provinceDataPromise;
     if (!provinceFeatureData) {
       alert('De provinciekaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
+      history.back();
+      return;
+    }
+  }
+  if (SETS[selectedSet].quizType === 'water') {
+    await waterDataPromise;
+    if (!waterFeatureData) {
+      alert('De waterkaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
       history.back();
       return;
     }
@@ -1587,6 +1657,7 @@ async function startQuiz(mode) {
       if (streak[c.name] >= mastery()) {
         if (c.marker) c.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(c) });
         if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_MASTERED);
+        if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_MASTERED);
       }
     });
     updateHardList();
