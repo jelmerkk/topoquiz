@@ -845,6 +845,7 @@ const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fi
 const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#58CC02', fillOpacity: 1   };
 
 const markerLayer = L.layerGroup().addTo(map);
+const revealedLayer = L.layerGroup().addTo(map); // groene stippen voor geraden steden in kaart-klik modus
 
 const pulseIcon = L.divIcon({
   className: '',
@@ -1009,6 +1010,7 @@ function masteredCount() {
 
 function initLevel(setNumber) {
   markerLayer.clearLayers();
+  revealedLayer.clearLayers();
   if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   if (waterQuizLayer) { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
@@ -1316,6 +1318,11 @@ function handleMapClick(e) {
   const km = Math.round(distKm);
   if (result === 'correct') {
     recordCorrect(city, fb);
+    // Groene stip op de geraden locatie (blijft zichtbaar bij volgende vragen)
+    L.circleMarker([city.lat, city.lon], {
+      radius: 6, color: '#fff', weight: 2,
+      fillColor: '#58CC02', fillOpacity: 0.9, interactive: false,
+    }).addTo(revealedLayer);
   } else {
     recordWrong(city, fb);
     // Overschrijf de generieke fout-tekst met afstandsinformatie
@@ -1631,6 +1638,7 @@ function _renderStartScreen() {
   map.off('click', handleMapClick);
   document.getElementById('map-wrap').classList.remove('map-click-mode');
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
+  revealedLayer.clearLayers();
   if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
   if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }

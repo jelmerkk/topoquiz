@@ -149,6 +149,60 @@ test('kaart-klik modus: klik op exacte locatie geeft correct-feedback', async ({
   await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
 });
 
+// ── Geraden steden als groene stippen (#29) ──────────────────────────────────
+
+test('kaart-klik modus: correct geraden stad verschijnt als groene stip', async ({ page }) => {
+  await startMapClickQuiz(page);
+  // Klik op de exacte locatie → correct
+  await page.evaluate(() => {
+    map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
+  });
+  await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
+  // Er moet nu een groene cirkelmarker in revealedLayer staan
+  const count = await page.evaluate(() => revealedLayer.getLayers().length);
+  expect(count).toBe(1);
+});
+
+test('kaart-klik modus: groene stippen blijven zichtbaar bij volgende vraag', async ({ page }) => {
+  await startMapClickQuiz(page);
+  // Beantwoord eerste vraag correct
+  await page.evaluate(() => {
+    map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
+  });
+  await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
+  // Wacht op volgende vraag
+  await page.waitForFunction(() => !document.querySelector('#feedback').classList.contains('fb-ok'), { timeout: 5000 });
+  // revealedLayer moet nog steeds op de kaart staan met 1 marker
+  const onMap = await page.evaluate(() => map.hasLayer(revealedLayer));
+  expect(onMap).toBe(true);
+  const count = await page.evaluate(() => revealedLayer.getLayers().length);
+  expect(count).toBe(1);
+});
+
+test('kaart-klik modus: fout antwoord voegt geen groene stip toe', async ({ page }) => {
+  await startMapClickQuiz(page);
+  // Klik ver weg → fout
+  await page.evaluate(() => map.fire('click', { latlng: L.latLng(50.8, 3.5) }));
+  await expect(page.locator('#feedback')).toContainText('km');
+  const count = await page.evaluate(() => revealedLayer.getLayers().length);
+  expect(count).toBe(0);
+});
+
+test('kaart-klik modus: revealedLayer wordt geleegd bij reset', async ({ page }) => {
+  await startMapClickQuiz(page);
+  // Beantwoord correct
+  await page.evaluate(() => {
+    map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
+  });
+  await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
+  // Reset via menu
+  await page.locator('#menu-btn').click();
+  await page.locator('#quiz-menu button', { hasText: 'Opnieuw beginnen' }).click();
+  await page.waitForSelector('#question-text');
+  const count = await page.evaluate(() => revealedLayer.getLayers().length);
+  expect(count).toBe(0);
+});
+
 // 5b. Hint-knop
 test('hint-knop onthult beginteken(s) van het antwoord', async ({ page }) => {
   await startProvinceQuiz(page, 1);
