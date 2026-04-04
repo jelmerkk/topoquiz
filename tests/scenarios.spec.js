@@ -126,10 +126,10 @@ test('kaart-klik modus: kaart heeft crosshair cursor', async ({ page }) => {
   await expect(page.locator('#map-wrap')).toHaveClass(/map-click-mode/);
 });
 
-test('kaart-klik modus: klikken op de kaart toont feedback met afstand', async ({ page }) => {
+test('kaart-klik modus: klikken op de kaart toont feedback', async ({ page }) => {
   await startMapClickQuiz(page);
-  // Simuleer klik op willekeurige locatie in Nederland via Leaflet map.fire
-  await page.evaluate(() => map.fire('click', { latlng: L.latLng(52.0, 5.0) }));
+  // Klik ver van alle steden zodat het altijd 'wrong' is (feedback bevat "km")
+  await page.evaluate(() => map.fire('click', { latlng: L.latLng(50.8, 3.5) }));
   await expect(page.locator('#feedback')).not.toBeEmpty();
   await expect(page.locator('#feedback')).toContainText('km');
 });
