@@ -867,7 +867,7 @@ const MASTERY_MC   = 3; // meerkeuze: 3× goed
 const MASTERY_TEXT = 1; // typen: 1× goed
 function mastery() {
   if (SETS[selectedSet].mastery != null) return SETS[selectedSet].mastery;
-  return gameMode === 'text' ? MASTERY_TEXT : MASTERY_MC;
+  return (gameMode === 'text' || gameMode === 'map') ? MASTERY_TEXT : MASTERY_MC;
 }
 
 // ── Kaart-klik modus — pure logica ───────────────────────────
