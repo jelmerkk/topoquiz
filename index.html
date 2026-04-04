@@ -731,6 +731,7 @@ const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor
 const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5', fillOpacity: 0.2 };
 const WATER_HIGHLIGHT = { color: '#c07000', weight: 5,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5 };
 const WATER_MASTERED  = { color: '#1b5e20', weight: 3,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3 };
+const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
 // Waterwegen — lokaal bestand, gebundeld in de repo.
 let waterFeatureData = null;
@@ -1180,10 +1181,10 @@ function renderQuestion() {
     // Verberg alle markers/highlights — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    // Bij water: reset alle waterlagen naar standaard (verbergt eerdere highlight)
+    // Bij water: verberg alle nog-niet-geraden waterlagen (zoals markerLayer bij plaatsen)
     if (isWater) {
       Object.entries(waterLayers).forEach(([name, layer]) => {
-        layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT);
+        layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
       });
     }
     document.getElementById('question-text').textContent = currentCity.name;
