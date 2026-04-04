@@ -491,6 +491,12 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   text-align: left;
 }
 @media (hover: hover) { .fb-open-btn:hover { color: #8ab4f8; } }
+.fb-open-btn--end {
+  font-size: 0.95rem; color: #8ab4f8; text-decoration: none;
+  background: #1a2744; border: 1px solid #3a4f88; border-radius: 10px;
+  padding: 10px 20px; margin-top: 16px;
+}
+@media (hover: hover) { .fb-open-btn--end:hover { background: #2c3d6e; border-color: #6080cc; } }
 
 /* ── Eindscherm sterren ── */
 #end-stars { font-size: 2.8rem; margin-bottom: 10px; letter-spacing: 6px; }
@@ -657,7 +663,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
     <p id="rating-thanks" style="display:none">Bedankt! 🙏</p>
   </div>
   <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
-  <button class="fb-open-btn" onclick="openFeedback()">💬 Feedback of fout melden</button>
+  <button class="fb-open-btn fb-open-btn--end" onclick="openFeedback()">💬 Feedback of fout melden</button>
 </div>
 
 <!-- Feedback modal -->
