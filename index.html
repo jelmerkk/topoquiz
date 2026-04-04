@@ -884,6 +884,56 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// Afstand van punt (lat,lon) tot lijnstuk (lat1,lon1)→(lat2,lon2) in km
+function pointToSegmentDist(lat, lon, lat1, lon1, lat2, lon2) {
+  const dx = lat2 - lat1, dy = lon2 - lon1;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq === 0 ? 0 : ((lat - lat1) * dx + (lon - lon1) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return haversine(lat, lon, lat1 + t * dx, lon1 + t * dy);
+}
+
+// Point-in-polygon (ray casting) — coords zijn [lon, lat] (GeoJSON-volgorde)
+function pointInPolygon(lat, lon, coords) {
+  let inside = false;
+  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+    const lon1 = coords[i][0], lat1 = coords[i][1];
+    const lon2 = coords[j][0], lat2 = coords[j][1];
+    if (((lat1 > lat) !== (lat2 > lat)) &&
+        (lon < (lon2 - lon1) * (lat - lat1) / (lat2 - lat1) + lon1)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+// Afstand van klikpunt tot een waterlichaam (LineString of Polygon) in km
+function distanceToWater(lat, lon, waterName) {
+  const feature = waterFeatureData?.features?.find(f => f.properties.name === waterName);
+  if (!feature) return Infinity;
+  const geom = feature.geometry;
+  const coords = geom.coordinates;
+  if (geom.type === 'Polygon') {
+    if (pointInPolygon(lat, lon, coords[0])) return 0;
+    let minDist = Infinity;
+    const ring = coords[0];
+    for (let i = 0; i < ring.length - 1; i++) {
+      const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+  if (geom.type === 'LineString') {
+    let minDist = Infinity;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = pointToSegmentDist(lat, lon, coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0]);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+  return Infinity;
+}
+
 function clickResult(distKm, zoomed) {
   const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
   const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
@@ -1127,9 +1177,15 @@ function renderQuestion() {
   const isProvince = SETS[selectedSet].quizType === 'province';
   const isWater    = SETS[selectedSet].quizType === 'water';
   if (gameMode === 'map') {
-    // Verberg alle markers — anders geef je locatie-informatie weg
+    // Verberg alle markers/highlights — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
+    // Bij water: reset alle waterlagen naar standaard (verbergt eerdere highlight)
+    if (isWater) {
+      Object.entries(waterLayers).forEach(([name, layer]) => {
+        layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT);
+      });
+    }
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince) {
     document.getElementById('question-text').textContent = 'Welke provincie is dit?';
@@ -1301,7 +1357,10 @@ function handleMapClick(e) {
   answered = true;
 
   const city = currentCity;
-  const distKm = haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
+  const isWater = SETS[selectedSet].quizType === 'water';
+  const distKm = isWater
+    ? distanceToWater(e.latlng.lat, e.latlng.lng, city.name)
+    : haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
   const result = clickResult(distKm, SETS[selectedSet].fitOnStart);
 
   // Klik-marker tonen (markerLayer blijft verborgen — geeft anders toekomstige locaties weg)
@@ -1312,17 +1371,23 @@ function handleMapClick(e) {
   }).addTo(map);
 
   // Highlight de echte locatie
-  setHighlight(city);
+  if (isWater) {
+    setHighlightWater(city);
+  } else {
+    setHighlight(city);
+  }
 
   const fb = document.getElementById('feedback');
   const km = Math.round(distKm);
   if (result === 'correct') {
     recordCorrect(city, fb);
-    // Groene stip op de geraden locatie (blijft zichtbaar bij volgende vragen)
-    L.circleMarker([city.lat, city.lon], {
-      radius: 6, color: '#fff', weight: 2,
-      fillColor: '#58CC02', fillOpacity: 0.9, interactive: false,
-    }).addTo(revealedLayer);
+    // Groene stip op de label-locatie (blijft zichtbaar bij volgende vragen, alleen bij plaatsen)
+    if (!isWater) {
+      L.circleMarker([city.lat, city.lon], {
+        radius: 6, color: '#fff', weight: 2,
+        fillColor: '#58CC02', fillOpacity: 0.9, interactive: false,
+      }).addTo(revealedLayer);
+    }
   } else {
     recordWrong(city, fb);
     // Overschrijf de generieke fout-tekst met afstandsinformatie
@@ -1551,8 +1616,11 @@ function _renderModeSelect(setNumber) {
     : isWater
     ? 'Je typt de naam van de waterweg zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
     : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
-  // Kaart-klik alleen beschikbaar voor plaatsen, niet voor provincies of wateren
-  document.getElementById('map-mode-btn').style.display = (isProvince || isWater) ? 'none' : '';
+  // Kaart-klik niet beschikbaar voor provincies; wel voor plaatsen en wateren
+  document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
+  if (descs[2]) descs[2].textContent = isWater
+    ? 'Je ziet de naam van een waterweg en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!'
+    : 'Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!';
 }
 
 // ── Publieke navigatiefuncties (met history) ─────────────────
@@ -1688,6 +1756,9 @@ async function startQuiz(mode) {
   // Kaart-klik modus: crosshair cursor en klik-listener
   map.off('click', handleMapClick);
   if (mode === 'map') {
+    const isWaterSet = SETS[selectedSet].quizType === 'water';
+    document.getElementById('map-click-hint').textContent =
+      isWaterSet ? '👆 Klik op de kaart waar dit water ligt' : '👆 Klik op de kaart waar deze plaats ligt';
     document.getElementById('map-wrap').classList.add('map-click-mode');
     map.on('click', handleMapClick);
   } else {

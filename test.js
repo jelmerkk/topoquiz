@@ -414,6 +414,101 @@ const count67 = ALL_CITIES.filter(c => c.sets.includes(67)).length;
 expect(`Set 67 heeft precies ${SET67_VERWACHT.length} steden`, count67 === SET67_VERWACHT.length,
   `heeft er ${count67}`);
 
+// ── distanceToWater — pure logica ────────────────────────────
+
+// Gespiegel vanuit index.html — houd synchroon met implementatie.
+
+function pointToSegmentDist(lat, lon, lat1, lon1, lat2, lon2) {
+  const dx = lat2 - lat1, dy = lon2 - lon1;
+  const lenSq = dx * dx + dy * dy;
+  let t = lenSq === 0 ? 0 : ((lat - lat1) * dx + (lon - lon1) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return haversine(lat, lon, lat1 + t * dx, lon1 + t * dy);
+}
+
+function pointInPolygon(lat, lon, coords) {
+  // coords zijn [lon, lat] (GeoJSON-volgorde)
+  let inside = false;
+  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+    const lon1 = coords[i][0], lat1 = coords[i][1];
+    const lon2 = coords[j][0], lat2 = coords[j][1];
+    if (((lat1 > lat) !== (lat2 > lat)) &&
+        (lon < (lon2 - lon1) * (lat - lat1) / (lat2 - lat1) + lon1)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function distanceToWaterGeometry(lat, lon, feature) {
+  const geom = feature.geometry;
+  const coords = geom.coordinates;
+  if (geom.type === 'Polygon') {
+    if (pointInPolygon(lat, lon, coords[0])) return 0;
+    let minDist = Infinity;
+    const ring = coords[0];
+    for (let i = 0; i < ring.length - 1; i++) {
+      const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+  if (geom.type === 'LineString') {
+    let minDist = Infinity;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const d = pointToSegmentDist(lat, lon, coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0]);
+      if (d < minDist) minDist = d;
+    }
+    return minDist;
+  }
+  return Infinity;
+}
+
+section('distanceToWaterGeometry() — LineString');
+
+const waalFeature = {
+  geometry: {
+    type: 'LineString',
+    coordinates: [
+      [5.98, 51.88], [5.50, 51.82], [4.88, 51.81],
+    ],
+  },
+};
+
+const distOnWaal = distanceToWaterGeometry(51.85, 5.30, waalFeature);
+expect('Punt op de Waal → < 5 km', distOnWaal < 5, `was ${Math.round(distOnWaal)} km`);
+
+const distFarFromWaal = distanceToWaterGeometry(53.2, 6.5, waalFeature);
+expect('Groningen → ver van Waal (> 100 km)', distFarFromWaal > 100, `was ${Math.round(distFarFromWaal)} km`);
+
+section('distanceToWaterGeometry() — Polygon');
+
+const noordzeeFeature = {
+  geometry: {
+    type: 'Polygon',
+    coordinates: [[
+      [3.37, 51.37], [3.30, 51.45], [3.35, 51.55], [3.50, 51.70],
+      [3.65, 51.82], [3.85, 51.90], [4.00, 51.96], [4.22, 52.08],
+      [4.56, 52.54], [4.79, 52.96], [4.20, 52.96], [3.80, 52.72],
+      [3.40, 52.22], [3.20, 51.96], [3.10, 51.70], [3.37, 51.37],
+    ]],
+  },
+};
+
+const distInNoordzee = distanceToWaterGeometry(52.0, 3.7, noordzeeFeature);
+expect('Punt in Noordzee → 0 km', distInNoordzee === 0, `was ${Math.round(distInNoordzee)} km`);
+
+const distOutsideNoordzee = distanceToWaterGeometry(52.37, 4.90, noordzeeFeature);
+expect('Amsterdam → buiten Noordzee (> 0 km)', distOutsideNoordzee > 0, `was ${Math.round(distOutsideNoordzee)} km`);
+
+section('pointInPolygon()');
+
+// Simpele rechthoek: lon 4.0–5.0, lat 52.0–53.0 (coords: [lon, lat])
+const rect = [[4.0, 52.0], [5.0, 52.0], [5.0, 53.0], [4.0, 53.0], [4.0, 52.0]];
+expect('Midden in rechthoek → binnen', pointInPolygon(52.5, 4.5, rect));
+expect('Buiten rechthoek → niet binnen', !pointInPolygon(51.0, 4.5, rect));
+expect('Ver buiten rechthoek → niet binnen', !pointInPolygon(51.0, 6.0, rect));
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
