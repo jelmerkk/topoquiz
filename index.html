@@ -786,11 +786,16 @@ function buildWaterLayer() {
   }).addTo(map);
 }
 
-function setHighlightWater(water) {
+function setHighlightWater(water, mapMode = false) {
   Object.entries(waterLayers).forEach(([name, layer]) => {
-    layer.setStyle(name === water.name
-      ? WATER_HIGHLIGHT
-      : (streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT));
+    if (name === water.name) {
+      layer.setStyle(WATER_HIGHLIGHT);
+    } else if (mapMode) {
+      // In kaart-klik modus: niet-geraden wateren blijven verborgen
+      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
+    } else {
+      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT);
+    }
   });
   if (waterLayers[water.name]) {
     waterLayers[water.name].bringToFront();
@@ -1181,11 +1186,12 @@ function renderQuestion() {
     // Verberg alle markers/highlights — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    // Bij water: verberg alle nog-niet-geraden waterlagen (zoals markerLayer bij plaatsen)
+    // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar Nederland
     if (isWater) {
       Object.entries(waterLayers).forEach(([name, layer]) => {
         layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
       });
+      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8, animate: true });
     }
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince) {
@@ -1373,7 +1379,7 @@ function handleMapClick(e) {
 
   // Highlight de echte locatie
   if (isWater) {
-    setHighlightWater(city);
+    setHighlightWater(city, true);
   } else {
     setHighlight(city);
   }
