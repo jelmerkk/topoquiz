@@ -293,9 +293,11 @@ function haversine(lat1, lon1, lat2, lon2) {
 const CLICK_CORRECT_KM = 20;
 const CLICK_CLOSE_KM   = 60;
 
-function clickResult(distKm) {
-  if (distKm < CLICK_CORRECT_KM) return 'correct';
-  if (distKm < CLICK_CLOSE_KM)   return 'close';
+function clickResult(distKm, zoomed) {
+  const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
+  const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
+  if (distKm < correctKm) return 'correct';
+  if (distKm < closeKm)   return 'close';
   return 'wrong';
 }
 
@@ -333,6 +335,16 @@ expect('40 km → close',     clickResult(40)   === 'close');
 expect('59 km → close',     clickResult(59)   === 'close');
 expect('60 km → wrong',     clickResult(60)   === 'wrong');
 expect('150 km → wrong',    clickResult(150)  === 'wrong');
+
+section('clickResult() — ingezoomd (fitOnStart)');
+
+expect('zoomed: 0 km → correct',   clickResult(0, true)   === 'correct');
+expect('zoomed: 9 km → correct',   clickResult(9, true)   === 'correct');
+expect('zoomed: 10 km → close',    clickResult(10, true)  === 'close');
+expect('zoomed: 20 km → close',    clickResult(20, true)  === 'close');
+expect('zoomed: 29 km → close',    clickResult(29, true)  === 'close');
+expect('zoomed: 30 km → wrong',    clickResult(30, true)  === 'wrong');
+expect('zoomed: 60 km → wrong',    clickResult(60, true)  === 'wrong');
 
 // ── ALL_WATERS ────────────────────────────────────────────────
 

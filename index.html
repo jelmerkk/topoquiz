@@ -850,9 +850,11 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function clickResult(distKm) {
-  if (distKm < CLICK_CORRECT_KM) return 'correct';
-  if (distKm < CLICK_CLOSE_KM)   return 'close';
+function clickResult(distKm, zoomed) {
+  const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
+  const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
+  if (distKm < correctKm) return 'correct';
+  if (distKm < closeKm)   return 'close';
   return 'wrong';
 }
 
@@ -1265,7 +1267,7 @@ function handleMapClick(e) {
 
   const city = currentCity;
   const distKm = haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
-  const result = clickResult(distKm);
+  const result = clickResult(distKm, SETS[selectedSet].fitOnStart);
 
   // Klik-marker tonen (markerLayer blijft verborgen — geeft anders toekomstige locaties weg)
   mapClickMarker = L.circleMarker(e.latlng, {
