@@ -156,7 +156,7 @@ const ALL_WATERS = [
   { name: 'Waddenzee',            lat: 53.20, lon: 5.50 },
   { name: 'Oosterschelde',        lat: 51.62, lon: 3.90 },
   { name: 'Westerschelde',        lat: 51.40, lon: 3.80 },
-  { name: 'Rijn',                 lat: 51.92, lon: 5.95 },
+  { name: 'Rijn',                 lat: 51.67, lon: 6.30 },
   { name: 'IJssel',               lat: 52.30, lon: 6.10 },
   { name: 'Neder-Rijn',           lat: 51.95, lon: 5.55, aliases: ['Neder Rijn'] },
   { name: 'Lek',                  lat: 51.90, lon: 4.80 },
