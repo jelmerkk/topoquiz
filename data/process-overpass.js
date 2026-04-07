@@ -34,7 +34,7 @@ function rdp(pts, eps) {
   return [pts[0], pts[pts.length-1]];
 }
 
-// ── Chain ways into one polyline ───────────────────────────────
+// ── Chain ways into one polyline (bidirectional) ──────────────
 function chain(ways) {
   // Convert each way to [lon,lat] array
   const segs = ways.map(w => w.geometry.map(n => [n.lon, n.lat]));
@@ -44,21 +44,46 @@ function chain(ways) {
   const result = [...segs[0]];
   const used = new Set([0]);
 
-  while (used.size < segs.length) {
-    const tail = result[result.length-1];
-    let bestIdx = -1, reversed = false, bestDist = Infinity;
+  let progressed = true;
+  while (progressed && used.size < segs.length) {
+    progressed = false;
 
-    for (let i = 0; i < segs.length; i++) {
-      if (used.has(i)) continue;
-      const s = segs[i], d1 = dist(tail, s[0]), d2 = dist(tail, s[s.length-1]);
-      if (d1 < bestDist) { bestDist = d1; bestIdx = i; reversed = false; }
-      if (d2 < bestDist) { bestDist = d2; bestIdx = i; reversed = true; }
+    // Try extending from the TAIL
+    {
+      const tail = result[result.length-1];
+      let bestIdx = -1, reversed = false, bestDist = Infinity;
+      for (let i = 0; i < segs.length; i++) {
+        if (used.has(i)) continue;
+        const s = segs[i], d1 = dist(tail, s[0]), d2 = dist(tail, s[s.length-1]);
+        if (d1 < bestDist) { bestDist = d1; bestIdx = i; reversed = false; }
+        if (d2 < bestDist) { bestDist = d2; bestIdx = i; reversed = true; }
+      }
+      if (bestIdx !== -1 && bestDist <= 0.05) {
+        const seg = reversed ? [...segs[bestIdx]].reverse() : segs[bestIdx];
+        result.push(...seg.slice(1));
+        used.add(bestIdx);
+        progressed = true;
+        continue;
+      }
     }
 
-    if (bestIdx === -1 || bestDist > 0.05) break; // gap too large — stop chaining
-    const seg = reversed ? [...segs[bestIdx]].reverse() : segs[bestIdx];
-    result.push(...seg.slice(1)); // skip duplicate endpoint
-    used.add(bestIdx);
+    // Try extending from the HEAD
+    {
+      const head = result[0];
+      let bestIdx = -1, reversed = false, bestDist = Infinity;
+      for (let i = 0; i < segs.length; i++) {
+        if (used.has(i)) continue;
+        const s = segs[i], d1 = dist(head, s[0]), d2 = dist(head, s[s.length-1]);
+        if (d1 < bestDist) { bestDist = d1; bestIdx = i; reversed = true; }  // prepend reversed
+        if (d2 < bestDist) { bestDist = d2; bestIdx = i; reversed = false; } // prepend as-is
+      }
+      if (bestIdx !== -1 && bestDist <= 0.05) {
+        const seg = reversed ? [...segs[bestIdx]].reverse() : segs[bestIdx];
+        result.unshift(...seg.slice(0, -1)); // skip duplicate endpoint at tail of new seg
+        used.add(bestIdx);
+        progressed = true;
+      }
+    }
   }
 
   return result;
@@ -82,12 +107,13 @@ const RIVERS = [
   { key: 'Lek',                   file: 'lek.json',                  eps: 0.003 },
   { key: 'IJssel',                file: 'ijssel.json',               eps: 0.003 },
   { key: 'Maas (noord)',          file: 'maas-north.json',           eps: 0.003 },
-  { key: 'Maas (zuid)',           file: 'maas-south.json',           eps: 0.003 },
+  { key: 'Maas (zuid)',           file: 'maas-south.json',           eps: 0.001 },
   { key: 'Bergse Maas',           file: 'bergse-maas.json',          eps: 0.003 },
   { key: 'Oude Maas',             file: 'oude-maas.json',            eps: 0.002 },
   { key: 'Nieuwe Waterweg',       file: 'nieuwe-waterweg.json',      eps: 0.002 },
   { key: 'Noordzeekanaal',        file: 'noordzeekanaal.json',       eps: 0.002 },
-  { key: 'Amsterdam-Rijnkanaal',  file: 'amsterdam-rijnkanaal.json', eps: 0.002 },
+  { key: 'Amsterdam-Rijnkanaal',  file: 'amsterdam-rijnkanaal.json', eps: 0.001 },
+  { key: 'Rhein (Köln-Wesel)',    file: 'rhein-koeln-wesel.json',    eps: 0.003 },
 ];
 
 const result = {};
