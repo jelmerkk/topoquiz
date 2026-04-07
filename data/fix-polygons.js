@@ -62,33 +62,27 @@ const nzFixed = close([
 console.log(`Noordzee: ${nzCoords.length} pts → ${nzFixed.length} pts`);
 noordzeeFeature.geometry.coordinates[0] = nzFixed;
 
-// ── 2. EEMS rebuild ──────────────────────────────────────────────────────────
-// Problem: existing German side goes to [7.29,53.25] — too far east.
-// Fix: rebuild from mainland-e (NL) + bridge + germany-eems (German, re-RDP'd) + south bridge.
-//
-// mainland-e: [6.9312,53.3322]→[6.8836,53.4358]  (Delfzijl → Knock, NL coast)
-// germany-eems: [7.1731,53.2405]→[6.9482,53.3267]  (Emden → Dollard NE, German coast)
-
-const mainlandE   = chains['coast-mainland-waddenzee-e']; // [6.9312,53.3322]→[6.8836,53.4358]
-const germanyEems = chains['coast-germany-eems'];          // [7.1731,53.2405]→[6.9482,53.3267]
-
-// Re-simplify german coast at looser epsilon to reduce 100→~25 pts
-const germanySimple = rdp(germanyEems, 0.003);
-console.log(`germany-eems: 100 pts → ${germanySimple.length} pts after RDP(0.003)`);
-
-// Polygon (CCW):
-//   1. NL coast south→north:  mainlandE  [6.9312,53.3322]→[6.8836,53.4358]
-//   2. North bridge W→E:       [6.8836,53.4358] → [6.9482,53.3267]
-//   3. German coast north→south (reversed): [6.9482,53.3267]→[7.1731,53.2405]
-//   4. South bridge E→W back:  [7.1731,53.2405] → [7.05,53.27] → [6.9312,53.3322]
-const eemsNew = close([
-  ...mainlandE,                    // NL coast: Delfzijl→Knock
-  // north bridge (sea crossing, Eems mouth)
-  [6.9482, 53.3267],               // connect to German side
-  ...rev(germanySimple),           // German coast reversed: Dollard NE → Emden
-  // south bridge (south Dollard → Delfzijl)
-  [7.05, 53.27],
-]);
+// ── 2. EEMS German-side trim ─────────────────────────────────────────────────
+// Existing polygon overshoots to [7.29,53.25]. Actual German Eems coast max ~7.15°E.
+// coast-germany-eems chain is broken (zigzags across both banks). Use hardcoded coords.
+// Keeps NL side + German approach unchanged; replaces the 7.29 overshoot with a straight
+// line at lon=7.15 from south [7.15,53.23] to north [7.15,53.38].
+const eemsNew = [
+  [6.88, 53.44],  // NW: Knock (Eems mouth NL)
+  [6.93, 53.33],  // SW: Delfzijl
+  [6.97, 53.32],
+  [7.02, 53.30],
+  [7.06, 53.28],
+  [7.09, 53.26],
+  [7.12, 53.24],
+  [7.15, 53.23],  // easternmost: actual German coast (was 7.29)
+  [7.15, 53.38],  // return north along German side at ~7.15°E
+  [7.10, 53.40],
+  [7.05, 53.42],
+  [7.00, 53.44],
+  [6.95, 53.45],
+  [6.88, 53.44],  // close
+];
 console.log(`Eems: 22 pts → ${eemsNew.length} pts`);
 
 const eemsFeature = get('Eems');
