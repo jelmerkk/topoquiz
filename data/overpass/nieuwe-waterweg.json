@@ -1,0 +1,65 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-04-07T17:51:45Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "way",
+  "id": 206380608,
+  "bounds": {
+    "minlat": 51.9531860,
+    "minlon": 4.0881281,
+    "maxlat": 51.9830663,
+    "maxlon": 4.1663180
+  },
+  "nodes": [
+    519657236,
+    519175705,
+    7670910478,
+    519175703,
+    7670910477,
+    519175702,
+    7670910473,
+    519175701,
+    2163874270,
+    7670910472,
+    519175699,
+    7670910471,
+    7670910470,
+    44718783
+  ],
+  "geometry": [
+    { "lat": 51.9531860, "lon": 4.1663180 },
+    { "lat": 51.9551667, "lon": 4.1624898 },
+    { "lat": 51.9589631, "lon": 4.1550669 },
+    { "lat": 51.9615561, "lon": 4.1500191 },
+    { "lat": 51.9647360, "lon": 4.1438450 },
+    { "lat": 51.9680457, "lon": 4.1368066 },
+    { "lat": 51.9702480, "lon": 4.1320680 },
+    { "lat": 51.9729423, "lon": 4.1257841 },
+    { "lat": 51.9741097, "lon": 4.1224856 },
+    { "lat": 51.9750041, "lon": 4.1198485 },
+    { "lat": 51.9765116, "lon": 4.1154100 },
+    { "lat": 51.9786397, "lon": 4.1065704 },
+    { "lat": 51.9819367, "lon": 4.0928027 },
+    { "lat": 51.9830663, "lon": 4.0881281 }
+  ],
+  "tags": {
+    "CEMT": "VIc",
+    "name": "Nieuwe Waterweg",
+    "name:de": "Neue Wasserweg",
+    "name:en": "New Waterway",
+    "name:nl": "Nieuwe Waterweg",
+    "name:ru": "Ньиве-Ватервег",
+    "operator": "Rijkswaterstaat",
+    "ship": "yes",
+    "waterway": "river"
+  }
+}
+
+  ]
+}

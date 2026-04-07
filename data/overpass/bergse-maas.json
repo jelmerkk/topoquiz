@@ -1,0 +1,921 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-04-07T18:01:50Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "way",
+      "id": 165188438,
+      "bounds": {
+        "minlat": 51.7188107,
+        "minlon": 4.9014478,
+        "maxlat": 51.7229998,
+        "maxlon": 4.9752574
+      },
+      "nodes": [
+        1767510270,
+        1767510274,
+        1767510277,
+        1767510279,
+        1767510287,
+        1767510307,
+        1767510309,
+        1767510311,
+        1767510308,
+        1767510306,
+        1767510304,
+        1767510285,
+        1767510281,
+        1767510275,
+        2452480725,
+        1767510269,
+        7846987609,
+        1767510266
+      ],
+      "geometry": [
+        {
+          "lat": 51.7200402,
+          "lon": 4.9752574
+        },
+        {
+          "lat": 51.720493,
+          "lon": 4.972971
+        },
+        {
+          "lat": 51.7211431,
+          "lon": 4.9692822
+        },
+        {
+          "lat": 51.7217106,
+          "lon": 4.9656368
+        },
+        {
+          "lat": 51.7225854,
+          "lon": 4.9594416
+        },
+        {
+          "lat": 51.7228578,
+          "lon": 4.9541327
+        },
+        {
+          "lat": 51.7229417,
+          "lon": 4.9521347
+        },
+        {
+          "lat": 51.7229998,
+          "lon": 4.948984
+        },
+        {
+          "lat": 51.722878,
+          "lon": 4.944639
+        },
+        {
+          "lat": 51.7227886,
+          "lon": 4.9415012
+        },
+        {
+          "lat": 51.722638,
+          "lon": 4.9392173
+        },
+        {
+          "lat": 51.7223968,
+          "lon": 4.9365344
+        },
+        {
+          "lat": 51.721733,
+          "lon": 4.930181
+        },
+        {
+          "lat": 51.7211019,
+          "lon": 4.9266121
+        },
+        {
+          "lat": 51.7196298,
+          "lon": 4.9162126
+        },
+        {
+          "lat": 51.7192463,
+          "lon": 4.9117939
+        },
+        {
+          "lat": 51.7188936,
+          "lon": 4.905767
+        },
+        {
+          "lat": 51.7188107,
+          "lon": 4.9014478
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "maxspeed:conditional": "none @ (sunrise-sunset)",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 784596700,
+      "bounds": {
+        "minlat": 51.7160897,
+        "minlon": 4.8520402,
+        "maxlat": 51.7200802,
+        "maxlon": 4.8832366
+      },
+      "nodes": [
+        8582582458,
+        1767510273,
+        2452419408,
+        1767510268,
+        8582582446,
+        1767510263,
+        1767510257
+      ],
+      "geometry": [
+        {
+          "lat": 51.7200312,
+          "lon": 4.8832366
+        },
+        {
+          "lat": 51.7200802,
+          "lon": 4.879145
+        },
+        {
+          "lat": 51.719883,
+          "lon": 4.873525
+        },
+        {
+          "lat": 51.7192385,
+          "lon": 4.8685048
+        },
+        {
+          "lat": 51.7184612,
+          "lon": 4.8640067
+        },
+        {
+          "lat": 51.71764,
+          "lon": 4.859254
+        },
+        {
+          "lat": 51.7160897,
+          "lon": 4.8520402
+        }
+      ],
+      "tags": {
+        "CEMT": "VIc",
+        "boat": "yes",
+        "maxspeed": "20",
+        "maxspeed:conditional": "none @ (sunrise-sunset)",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 819763305,
+      "bounds": {
+        "minlat": 51.7189977,
+        "minlon": 4.8859928,
+        "maxlat": 51.7199661,
+        "maxlon": 4.8957272
+      },
+      "nodes": [
+        1767510272,
+        8582582455,
+        4233555783,
+        7846987596,
+        1767510267
+      ],
+      "geometry": [
+        {
+          "lat": 51.7199661,
+          "lon": 4.8859928
+        },
+        {
+          "lat": 51.7192796,
+          "lon": 4.8889225
+        },
+        {
+          "lat": 51.7189977,
+          "lon": 4.8901257
+        },
+        {
+          "lat": 51.7190367,
+          "lon": 4.8920697
+        },
+        {
+          "lat": 51.71911,
+          "lon": 4.8957272
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "name": "Bergsche Maas",
+        "operator": "Rijkswaterstaat",
+        "seamark:type": "separation_lane",
+        "waterway": "fairway"
+      }
+    },
+    {
+      "type": "way",
+      "id": 819763306,
+      "bounds": {
+        "minlat": 51.71911,
+        "minlon": 4.8859928,
+        "maxlat": 51.7203875,
+        "maxlon": 4.8957272
+      },
+      "nodes": [
+        1767510267,
+        7655487675,
+        4233555808,
+        1767510272
+      ],
+      "geometry": [
+        {
+          "lat": 51.71911,
+          "lon": 4.8957272
+        },
+        {
+          "lat": 51.7200382,
+          "lon": 4.8922696
+        },
+        {
+          "lat": 51.7203875,
+          "lon": 4.8909686
+        },
+        {
+          "lat": 51.7199661,
+          "lon": 4.8859928
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "name": "Bergsche Maas",
+        "operator": "Rijkswaterstaat",
+        "seamark:type": "separation_lane",
+        "waterway": "fairway"
+      }
+    },
+    {
+      "type": "way",
+      "id": 840967955,
+      "bounds": {
+        "minlat": 51.7348769,
+        "minlon": 5.1155845,
+        "maxlat": 51.7372088,
+        "maxlon": 5.1256508
+      },
+      "nodes": [
+        43699215,
+        7846987501,
+        8580016512
+      ],
+      "geometry": [
+        {
+          "lat": 51.7372088,
+          "lon": 5.1256508
+        },
+        {
+          "lat": 51.7353725,
+          "lon": 5.1185144
+        },
+        {
+          "lat": 51.7348769,
+          "lon": 5.1155845
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503559,
+      "bounds": {
+        "minlat": 51.7188107,
+        "minlon": 4.8921483,
+        "maxlat": 51.7194589,
+        "maxlon": 4.9014478
+      },
+      "nodes": [
+        1767510266,
+        1767510267,
+        7329847660
+      ],
+      "geometry": [
+        {
+          "lat": 51.7188107,
+          "lon": 4.9014478
+        },
+        {
+          "lat": 51.71911,
+          "lon": 4.8957272
+        },
+        {
+          "lat": 51.7194589,
+          "lon": 4.8921483
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503560,
+      "bounds": {
+        "minlat": 51.717361,
+        "minlon": 4.9752574,
+        "maxlat": 51.7200402,
+        "maxlon": 4.986697
+      },
+      "nodes": [
+        1767510264,
+        11298085525,
+        1767510270
+      ],
+      "geometry": [
+        {
+          "lat": 51.717361,
+          "lon": 4.986697
+        },
+        {
+          "lat": 51.7174934,
+          "lon": 4.9861319
+        },
+        {
+          "lat": 51.7200402,
+          "lon": 4.9752574
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503561,
+      "bounds": {
+        "minlat": 51.7108058,
+        "minlon": 4.986697,
+        "maxlat": 51.717361,
+        "maxlon": 5.0448166
+      },
+      "nodes": [
+        8580016509,
+        1767510217,
+        1767510216,
+        1767510218,
+        1767510220,
+        1767510225,
+        2452480721,
+        1767510234,
+        1767510264
+      ],
+      "geometry": [
+        {
+          "lat": 51.7110074,
+          "lon": 5.0448166
+        },
+        {
+          "lat": 51.710965,
+          "lon": 5.0432685
+        },
+        {
+          "lat": 51.7108058,
+          "lon": 5.0328784
+        },
+        {
+          "lat": 51.7110618,
+          "lon": 5.0287996
+        },
+        {
+          "lat": 51.711327,
+          "lon": 5.0232745
+        },
+        {
+          "lat": 51.71233,
+          "lon": 5.014406
+        },
+        {
+          "lat": 51.714409,
+          "lon": 5.0002525
+        },
+        {
+          "lat": 51.7157368,
+          "lon": 4.9931418
+        },
+        {
+          "lat": 51.717361,
+          "lon": 4.986697
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "maxspeed:conditional": "none @ (sunrise-sunset)",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503562,
+      "bounds": {
+        "minlat": 51.7110074,
+        "minlon": 5.0448166,
+        "maxlat": 51.7117279,
+        "maxlon": 5.052625
+      },
+      "nodes": [
+        8580016508,
+        1767510219,
+        8580016509
+      ],
+      "geometry": [
+        {
+          "lat": 51.7117279,
+          "lon": 5.052625
+        },
+        {
+          "lat": 51.7110922,
+          "lon": 5.0480913
+        },
+        {
+          "lat": 51.7110074,
+          "lon": 5.0448166
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503563,
+      "bounds": {
+        "minlat": 51.7117279,
+        "minlon": 5.052625,
+        "maxlat": 51.734,
+        "maxlon": 5.1104
+      },
+      "nodes": [
+        43687199,
+        2452480738,
+        43675234,
+        43668222,
+        2452480733,
+        43657645,
+        43653656,
+        43644046,
+        43634442,
+        1767510265,
+        2452480722,
+        2657424539,
+        1767510262,
+        1767510233,
+        1767510232,
+        1767510226,
+        1767510221,
+        8580016508
+      ],
+      "geometry": [
+        {
+          "lat": 51.734,
+          "lon": 5.1104
+        },
+        {
+          "lat": 51.732361,
+          "lon": 5.105287
+        },
+        {
+          "lat": 51.7312,
+          "lon": 5.1014
+        },
+        {
+          "lat": 51.7291,
+          "lon": 5.0959
+        },
+        {
+          "lat": 51.728016,
+          "lon": 5.092977
+        },
+        {
+          "lat": 51.7263,
+          "lon": 5.0895
+        },
+        {
+          "lat": 51.7251,
+          "lon": 5.0871
+        },
+        {
+          "lat": 51.7221974,
+          "lon": 5.0815897
+        },
+        {
+          "lat": 51.7193,
+          "lon": 5.0761
+        },
+        {
+          "lat": 51.7175463,
+          "lon": 5.0723441
+        },
+        {
+          "lat": 51.716682,
+          "lon": 5.070279
+        },
+        {
+          "lat": 51.7163258,
+          "lon": 5.0694362
+        },
+        {
+          "lat": 51.7161022,
+          "lon": 5.0689069
+        },
+        {
+          "lat": 51.7150801,
+          "lon": 5.0663242
+        },
+        {
+          "lat": 51.7142315,
+          "lon": 5.063954
+        },
+        {
+          "lat": 51.712658,
+          "lon": 5.057395
+        },
+        {
+          "lat": 51.7119473,
+          "lon": 5.0541896
+        },
+        {
+          "lat": 51.7117279,
+          "lon": 5.052625
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "maxspeed:conditional": "none @ (sunrise-sunset)",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503564,
+      "bounds": {
+        "minlat": 51.734,
+        "minlon": 5.1104,
+        "maxlat": 51.7348769,
+        "maxlon": 5.1155845
+      },
+      "nodes": [
+        8580016512,
+        43687199
+      ],
+      "geometry": [
+        {
+          "lat": 51.7348769,
+          "lon": 5.1155845
+        },
+        {
+          "lat": 51.734,
+          "lon": 5.1104
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503565,
+      "bounds": {
+        "minlat": 51.734,
+        "minlon": 5.1104,
+        "maxlat": 51.7353434,
+        "maxlon": 5.1153366
+      },
+      "nodes": [
+        8580016511,
+        43687199
+      ],
+      "geometry": [
+        {
+          "lat": 51.7353434,
+          "lon": 5.1153366
+        },
+        {
+          "lat": 51.734,
+          "lon": 5.1104
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503566,
+      "bounds": {
+        "minlat": 51.7353434,
+        "minlon": 5.1153366,
+        "maxlat": 51.7372088,
+        "maxlon": 5.1256508
+      },
+      "nodes": [
+        43699215,
+        631756273,
+        2597162904,
+        8580016511
+      ],
+      "geometry": [
+        {
+          "lat": 51.7372088,
+          "lon": 5.1256508
+        },
+        {
+          "lat": 51.7361393,
+          "lon": 5.1183506
+        },
+        {
+          "lat": 51.736111,
+          "lon": 5.1181577
+        },
+        {
+          "lat": 51.7353434,
+          "lon": 5.1153366
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924503567,
+      "bounds": {
+        "minlat": 51.7372088,
+        "minlon": 5.1256508,
+        "maxlat": 51.743015,
+        "maxlon": 5.1830331
+      },
+      "nodes": [
+        8580016515,
+        2148048740,
+        2148048747,
+        2452480746,
+        2148048755,
+        2148048753,
+        2148048749,
+        2148048743,
+        2148048737,
+        2148048709,
+        2148048689,
+        2148064064,
+        2148064057,
+        2148064052,
+        6769735569,
+        2148064046,
+        43699215
+      ],
+      "geometry": [
+        {
+          "lat": 51.7422587,
+          "lon": 5.1830331
+        },
+        {
+          "lat": 51.742752,
+          "lon": 5.1782332
+        },
+        {
+          "lat": 51.7428309,
+          "lon": 5.1771179
+        },
+        {
+          "lat": 51.743015,
+          "lon": 5.174724
+        },
+        {
+          "lat": 51.7429707,
+          "lon": 5.170008
+        },
+        {
+          "lat": 51.7429421,
+          "lon": 5.1691249
+        },
+        {
+          "lat": 51.742876,
+          "lon": 5.1674167
+        },
+        {
+          "lat": 51.7427736,
+          "lon": 5.1655494
+        },
+        {
+          "lat": 51.7426722,
+          "lon": 5.1642178
+        },
+        {
+          "lat": 51.7423685,
+          "lon": 5.160502
+        },
+        {
+          "lat": 51.7412673,
+          "lon": 5.1523946
+        },
+        {
+          "lat": 51.7405573,
+          "lon": 5.1464102
+        },
+        {
+          "lat": 51.7399053,
+          "lon": 5.1425143
+        },
+        {
+          "lat": 51.7392311,
+          "lon": 5.1381746
+        },
+        {
+          "lat": 51.7386245,
+          "lon": 5.1341823
+        },
+        {
+          "lat": 51.738373,
+          "lon": 5.132527
+        },
+        {
+          "lat": 51.7372088,
+          "lon": 5.1256508
+        }
+      ],
+      "tags": {
+        "CEMT": "Va",
+        "boat": "yes",
+        "draft": "3",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924774784,
+      "bounds": {
+        "minlat": 51.7194589,
+        "minlon": 4.8832366,
+        "maxlat": 51.7200312,
+        "maxlon": 4.8921483
+      },
+      "nodes": [
+        7329847660,
+        2567902314,
+        11130669990,
+        2452480729,
+        1767510272,
+        8582582458
+      ],
+      "geometry": [
+        {
+          "lat": 51.7194589,
+          "lon": 4.8921483
+        },
+        {
+          "lat": 51.7196229,
+          "lon": 4.8904666
+        },
+        {
+          "lat": 51.7196831,
+          "lon": 4.8898526
+        },
+        {
+          "lat": 51.7198965,
+          "lon": 4.8876778
+        },
+        {
+          "lat": 51.7199661,
+          "lon": 4.8859928
+        },
+        {
+          "lat": 51.7200312,
+          "lon": 4.8832366
+        }
+      ],
+      "tags": {
+        "CEMT": "VIc",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    },
+    {
+      "type": "way",
+      "id": 924774785,
+      "bounds": {
+        "minlat": 51.7147651,
+        "minlon": 4.8465595,
+        "maxlat": 51.7160897,
+        "maxlon": 4.8520402
+      },
+      "nodes": [
+        1767510257,
+        1585812004
+      ],
+      "geometry": [
+        {
+          "lat": 51.7160897,
+          "lon": 4.8520402
+        },
+        {
+          "lat": 51.7147651,
+          "lon": 4.8465595
+        }
+      ],
+      "tags": {
+        "CEMT": "VIc",
+        "boat": "yes",
+        "maxspeed": "20",
+        "name": "Bergsche Maas",
+        "name:fr": "Meuse de Bergen",
+        "operator": "Rijkswaterstaat",
+        "waterway": "river",
+        "wikidata": "Q820174"
+      }
+    }
+  ]
+}
