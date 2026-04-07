@@ -131,6 +131,97 @@ De app gebruikt de History API (`pushState`/`popstate`) zodat de browserterugkno
 
 ---
 
+## Wateren (set 5.7)
+
+### wateren.geojson
+
+Alle waterlichamen staan in `wateren.geojson` als GeoJSON `FeatureCollection`. Elk feature heeft een `name` property die overeenkomt met de namen in `cities.js` (set 57).
+
+| Type | Waterlichamen |
+|------|--------------|
+| `LineString` | Rijn, Waal, Neder-Rijn, Lek, IJssel, Maas, Bergse Maas, Oude Maas, Nieuwe Waterweg, Noordzeekanaal, Amsterdam-Rijnkanaal |
+| `Polygon` | Noordzee, Waddenzee, Oosterschelde, Westerschelde, Eems |
+
+### Klik-op-de-kaart modus (wateren)
+
+De water-quiz ondersteunt ook `map`-modus. De leerling klikt op de kaart waar het water ligt; de afstand wordt berekend via `distanceToWater()`:
+
+- **LineString**: kortste afstand tot een lijnstuk (punt-naar-segment)
+- **Polygon**: 0 km als het punt binnen het polygoon ligt; anders kortste afstand tot de rand
+
+Drempelwaarden gelden dezelfde als steden (< 20 km correct, 20–60 km bijna, > 60 km fout). Tijdens de vraag zijn alle waterlichamen verborgen totdat ze correct geraden zijn.
+
+### OSM-datapipeline
+
+Riviercoördinaten komen uit OpenStreetMap via de Overpass API. De pipeline:
+
+```
+data/fetch-overpass.js       → haalt ruwe OSM way-geometrie op (rate-limit-aware)
+data/fetch-overpass-retry.js → herhaalpogingen voor mislukte rivieren
+data/fetch-rhein-south.js    → specifiek: Rijn Köln→Wesel (Rhein)
+data/process-overpass.js     → chain + RDP-vereenvoudiging → processed.json
+```
+
+**Stap 1 – Fetch:**
+```bash
+node data/fetch-overpass.js        # slaat op in data/overpass/*.json
+node data/fetch-rhein-south.js     # Rhein-sectie (indien nodig)
+```
+
+**Stap 2 – Process:**
+```bash
+node data/process-overpass.js      # output: data/overpass/processed.json
+```
+
+Instellingen per rivier in `process-overpass.js`:
+| Instelling | Uitleg |
+|-----------|--------|
+| `file` | Ruwe Overpass JSON in `data/overpass/` |
+| `eps` | RDP-epsilon in graden (0.001 = detail, 0.003 = grof) |
+
+**Stap 3 – Handmatig bijwerken:**
+Kopieer de gewenste coördinaten uit `processed.json` naar `wateren.geojson`. Gebruik `debug-wateren.html` + Playwright voor visuele controle (zie *Debug workflow* hieronder).
+
+### Een rivier verbeteren of toevoegen
+
+1. Zoek de OSM-naam op (bijv. `"Rhein"` in Duitsland, `"Rijn"` in Nederland)
+2. Schrijf een Overpass-query in `fetch-overpass.js`:
+   ```js
+   { name: 'nieuwe-rivier', q: 'way["name"="Naam"]["waterway"="river"](lat1,lon1,lat2,lon2);out geom;' }
+   ```
+3. Voer fetch + process uit
+4. Pas `wateren.geojson` aan en controleer visueel
+5. Voeg de rivier toe aan `cities.js` set 57 met `lat`/`lon` voor het label
+
+**Chaining:** het process-script schakelt losse OSM-ways aaneen via een bidirectioneel greedy-algoritme (gap-drempel 0.05°). Bij een gap > 0.05° stopt de keten — voeg dan handmatig een brugpunt toe.
+
+### Debug workflow
+
+```bash
+python3 -m http.server 8080   # serveer vanuit project-root
+# open http://localhost:8080/debug-wateren.html
+```
+
+Of via Playwright (headless screenshot):
+```bash
+node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage();
+  await p.setViewportSize({ width: 1200, height: 700 });
+  await p.goto('http://localhost:8080/debug-wateren.html', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(2000);
+  await p.evaluate(() => map.setView([52.3, 5.3], 7));
+  await p.waitForTimeout(800);
+  await p.screenshot({ path: 'debug-wateren-overzicht.png' });
+  await b.close();
+})();
+"
+```
+
+---
+
 ## Feedback
 
 Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Google Forms endpoint). Issues worden bijgehouden op [GitHub](https://github.com/jelmerkk/topoquiz/issues).
