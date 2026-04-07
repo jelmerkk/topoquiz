@@ -214,7 +214,7 @@ const { chromium } = require('playwright');
   await p.waitForTimeout(2000);
   await p.evaluate(() => map.setView([52.3, 5.3], 7));
   await p.waitForTimeout(800);
-  await p.screenshot({ path: 'debug-wateren-overzicht.png' });
+  await p.screenshot({ path: 'debug/debug-wateren-overzicht.png' });
   await b.close();
 })();
 "
