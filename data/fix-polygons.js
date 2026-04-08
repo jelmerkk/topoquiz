@@ -67,10 +67,29 @@ noordzeeFeature.geometry.coordinates[0] = nzFixed;
 // ── 2. EEMSMONDING — OSM relation 13883164 (Eemsmonding / Emsmündung) ────────
 // Ems-Dollard Treaty area: 57 outer ways, covers full Ems Estuary
 // lon 6.32–7.25°E, lat 53.23–53.63°N (Borkum to Dollard).
-const eemsNew = JSON.parse(fs.readFileSync(
+let eemsNew = JSON.parse(fs.readFileSync(
   path.join(__dirname, 'overpass', 'eemsmonding-processed.json'), 'utf8'
 ));
-console.log(`Eemsmonding: OSM relation 13883164 → ${eemsNew.length} pts`);
+// Clip the outer-estuary arc northwest of Eemshaven [6.84°E, 53.46°N].
+// Keep everything south/southeast of Eemshaven.
+// Strategy: find the first point that goes west of lon 6.84°E AND north of
+// lat 53.45°N (= past Eemshaven into the outer estuary), and cut there.
+// Resume at the last point coming back from the north that is south of 53.45°N.
+{
+  let entryIdx = -1, exitIdx = -1;
+  for (let i = 0; i < eemsNew.length - 1; i++) {
+    const p = eemsNew[i], q = eemsNew[i + 1];
+    // Entry: first step that crosses into the northwest arc (lon drops west of 6.84, lat > 53.45)
+    if (entryIdx === -1 && p[0] >= 6.84 && q[0] < 6.84 && q[1] > 53.45) entryIdx = i;
+    // Exit: after entry, first point back south of 53.45°N coming in from the north
+    if (entryIdx !== -1 && exitIdx === -1 && p[1] > 53.45 && q[1] <= 53.45) exitIdx = i + 1;
+  }
+  if (entryIdx !== -1 && exitIdx !== -1) {
+    eemsNew = [...eemsNew.slice(0, entryIdx + 1), ...eemsNew.slice(exitIdx)];
+    console.log(`  clipped outer-estuary arc at Eemshaven: removed ${exitIdx - entryIdx - 1} pts`);
+  }
+}
+console.log(`Eems: OSM relation 13883164 → ${eemsNew.length} pts (clipped at Eemshaven)`);
 
 const eemsFeature = get('Eems');
 eemsFeature.geometry.coordinates[0] = eemsNew;
@@ -101,10 +120,26 @@ westerscheldeFeature.geometry.coordinates[0] = westerscheldeNew;
 // ── 5. WADDENZEE — OSM relation 5909370 (NL Waddenzee nature reserve) ────────
 // 149 of 150 outer ways chained + RDP (eps=0.002) → 271 pts.
 // Covers lon 4.72–7.21°E, lat 52.89–53.58°N (Texel to Eemsmonding).
-const waddenzeeNew = JSON.parse(fs.readFileSync(
+// Post-clip: the polygon dips east into the Eems area (idx 43–92 trace the
+// Delfzijl/Knock coast that is already covered by the Eems polygon).
+// Clip by finding the single east-crossing and the single west-return at 6.83°E.
+let waddenzeeNew = JSON.parse(fs.readFileSync(
   path.join(__dirname, 'overpass', 'waddenzee-processed.json'), 'utf8'
 ));
-console.log(`Waddenzee: OSM relation 5909370 → ${waddenzeeNew.length} pts`);
+{
+  const CUT_LON = 6.83;
+  let entryIdx = -1, exitIdx = -1;
+  for (let i = 0; i < waddenzeeNew.length - 1; i++) {
+    const a = waddenzeeNew[i], b = waddenzeeNew[i + 1];
+    if (a[0] <= CUT_LON && b[0] > CUT_LON && entryIdx === -1) entryIdx = i;
+    if (entryIdx !== -1 && exitIdx === -1 && a[0] > CUT_LON && b[0] <= CUT_LON) exitIdx = i + 1;
+  }
+  if (entryIdx !== -1 && exitIdx !== -1) {
+    waddenzeeNew = [...waddenzeeNew.slice(0, entryIdx + 1), ...waddenzeeNew.slice(exitIdx)];
+    console.log(`  clipped Eems overlap: removed idx ${entryIdx+1}–${exitIdx-1} (${exitIdx-entryIdx-1} pts)`);
+  }
+}
+console.log(`Waddenzee: OSM relation 5909370 → ${waddenzeeNew.length} pts (after Eems clip)`);
 
 const waddenzeeFeature = get('Waddenzee');
 waddenzeeFeature.geometry.coordinates[0] = waddenzeeNew;
