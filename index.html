@@ -920,12 +920,15 @@ function distanceToWater(lat, lon, waterName) {
   const geom = feature.geometry;
   const coords = geom.coordinates;
   if (geom.type === 'Polygon') {
-    if (pointInPolygon(lat, lon, coords[0])) return 0;
+    const inOuter = pointInPolygon(lat, lon, coords[0]);
+    const inHole  = coords.length > 1 && coords.slice(1).some(hole => pointInPolygon(lat, lon, hole));
+    if (inOuter && !inHole) return 0;
     let minDist = Infinity;
-    const ring = coords[0];
-    for (let i = 0; i < ring.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-      if (d < minDist) minDist = d;
+    for (const ring of coords) {
+      for (let i = 0; i < ring.length - 1; i++) {
+        const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
+        if (d < minDist) minDist = d;
+      }
     }
     return minDist;
   }

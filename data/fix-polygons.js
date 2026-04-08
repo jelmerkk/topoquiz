@@ -53,16 +53,31 @@ const zeelandOuter = [
 ];
 
 const noordzeeFeature = get('Noordzee');
-const nzCoords = noordzeeFeature.geometry.coordinates[0];
-// Existing: [3.37,51.37], [3.3,51.45], [3.35,51.55], [3.5,51.7], [3.65,51.82], ...
-// Remove indices 1-3 (sea-jump), insert zeelandOuter after index 0
-const nzFixed = close([
-  nzCoords[0],         // [3.37,51.37] — Westerschelde mouth, keep
-  ...zeelandOuter,     // actual Zeeland outer coast
-  ...nzCoords.slice(4, -1), // from [3.65,51.82] onward (excluding closing point)
-]);
-console.log(`Noordzee: ${nzCoords.length} pts → ${nzFixed.length} pts`);
-noordzeeFeature.geometry.coordinates[0] = nzFixed;
+const noordzeeNew = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'noordzee-processed.json'), 'utf8'
+));
+console.log(`Noordzee: Dutch territorial sea (14011309) → ${noordzeeNew.length} pts`);
+// Add Waddenzee as inner ring (hole) so the Waddenzee area is excluded from Noordzee.
+// The Waddenzee polygon is already wound CCW (outer); for GeoJSON holes it should be CW,
+// but our pointInPolygon does explicit inside-check on the ring regardless of winding.
+const waddenzeeHole = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'waddenzee-processed.json'), 'utf8'
+));
+// Apply the same Eems-overlap clip we already use for the Waddenzee feature itself
+{
+  const CUT_LON = 6.83;
+  let entryIdx = -1, exitIdx = -1;
+  for (let i = 0; i < waddenzeeHole.length - 1; i++) {
+    const a = waddenzeeHole[i], b = waddenzeeHole[i + 1];
+    if (a[0] <= CUT_LON && b[0] > CUT_LON && entryIdx === -1) entryIdx = i;
+    if (entryIdx !== -1 && exitIdx === -1 && a[0] > CUT_LON && b[0] <= CUT_LON) exitIdx = i + 1;
+  }
+  if (entryIdx !== -1 && exitIdx !== -1) {
+    waddenzeeHole.splice(entryIdx + 1, exitIdx - entryIdx - 1);
+  }
+}
+noordzeeFeature.geometry.coordinates = [noordzeeNew, waddenzeeHole];
+console.log(`  + Waddenzee hole: ${waddenzeeHole.length} pts`);
 
 // ── 2. EEMSMONDING — OSM relation 13883164 (Eemsmonding / Emsmündung) ────────
 // Ems-Dollard Treaty area: 57 outer ways, covers full Ems Estuary
