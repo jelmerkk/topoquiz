@@ -62,28 +62,13 @@ const nzFixed = close([
 console.log(`Noordzee: ${nzCoords.length} pts → ${nzFixed.length} pts`);
 noordzeeFeature.geometry.coordinates[0] = nzFixed;
 
-// ── 2. EEMS German-side trim ─────────────────────────────────────────────────
-// Existing polygon overshoots to [7.29,53.25]. Actual German Eems coast max ~7.15°E.
-// coast-germany-eems chain is broken (zigzags across both banks). Use hardcoded coords.
-// Keeps NL side + German approach unchanged; replaces the 7.29 overshoot with a straight
-// line at lon=7.15 from south [7.15,53.23] to north [7.15,53.38].
-const eemsNew = [
-  [6.88, 53.44],  // NW: Knock (Eems mouth NL)
-  [6.93, 53.33],  // SW: Delfzijl
-  [6.97, 53.32],
-  [7.02, 53.30],
-  [7.06, 53.28],
-  [7.09, 53.26],
-  [7.12, 53.24],
-  [7.15, 53.23],  // easternmost: actual German coast (was 7.29)
-  [7.15, 53.38],  // return north along German side at ~7.15°E
-  [7.10, 53.40],
-  [7.05, 53.42],
-  [7.00, 53.44],
-  [6.95, 53.45],
-  [6.88, 53.44],  // close
-];
-console.log(`Eems: 22 pts → ${eemsNew.length} pts`);
+// ── 2. EEMS — Dollard relation (OSM 3123125) ────────────────────────────────
+// Chain + RDP from 27 outer ways of the Dollard/Dollart multipolygon relation.
+// Covers the inner Dollard bay: lon 7.08–7.25°E, lat 53.23–53.35°N.
+const eemsNew = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'dollard-processed.json'), 'utf8'
+));
+console.log(`Eems: Dollard relation → ${eemsNew.length} pts`);
 
 const eemsFeature = get('Eems');
 eemsFeature.geometry.coordinates[0] = eemsNew;
