@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Applies targeted fixes to wateren.geojson:
 //   - Noordzee: replaces the SW sea-jump with actual Zeeland outer coast waypoints
-//   - Eems: rebuilds German side from coast-germany-eems chain
-// All other polygons (Waddenzee, Oosterschelde, Westerschelde) are kept unchanged.
+//   - Eems: Dollard OSM relation 3123125 (outer boundary)
+//   - Oosterschelde: OSM relation 6846427 (outer boundary)
+//   - Westerschelde: OSM relation 9745220 (outer boundary)
+// Waddenzee is kept unchanged.
 
 const fs   = require('fs');
 const path = require('path');
@@ -72,6 +74,27 @@ console.log(`Eems: Dollard relation → ${eemsNew.length} pts`);
 
 const eemsFeature = get('Eems');
 eemsFeature.geometry.coordinates[0] = eemsNew;
+
+// ── 3. OOSTERSCHELDE — OSM relation 6846427 ─────────────────────────────────
+// 28 outer ways chained + RDP (eps=0.002) → 199 pts.
+// Inner ways (60 islands/land) are ignored — outer boundary only.
+const oosterscheldeNew = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'oosterschelde-processed.json'), 'utf8'
+));
+console.log(`Oosterschelde: OSM relation → ${oosterscheldeNew.length} pts`);
+
+const oosterscheldeFeature = get('Oosterschelde');
+oosterscheldeFeature.geometry.coordinates[0] = oosterscheldeNew;
+
+// ── 4. WESTERSCHELDE — OSM relation 9745220 ─────────────────────────────────
+// 31 outer ways chained + RDP (eps=0.002) → 59 pts.
+const westerscheldeNew = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'westerschelde-processed.json'), 'utf8'
+));
+console.log(`Westerschelde: OSM relation → ${westerscheldeNew.length} pts`);
+
+const westerscheldeFeature = get('Westerschelde');
+westerscheldeFeature.geometry.coordinates[0] = westerscheldeNew;
 
 // ── Write output ─────────────────────────────────────────────────────────────
 fs.writeFileSync(
