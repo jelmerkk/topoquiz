@@ -194,7 +194,7 @@ const ALL_PROVINCES = [
 //             false → toon heel Nederland
 const SETS = {
    54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false },
-   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false, beta: true },
+   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false },
    55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false },
    56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false },
    61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true  },
