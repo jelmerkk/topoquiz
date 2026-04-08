@@ -98,6 +98,17 @@ console.log(`Westerschelde: Saeftinghe nature reserve outer ring → ${westersch
 const westerscheldeFeature = get('Westerschelde');
 westerscheldeFeature.geometry.coordinates[0] = westerscheldeNew;
 
+// ── 5. WADDENZEE — OSM relation 5909370 (NL Waddenzee nature reserve) ────────
+// 149 of 150 outer ways chained + RDP (eps=0.002) → 271 pts.
+// Covers lon 4.72–7.21°E, lat 52.89–53.58°N (Texel to Eemsmonding).
+const waddenzeeNew = JSON.parse(fs.readFileSync(
+  path.join(__dirname, 'overpass', 'waddenzee-processed.json'), 'utf8'
+));
+console.log(`Waddenzee: OSM relation 5909370 → ${waddenzeeNew.length} pts`);
+
+const waddenzeeFeature = get('Waddenzee');
+waddenzeeFeature.geometry.coordinates[0] = waddenzeeNew;
+
 // ── Write output ─────────────────────────────────────────────────────────────
 fs.writeFileSync(
   path.join(__dirname, '../wateren.geojson'),
