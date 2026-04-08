@@ -164,7 +164,7 @@ const ALL_WATERS = [
   { name: 'Maas',                 lat: 51.50, lon: 5.85 },
   { name: 'Oude Maas',            lat: 51.85, lon: 4.55, aliases: ['Oude maas'] },
   { name: 'Bergse Maas',          lat: 51.70, lon: 5.00, aliases: ['Bergse maas'] },
-  { name: 'Eems',                 lat: 53.28, lon: 6.90 },
+  { name: 'Eems',                 lat: 53.35, lon: 6.90 },
   { name: 'Noordzeekanaal',       lat: 52.46, lon: 4.70 },
   { name: 'Amsterdam-Rijnkanaal', lat: 52.20, lon: 5.00, aliases: ['Amsterdam Rijnkanaal'] },
   { name: 'Nieuwe Waterweg',      lat: 51.90, lon: 4.10, aliases: ['Nieuwe waterweg'] },

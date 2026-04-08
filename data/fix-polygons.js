@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Applies targeted fixes to wateren.geojson:
 //   - Noordzee: replaces the SW sea-jump with actual Zeeland outer coast waypoints
-//   - Eems: Dollard OSM relation 3123125 (outer boundary)
+//   - Eemsmonding: OSM relation 13883164 (Ems-Dollard Treaty area, full estuary)
 //   - Oosterschelde: OSM relation 6846427 (outer boundary)
 //   - Westerschelde: OSM relation 9745220 (outer boundary)
 // Waddenzee is kept unchanged.
@@ -64,13 +64,13 @@ const nzFixed = close([
 console.log(`Noordzee: ${nzCoords.length} pts → ${nzFixed.length} pts`);
 noordzeeFeature.geometry.coordinates[0] = nzFixed;
 
-// ── 2. EEMS — Dollard relation (OSM 3123125) ────────────────────────────────
-// Chain + RDP from 27 outer ways of the Dollard/Dollart multipolygon relation.
-// Covers the inner Dollard bay: lon 7.08–7.25°E, lat 53.23–53.35°N.
+// ── 2. EEMSMONDING — OSM relation 13883164 (Eemsmonding / Emsmündung) ────────
+// Ems-Dollard Treaty area: 57 outer ways, covers full Ems Estuary
+// lon 6.32–7.25°E, lat 53.23–53.63°N (Borkum to Dollard).
 const eemsNew = JSON.parse(fs.readFileSync(
-  path.join(__dirname, 'overpass', 'dollard-processed.json'), 'utf8'
+  path.join(__dirname, 'overpass', 'eemsmonding-processed.json'), 'utf8'
 ));
-console.log(`Eems: Dollard relation → ${eemsNew.length} pts`);
+console.log(`Eemsmonding: OSM relation 13883164 → ${eemsNew.length} pts`);
 
 const eemsFeature = get('Eems');
 eemsFeature.geometry.coordinates[0] = eemsNew;
@@ -86,12 +86,14 @@ console.log(`Oosterschelde: OSM relation → ${oosterscheldeNew.length} pts`);
 const oosterscheldeFeature = get('Oosterschelde');
 oosterscheldeFeature.geometry.coordinates[0] = oosterscheldeNew;
 
-// ── 4. WESTERSCHELDE — OSM relation 9745220 ─────────────────────────────────
-// 31 outer ways chained + RDP (eps=0.002) → 59 pts.
+// ── 4. WESTERSCHELDE — OSM relation 10310085 (Westerschelde & Saeftinghe) ───
+// Nature reserve outer ring: 12 of 26 outer ways chain into a closed polygon
+// covering the full estuary lon 3.36–4.25°E. Other 14 ways are inlets (unused).
+// RDP eps=0.002 → 108 pts.
 const westerscheldeNew = JSON.parse(fs.readFileSync(
   path.join(__dirname, 'overpass', 'westerschelde-processed.json'), 'utf8'
 ));
-console.log(`Westerschelde: OSM relation → ${westerscheldeNew.length} pts`);
+console.log(`Westerschelde: Saeftinghe nature reserve outer ring → ${westerscheldeNew.length} pts`);
 
 const westerscheldeFeature = get('Westerschelde');
 westerscheldeFeature.geometry.coordinates[0] = westerscheldeNew;
