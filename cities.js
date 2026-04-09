@@ -193,17 +193,17 @@ const ALL_PROVINCES = [
 // fitOnStart: true  → zoom in op de plaatsen/provincies van dit level bij de start
 //             false → toon heel Nederland
 const SETS = {
-   54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false },
-   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false },
-   55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false },
-   56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false },
-   61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true  },
-   62: { name: '6.2 – Zeeland',               quizType: 'place',    fitOnStart: true  },
-   63: { name: '6.3 – Groningen en Drenthe',  quizType: 'place',    fitOnStart: true  },
-   64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true  },
-   65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true  },
-   66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true  },
-   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true  },
+   54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false, group: 5 },
+   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false, group: 5 },
+   55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false, group: 5 },
+   56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false, group: 5 },
+   61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true,  group: 6 },
+   62: { name: '6.2 – Zeeland',               quizType: 'place',    fitOnStart: true,  group: 6 },
+   63: { name: '6.3 – Groningen en Drenthe',  quizType: 'place',    fitOnStart: true,  group: 6 },
+   64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true,  group: 6 },
+   65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true,  group: 6 },
+   66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
+   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
