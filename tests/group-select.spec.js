@@ -31,6 +31,12 @@ test('daily en bonus zijn altijd zichtbaar, ook vóór groepkeuze', async ({ pag
   await expect(page.locator('.mode-btn.bonus-btn')).toBeVisible();
 });
 
+test('zonder groepkeuze zijn geen sets zichtbaar (alleen daily + bonus)', async ({ page }) => {
+  await page.goto('/');
+  // Geen sessionStorage → geen sets
+  await expect(page.locator('#level-select .mode-btn:not(.bonus-btn)')).toHaveCount(0);
+});
+
 // ── Groep 5 filtert juist ─────────────────────────────────────────────────────
 
 test('groep 5: toont sets 5.4, 5.5, 5.6, 5.7 — niet 6.x', async ({ page }) => {

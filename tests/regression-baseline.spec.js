@@ -17,8 +17,9 @@ const { test, expect } = require('@playwright/test');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function openSet(page, nameText) {
+async function openSet(page, nameText, group = null) {
   await page.goto('/');
+  if (group) await page.locator('.group-btn', { hasText: String(group) }).click();
   await page.locator('#level-select .mode-btn', { hasText: nameText }).click();
   await expect(page.locator('#mode-select')).toBeVisible();
 }
@@ -39,11 +40,12 @@ async function answerCorrectlyTyped(page) {
 
 test('set 61 verschijnt in het level-menu', async ({ page }) => {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '6' }).click();
   await expect(page.locator('#level-select .mode-btn', { hasText: 'Overijssel' })).toBeVisible();
 });
 
 test('set 61 — meerkeuze: vraag, 4 opties, feedback', async ({ page }) => {
-  await openSet(page, 'Overijssel');
+  await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Meerkeuze');
 
   await expect(page.locator('#question-text')).toBeVisible();
@@ -54,7 +56,7 @@ test('set 61 — meerkeuze: vraag, 4 opties, feedback', async ({ page }) => {
 });
 
 test('set 61 — typen: correct antwoord geeft feedback', async ({ page }) => {
-  await openSet(page, 'Overijssel');
+  await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Typen');
 
   await answerCorrectlyTyped(page);
@@ -62,7 +64,7 @@ test('set 61 — typen: correct antwoord geeft feedback', async ({ page }) => {
 });
 
 test('set 61 — klik-op-kaart: vraagscherm, crosshair, klik op exacte locatie = correct', async ({ page }) => {
-  await openSet(page, 'Overijssel');
+  await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Klik');
 
   const name = await page.evaluate(() => currentCity.name);
@@ -77,7 +79,7 @@ test('set 61 — klik-op-kaart: vraagscherm, crosshair, klik op exacte locatie =
 });
 
 test('set 61 — fitOnStart: kaart zoomt naar Overijssel (niet heel NL)', async ({ page }) => {
-  await openSet(page, 'Overijssel');
+  await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Meerkeuze');
 
   // fitOnStart:true zoomt op de steden van de set → zoomlevel hoger dan default NL-view (zoom 7-8)
@@ -86,7 +88,7 @@ test('set 61 — fitOnStart: kaart zoomt naar Overijssel (niet heel NL)', async 
 });
 
 test('set 61 — klik-op-kaart: ver klikken geeft afstandsfeedback met "km"', async ({ page }) => {
-  await openSet(page, 'Overijssel');
+  await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Klik');
 
   // Klik op Zeeland — altijd ver van Overijssel

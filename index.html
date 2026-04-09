@@ -1616,8 +1616,8 @@ function _renderLevelSelect() {
       el.appendChild(btn);
       return;
     }
-    // Verberg sets die niet bij de geselecteerde groep horen
-    if (selectedGroup && set.group !== Number(selectedGroup)) return;
+    // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
+    if (!selectedGroup || set.group !== Number(selectedGroup)) return;
     const btn = document.createElement('button');
     btn.className = 'mode-btn';
     btn.textContent = set.name;
