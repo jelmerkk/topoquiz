@@ -509,6 +509,43 @@ expect('Midden in rechthoek → binnen', pointInPolygon(52.5, 4.5, rect));
 expect('Buiten rechthoek → niet binnen', !pointInPolygon(51.0, 4.5, rect));
 expect('Ver buiten rechthoek → niet binnen', !pointInPolygon(51.0, 6.0, rect));
 
+// ── Set-stadsaantallen — snapshot-borging ────────────────────
+// Deze aantallen mogen nooit stilletjes veranderen. Als je een stad toevoegt
+// of verwijdert uit een set, update dan dit getal expliciet en bewust.
+
+section('Set-stadsaantallen — regressie-snapshot');
+
+const SET_SNAPSHOTS = {
+  61: 14,  // Overijssel
+  62: 10,  // Zeeland
+  63: 22,  // Groningen en Drenthe
+  64: 14,  // Flevoland en Utrecht
+  65: 26,  // Noord-Brabant en Limburg
+  66: 16,  // Zuid-Holland
+  67: 15,  // Noord-Holland
+};
+
+Object.entries(SET_SNAPSHOTS).forEach(([num, expected]) => {
+  const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
+  expect(
+    `Set ${num} (${SETS[num]?.name}) heeft precies ${expected} steden`,
+    count === expected,
+    `heeft er ${count}`
+  );
+});
+
+// Set 54: altijd gelijk aan ALL_PROVINCES (provincies-quiz)
+expect(
+  'Set 54: activeCities-pool = aantal provincies (12)',
+  ALL_PROVINCES.length === 12
+);
+
+// Set 57: altijd gelijk aan ALL_WATERS
+expect(
+  'Set 57: activeCities-pool = aantal wateren (16)',
+  ALL_WATERS.length === 16
+);
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
