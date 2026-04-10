@@ -713,7 +713,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="cities.js"></script>
 <script>
-const NL_BOUNDS = [[50.699, 3.325], [53.566, 7.261]];
+// NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS worden geladen via cities.js
 
 const map = L.map('leaflet-map', {
   zoomControl: true,
@@ -966,9 +966,10 @@ function distanceToWater(lat, lon, waterName) {
   return Infinity;
 }
 
-function clickResult(distKm, zoomed) {
-  const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
-  const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
+function clickResult(distKm, setNumber) {
+  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
+  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
+  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
   if (distKm < correctKm) return 'correct';
   if (distKm < closeKm)   return 'close';
   return 'wrong';
@@ -1394,7 +1395,7 @@ function handleMapClick(e) {
   const distKm = isWater
     ? distanceToWater(e.latlng.lat, e.latlng.lng, city.name)
     : haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
-  const result = clickResult(distKm, SETS[selectedSet].fitOnStart);
+  const result = clickResult(distKm, selectedSet);
 
   // Klik-marker tonen (markerLayer blijft verborgen — geeft anders toekomstige locaties weg)
   mapClickMarker = L.circleMarker(e.latlng, {

@@ -188,10 +188,18 @@ const ALL_PROVINCES = [
 ];
 
 // Set-definities. Nummers = Geobas-hoofdstuknummer (54 = hoofdstuk 5.4, enz.).
+// Viewport-bounds per schaal
+const NL_BOUNDS    = [[50.699, 3.325], [53.566, 7.261]];
+const EU_BOUNDS    = [[34, -25], [72, 45]];
+const WORLD_BOUNDS = [[-60, -180], [75, 180]];
+
 // quizType: 'place'    → kaart met stippen, plaatsnamen raden
 //           'province' → provincies inkleuren, provincienamen raden
+//           'water'    → wateren inkleuren
 // fitOnStart: true  → zoom in op de plaatsen/provincies van dit level bij de start
 //             false → toon heel Nederland
+// bounds: optioneel [[lat,lon],[lat,lon]] — overschrijft NL_BOUNDS bij laden en terugkeer
+// clickCorrectKm / clickCloseKm: optioneel — overschrijft globale drempelwaarden
 const SETS = {
    54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false, group: 5 },
    57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false, group: 5 },
@@ -204,6 +212,9 @@ const SETS = {
    65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true,  group: 6 },
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
    67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
+   // Test-level voor v2.0 pilot — inhoud (phases, data) volgt in stap 5
+   70: { name: 'Test: Baltische staten', quizType: 'place', fitOnStart: false, group: 7,
+         bounds: EU_BOUNDS, clickCorrectKm: 60, clickCloseKm: 180 },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
@@ -220,4 +231,4 @@ function cityRadius(city) {
 }
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius };
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };

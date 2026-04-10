@@ -4,7 +4,7 @@
 
 'use strict';
 
-const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius } = require('./cities.js');
+const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
 // ── Pure logic (gespiegeld vanuit index.html) ─────────────────
 // Houd synchroon met de implementatie in index.html.
@@ -293,9 +293,15 @@ function haversine(lat1, lon1, lat2, lon2) {
 const CLICK_CORRECT_KM = 20;
 const CLICK_CLOSE_KM   = 60;
 
-function clickResult(distKm, zoomed) {
-  const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
-  const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
+// Gespiegel van index.html — houd synchroon met implementatie.
+// Signature: clickResult(distKm, setNumber)
+// - Leest clickCorrectKm/clickCloseKm uit SETS[setNumber] als die bestaan
+// - Anders: fitOnStart halveert de drempel (bestaand gedrag)
+// - Geen setNumber: gebruikt globale defaults
+function clickResult(distKm, setNumber) {
+  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
+  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
+  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
   if (distKm < correctKm) return 'correct';
   if (distKm < closeKm)   return 'close';
   return 'wrong';
@@ -325,26 +331,55 @@ expect('Amsterdam–Maastricht ≈ 155–220 km', distAmsMaa > 155 && distAmsMaa
 
 expect('Retourwaarde is een getal', typeof distAmsRot === 'number');
 
-section('clickResult()');
+section('clickResult() — NL-sets (geen clickCorrectKm, geen fitOnStart)');
 
-expect('0 km → correct',    clickResult(0)    === 'correct');
-expect('10 km → correct',   clickResult(10)   === 'correct');
-expect('19 km → correct',   clickResult(19)   === 'correct');
-expect('20 km → close',     clickResult(20)   === 'close');
-expect('40 km → close',     clickResult(40)   === 'close');
-expect('59 km → close',     clickResult(59)   === 'close');
-expect('60 km → wrong',     clickResult(60)   === 'wrong');
-expect('150 km → wrong',    clickResult(150)  === 'wrong');
+// Set 54 (provincies): geen fitOnStart, geen clickCorrectKm → globale NL defaults 20/60
+expect('set 54: 0 km → correct',   clickResult(0,  54) === 'correct');
+expect('set 54: 15 km → correct',  clickResult(15, 54) === 'correct');
+expect('set 54: 19 km → correct',  clickResult(19, 54) === 'correct');
+expect('set 54: 20 km → close',    clickResult(20, 54) === 'close');
+expect('set 54: 40 km → close',    clickResult(40, 54) === 'close');
+expect('set 54: 59 km → close',    clickResult(59, 54) === 'close');
+expect('set 54: 60 km → wrong',    clickResult(60, 54) === 'wrong');
+expect('set 54: 150 km → wrong',   clickResult(150,54) === 'wrong');
 
-section('clickResult() — ingezoomd (fitOnStart)');
+// Geen setNumber: val terug op globale defaults
+expect('geen set: 0 km → correct', clickResult(0)    === 'correct');
+expect('geen set: 20 km → close',  clickResult(20)   === 'close');
+expect('geen set: 60 km → wrong',  clickResult(60)   === 'wrong');
 
-expect('zoomed: 0 km → correct',   clickResult(0, true)   === 'correct');
-expect('zoomed: 9 km → correct',   clickResult(9, true)   === 'correct');
-expect('zoomed: 10 km → close',    clickResult(10, true)  === 'close');
-expect('zoomed: 20 km → close',    clickResult(20, true)  === 'close');
-expect('zoomed: 29 km → close',    clickResult(29, true)  === 'close');
-expect('zoomed: 30 km → wrong',    clickResult(30, true)  === 'wrong');
-expect('zoomed: 60 km → wrong',    clickResult(60, true)  === 'wrong');
+section('clickResult() — ingezoomd (fitOnStart: true, sets 61–67)');
+
+// Set 61 (Overijssel): fitOnStart → halve drempel: correct 10km, close 30km
+expect('set 61: 0 km → correct',   clickResult(0,  61) === 'correct');
+expect('set 61: 9 km → correct',   clickResult(9,  61) === 'correct');
+expect('set 61: 10 km → close',    clickResult(10, 61) === 'close');
+expect('set 61: 29 km → close',    clickResult(29, 61) === 'close');
+expect('set 61: 30 km → wrong',    clickResult(30, 61) === 'wrong');
+expect('set 61: 60 km → wrong',    clickResult(60, 61) === 'wrong');
+
+section('clickResult() — EU-set (set 70, clickCorrectKm: 60, clickCloseKm: 180)');
+
+// Set 70 heeft expliciete EU-drempels die fitOnStart overriden
+expect('set 70: 0 km → correct',    clickResult(0,   70) === 'correct');
+expect('set 70: 50 km → correct',   clickResult(50,  70) === 'correct');
+expect('set 70: 59 km → correct',   clickResult(59,  70) === 'correct');
+expect('set 70: 60 km → close',     clickResult(60,  70) === 'close');
+expect('set 70: 100 km → close',    clickResult(100, 70) === 'close');
+expect('set 70: 179 km → close',    clickResult(179, 70) === 'close');
+expect('set 70: 180 km → wrong',    clickResult(180, 70) === 'wrong');
+expect('set 70: 300 km → wrong',    clickResult(300, 70) === 'wrong');
+
+section('Bounds-constanten en set 70 definitie');
+
+expect('NL_BOUNDS is gedefinieerd',    Array.isArray(NL_BOUNDS) && NL_BOUNDS.length === 2);
+expect('EU_BOUNDS is gedefinieerd',    Array.isArray(EU_BOUNDS) && EU_BOUNDS.length === 2);
+expect('WORLD_BOUNDS is gedefinieerd', Array.isArray(WORLD_BOUNDS) && WORLD_BOUNDS.length === 2);
+expect('Set 70 bestaat in SETS',       !!SETS[70]);
+expect('Set 70 heeft bounds EU_BOUNDS', SETS[70]?.bounds === EU_BOUNDS);
+expect('Set 70 heeft clickCorrectKm 60', SETS[70]?.clickCorrectKm === 60);
+expect('Set 70 heeft clickCloseKm 180',  SETS[70]?.clickCloseKm === 180);
+expect('Set 70 is groep 7',             SETS[70]?.group === 7);
 
 // ── ALL_WATERS ────────────────────────────────────────────────
 
