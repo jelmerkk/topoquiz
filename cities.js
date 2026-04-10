@@ -150,6 +150,17 @@ const ALL_CITIES = [
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
 ];
 
+// Landen voor sets met quizType 'country'.
+// lat/lon = centroïd (voor pan-to en als fallback klik-punt).
+const ALL_COUNTRIES = [
+  // ── Set 70: Baltische staten + Finland ────────────────────────
+  // Finland erbij zodat MC-modus altijd 4 opties kan tonen (minimum voor set-grootte)
+  { name: 'Estland',  lat: 58.67, lon: 25.54, sets: [70] },
+  { name: 'Letland',  lat: 56.88, lon: 24.60, sets: [70] },
+  { name: 'Litouwen', lat: 55.17, lon: 23.88, sets: [70] },
+  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [70] },
+];
+
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
 const ALL_WATERS = [
   { name: 'Noordzee',             lat: 52.50, lon: 3.60 },
@@ -213,7 +224,7 @@ const SETS = {
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
    67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
    // Test-level voor v2.0 pilot — inhoud (phases, data) volgt in stap 5
-   70: { name: 'Test: Baltische staten', quizType: 'place', fitOnStart: false, group: 7,
+   70: { name: 'Test: Baltische staten', quizType: 'country', fitOnStart: false, group: 7,
          bounds: EU_BOUNDS, clickCorrectKm: 60, clickCloseKm: 180 },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
@@ -231,4 +242,4 @@ function cityRadius(city) {
 }
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };

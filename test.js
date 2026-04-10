@@ -4,7 +4,7 @@
 
 'use strict';
 
-const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
+const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
 // ── Pure logic (gespiegeld vanuit index.html) ─────────────────
 // Houd synchroon met de implementatie in index.html.
@@ -146,8 +146,8 @@ section('SETS — structuur');
 const setEntries = Object.entries(SETS);
 expect('Er zijn sets gedefinieerd', setEntries.length > 0);
 
-const invalidQuizTypes = setEntries.filter(([, s]) => !['place', 'province', 'water'].includes(s.quizType));
-expect('Alle sets hebben een geldig quizType (place, province of water)',
+const invalidQuizTypes = setEntries.filter(([, s]) => !['place', 'province', 'water', 'country'].includes(s.quizType));
+expect('Alle sets hebben een geldig quizType (place, province, water of country)',
   invalidQuizTypes.length === 0,
   invalidQuizTypes.map(([n]) => n).join(', '));
 
@@ -580,6 +580,35 @@ expect(
   'Set 57: activeCities-pool = aantal wateren (16)',
   ALL_WATERS.length === 16
 );
+
+// ── ALL_COUNTRIES — stap 3 (country quizType) ────────────────
+// Deze tests zijn bewust ROOD totdat stap 3 is geïmplementeerd.
+
+section('ALL_COUNTRIES — structuur');
+
+expect('ALL_COUNTRIES is gedefinieerd', typeof ALL_COUNTRIES !== 'undefined' && Array.isArray(ALL_COUNTRIES),
+  'ALL_COUNTRIES bestaat nog niet');
+
+if (typeof ALL_COUNTRIES !== 'undefined' && Array.isArray(ALL_COUNTRIES)) {
+  const countryMissingFields = ALL_COUNTRIES.filter(c => !c.name || c.lat == null || c.lon == null || !Array.isArray(c.sets));
+  expect('Elk land heeft name, lat, lon, sets', countryMissingFields.length === 0,
+    countryMissingFields.map(c => c.name || '(naamloos)').join(', '));
+
+  const BALTISCHE_LANDEN = ['Estland', 'Letland', 'Litouwen', 'Finland'];
+  BALTISCHE_LANDEN.forEach(naam => {
+    const land = ALL_COUNTRIES.find(c => c.name === naam);
+    expect(`${naam} aanwezig in ALL_COUNTRIES`, !!land);
+    expect(`${naam} zit in set 70`, land?.sets?.includes(70));
+  });
+
+  const count70 = ALL_COUNTRIES.filter(c => c.sets.includes(70)).length;
+  expect('Set 70 heeft precies 4 landen (min. 4 voor MC-modus)', count70 === 4, `heeft er ${count70}`);
+}
+
+section('Set 70 — country quizType');
+
+expect('Set 70 heeft quizType country', SETS[70]?.quizType === 'country',
+  `heeft quizType: ${SETS[70]?.quizType}`);
 
 // ── Samenvatting ──────────────────────────────────────────────
 
