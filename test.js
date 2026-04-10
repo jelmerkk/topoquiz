@@ -79,10 +79,14 @@ const missingFields = ALL_CITIES.filter(c =>
 expect('Elke stad heeft name, lat, lon, pop, sets', missingFields.length === 0,
   missingFields.map(c => c.name || '(naamloos)').join(', '));
 
-const outOfBounds = ALL_CITIES.filter(c =>
-  c.lat < NL_LAT[0] || c.lat > NL_LAT[1] || c.lon < NL_LON[0] || c.lon > NL_LON[1]
-);
-expect('Alle coördinaten liggen binnen Nederland', outOfBounds.length === 0,
+// Steden die uitsluitend in sets met custom bounds (buiten NL) zitten mogen
+// buiten Nederland liggen — bijv. Baltische hoofdsteden in set 70.
+const outOfBounds = ALL_CITIES.filter(c => {
+  const onlyNonNLSets = c.sets.every(s => SETS[s]?.bounds);
+  if (onlyNonNLSets) return false;
+  return c.lat < NL_LAT[0] || c.lat > NL_LAT[1] || c.lon < NL_LON[0] || c.lon > NL_LON[1];
+});
+expect('NL-steden hebben coördinaten binnen Nederland', outOfBounds.length === 0,
   outOfBounds.map(c => `${c.name} (${c.lat}, ${c.lon})`).join(', '));
 
 const nonPositivePop = ALL_CITIES.filter(c => c.pop <= 0);
@@ -104,7 +108,8 @@ section('ALL_CITIES — set-dekking');
 Object.entries(SETS).forEach(([num, set]) => {
   if (set.quizType === 'province') return; // provincies gebruiken ALL_PROVINCES
   if (set.quizType === 'water') return;    // wateren gebruiken ALL_WATERS
-  if (set.bonus || set.daily) return;      // deze sets gebruiken runtime-sampling, niet een vaste set-filter
+  if (set.bonus || set.daily) return;      // runtime-sampling, geen vaste set-filter
+  if (set.phases) return;                  // gefaseerde sets: elke fase heeft eigen pool
   const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
   expect(`Set ${set.name} heeft ≥ 4 steden (voor meerkeuze-afleiders)`, count >= 4,
     `heeft er ${count}`);
@@ -146,7 +151,11 @@ section('SETS — structuur');
 const setEntries = Object.entries(SETS);
 expect('Er zijn sets gedefinieerd', setEntries.length > 0);
 
-const invalidQuizTypes = setEntries.filter(([, s]) => !['place', 'province', 'water', 'country'].includes(s.quizType));
+const VALID_QUIZ_TYPES = ['place', 'province', 'water', 'country'];
+const invalidQuizTypes = setEntries.filter(([, s]) => {
+  if (s.phases) return !s.phases.every(p => VALID_QUIZ_TYPES.includes(p.quizType));
+  return !VALID_QUIZ_TYPES.includes(s.quizType);
+});
 expect('Alle sets hebben een geldig quizType (place, province, water of country)',
   invalidQuizTypes.length === 0,
   invalidQuizTypes.map(([n]) => n).join(', '));
@@ -605,10 +614,40 @@ if (typeof ALL_COUNTRIES !== 'undefined' && Array.isArray(ALL_COUNTRIES)) {
   expect('Set 70 heeft precies 4 landen (min. 4 voor MC-modus)', count70 === 4, `heeft er ${count70}`);
 }
 
-section('Set 70 — country quizType');
+section('Set 70 — phases (stap 4)');
 
-expect('Set 70 heeft quizType country', SETS[70]?.quizType === 'country',
-  `heeft quizType: ${SETS[70]?.quizType}`);
+expect('Set 70 heeft een phases array', Array.isArray(SETS[70]?.phases),
+  'phases ontbreekt nog');
+
+if (Array.isArray(SETS[70]?.phases)) {
+  expect('Set 70 fase 0: countries', SETS[70].phases[0]?.quizType === 'country',
+    `fase 0 quizType: ${SETS[70].phases[0]?.quizType}`);
+  expect('Set 70 fase 0 label: Landen', SETS[70].phases[0]?.label === 'Landen',
+    `fase 0 label: ${SETS[70].phases[0]?.label}`);
+  expect('Set 70 fase 0 id: countries', SETS[70].phases[0]?.id === 'countries');
+
+  expect('Set 70 fase 1: place (hoofdsteden)', SETS[70].phases[1]?.quizType === 'place',
+    `fase 1 quizType: ${SETS[70].phases[1]?.quizType}`);
+  expect('Set 70 fase 1 label: Hoofdsteden', SETS[70].phases[1]?.label === 'Hoofdsteden',
+    `fase 1 label: ${SETS[70].phases[1]?.label}`);
+  expect('Set 70 fase 1 id: capitals', SETS[70].phases[1]?.id === 'capitals');
+
+  expect('Set 70 heeft mastery 1 (pilot)', SETS[70].mastery === 1,
+    `mastery: ${SETS[70].mastery}`);
+}
+
+section('Set 70 — hoofdsteden (stap 4)');
+
+const BALTISCHE_HOOFDSTEDEN = ['Tallinn', 'Riga', 'Vilnius', 'Helsinki'];
+BALTISCHE_HOOFDSTEDEN.forEach(naam => {
+  const city = ALL_CITIES.find(c => c.name === naam);
+  expect(`${naam} aanwezig in ALL_CITIES`, !!city);
+  expect(`${naam} zit in set 70`, city?.sets?.includes(70));
+});
+
+const count70cities = ALL_CITIES.filter(c => c.sets.includes(70)).length;
+expect('Set 70 heeft precies 4 steden (hoofdsteden + Helsinki voor MC-modus)', count70cities === 4,
+  `heeft er ${count70cities}`);
 
 // ── Samenvatting ──────────────────────────────────────────────
 

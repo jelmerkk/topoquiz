@@ -148,6 +148,11 @@ const ALL_CITIES = [
   { name: "Vlaardingen",         lat: 51.91, lon: 4.34, pop:   71000, sets: [66] },
   { name: "Schiedam",            lat: 51.92, lon: 4.40, pop:   84000, sets: [66] },
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
+  // ── Set 70: Baltische hoofdsteden + Helsinki (fase 2 pilot; min. 4 voor MC-modus) ──
+  { name: "Tallinn",  lat: 59.44, lon: 24.75, pop:  450000, sets: [70] },
+  { name: "Riga",     lat: 56.95, lon: 24.11, pop:  614000, sets: [70] },
+  { name: "Vilnius",  lat: 54.69, lon: 25.28, pop:  580000, sets: [70] },
+  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [70] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -223,9 +228,13 @@ const SETS = {
    65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true,  group: 6 },
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
    67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
-   // Test-level voor v2.0 pilot — inhoud (phases, data) volgt in stap 5
-   70: { name: 'Test: Baltische staten', quizType: 'country', fitOnStart: false, group: 7,
-         bounds: EU_BOUNDS, clickCorrectKm: 60, clickCloseKm: 180 },
+   // Test-level voor v2.0 pilot — 2 fases (stap 5 voegt waters-fase toe)
+   70: { name: 'Test: Baltische staten', group: 7, mastery: 1,
+         bounds: EU_BOUNDS, clickCorrectKm: 60, clickCloseKm: 180,
+         phases: [
+           { id: 'countries', label: 'Landen',      quizType: 'country' },
+           { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
+         ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
