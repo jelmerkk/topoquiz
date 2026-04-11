@@ -1,6 +1,6 @@
 # Topografie Quiz
 
-Een topografie-oefentool voor groep 5, gebaseerd op de Geobas-methode. Kinderen leren plaatsen en provincies via meerkeuze of zelf typen, met spaced repetition.
+Een topografie-oefentool voor groep 5–8, gebaseerd op de Geobas-methode. Kinderen leren plaatsen, provincies, landen, wateren en meer via meerkeuze, typen of klikken op de kaart — met spaced repetition.
 
 **Live:** [topoquiz.com](https://www.topoquiz.com) — geen buildstap vereist.
 
@@ -21,44 +21,68 @@ Een topografie-oefentool voor groep 5, gebaseerd op de Geobas-methode. Kinderen 
 
 ## Een nieuw level toevoegen
 
-### 1. Plaatsen toevoegen aan `cities.js`
+### 1. Data toevoegen aan `cities.js`
 
-Voeg elke nieuwe plaats toe aan `ALL_CITIES`:
+Kies de juiste array op basis van het elementtype:
 
+| Array | Elementtype | Rendering |
+|-------|------------|-----------|
+| `ALL_CITIES` | Steden, hoofdsteden | Stip op kaart |
+| `ALL_PROVINCES` | Nederlandse provincies | Polygoon (`provincie_2023.geojson`) |
+| `ALL_WATERS` | Wateren (rivieren, zeeën) | Lijn/polygoon (`wateren.geojson`) |
+| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`) |
+
+Velden per item:
 ```js
+// Stad
 { name: "Plaatsnaam", lat: 52.12, lon: 4.56, pop: 75000, sets: [66] }
+// Land of water (set-specifiek)
+{ name: "Estland", lat: 58.67, lon: 25.54, sets: [70] }
 ```
 
 | Veld | Verplicht | Uitleg |
 |------|-----------|--------|
 | `name` | ✓ | Officiële naam (wordt getoond en gecontroleerd) |
-| `lat` / `lon` | ✓ | WGS84-coördinaten |
-| `pop` | ✓ | Bevolking (CBS 2023); bepaalt de stipgrootte (logaritmisch, 4–12px) |
-| `sets` | ✓ | Array van set-nummers; een plaats kan in meerdere sets zitten |
+| `lat` / `lon` | ✓ | WGS84-coördinaten (centroid voor label) |
+| `pop` | alleen `ALL_CITIES` | Bevolking; bepaalt de stipgrootte (logaritmisch, 4–12px) |
+| `sets` | ✓ | Array van set-nummers; een item kan in meerdere sets zitten |
 | `capital` | | `true` voor provinciehoofdsteden (vierkante marker) |
 | `aliases` | | Alternatieve spellingen die als goed worden geaccepteerd |
 
-Als een plaats al bestaat (bijv. Zwolle in set 56), voeg dan alleen het nieuwe setnummer toe aan het bestaande `sets`-array.
+Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. Baltische wateren); `sets` afwezig = gedeeld (NL wateren, altijd geladen voor set 57).
 
 ### 2. De set registreren in `SETS`
 
+**Enkelvoudige set** (één elementtype):
 ```js
-const SETS = {
-  // ... bestaande sets ...
-  67: { name: '6.7 – Noord-Holland', quizType: 'place', fitOnStart: true },
-};
+67: { name: '6.7 – Noord-Holland', quizType: 'place', fitOnStart: true, group: 6 },
+```
+
+**Meerfasige set** (meerdere elementtypen sequentieel):
+```js
+70: { name: 'Baltische staten', group: 7, mastery: 1,
+      bounds: [[52, 14], [64, 32]], clickCorrectKm: 60, clickCloseKm: 180,
+      phases: [
+        { id: 'countries', label: 'Landen',      quizType: 'country' },
+        { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
+        { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
+      ] },
 ```
 
 | Veld | Uitleg |
 |------|--------|
 | `name` | Weergavenaam in het menu |
-| `quizType` | `'place'` (stippen op kaart) of `'province'` (provincievlakken) |
+| `quizType` | `'place'` / `'province'` / `'water'` / `'country'` (enkelvoudige sets) |
+| `phases` | Array van fases voor sequentiële multi-type quiz (overschrijft `quizType`) |
+| `group` | Groepsnummer (5–8); bepaalt in welke groep het level verschijnt |
 | `fitOnStart` | `true` = zoom in op de actieve plaatsen; `false` = heel Nederland |
+| `bounds` | `[[lat,lon],[lat,lon]]` — viewport voor EU/wereld-sets |
+| `clickCorrectKm` / `clickCloseKm` | Klik-drempels (overschrijven globale standaard 20/60 km) |
 | `mastery` | Optioneel: overschrijft `MASTERY_MC`/`MASTERY_TEXT` voor deze set |
 | `bonus` | `true` = elke sessie 20 willekeurige steden uit `ALL_CITIES` |
 | `daily` | `true` = 10 datum-geseedde steden, bypast mode-selectiescherm |
 
-**Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, enz. Gehele getallen sorteren automatisch in de juiste volgorde in het menu.
+**Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, 70 → test-level, enz.
 
 ---
 
@@ -98,6 +122,16 @@ Elke stad krijgt een stip op de kaart. Provinciehoofdsteden (`capital: true`) kr
 
 ### `province`
 Provincievlakken worden gekleurd vanuit het lokale bestand `provincie_2023.geojson` (gebundeld in de repo, bron: cartomap.github.io). De vlakken worden vergeleken op `statnaam`; zorg dat `ALL_PROVINCES[].name` exact overeenkomt. Dit type gebruikt `ALL_PROVINCES` als `activeCities` in plaats van `ALL_CITIES`.
+
+### `country`
+Landspolygonen worden gekleurd vanuit `landen-europa.geojson` (vereenvoudigd Natural Earth-formaat). Elk feature heeft een `name`-property die overeenkomt met `ALL_COUNTRIES[].name`. Meerkeuze- en typemodus werken identiek aan `province`; klik-op-de-kaart gebruikt `distanceToCountry()` (0 km als klik binnen het polygoon valt).
+
+### `water`
+Waterlijnen en -polygonen vanuit `wateren.geojson`. Ondersteunt `LineString` (rivieren, kanalen) en `Polygon` (zeeën, meren). Set-specifieke wateren hebben een `sets`-veld; wateren zonder `sets` worden alleen in set 57 geladen.
+
+## Meerfasige sets (`phases`)
+
+Sets met een `phases`-array doorlopen de fases sequentieel: eerst alle items van fase 1 memoriseren, dan een tussenscherm, dan fase 2, enzovoort. Binnen elke fase is het quizType homogeen (geen menging van stippen en polygonen). De voortgangsbalk toont het fasesabel en itemteller per fase.
 
 ---
 
