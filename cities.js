@@ -235,7 +235,7 @@ const SETS = {
    67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
    // Test-level voor v2.0 pilot — 2 fases (stap 5 voegt waters-fase toe)
    70: { name: 'Test: Baltische staten', group: 7, mastery: 1,
-         bounds: [[52, 15], [62, 30]], clickCorrectKm: 60, clickCloseKm: 180,
+         bounds: [[52, 14], [64, 32]], clickCorrectKm: 60, clickCloseKm: 180,
          phases: [
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },

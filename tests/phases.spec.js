@@ -47,10 +47,10 @@ async function answerMCCorrectly(page) {
 
 // ── Viewport bij start ────────────────────────────────────────────────────────
 
-test('set 70 — MC start: kaartzoom > 5 (Baltische viewport, niet heel Europa)', async ({ page }) => {
+test('set 70 — MC start: kaartzoom >= 4 (Baltische viewport, niet heel Europa)', async ({ page }) => {
   await startPhaseQuiz(page);
   const zoom = await page.evaluate(() => map.getZoom());
-  expect(zoom).toBeGreaterThan(5);
+  expect(zoom).toBeGreaterThanOrEqual(4);
 });
 
 test('set 70 — MC start: eerste land is zichtbaar in viewport', async ({ page }) => {
