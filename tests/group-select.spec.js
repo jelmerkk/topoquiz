@@ -25,10 +25,10 @@ test('startscherm toont 4 groep-knoppen (5, 6, 7, 8)', async ({ page }) => {
   await expect(groupBtns.nth(3)).toContainText('8');
 });
 
-test('daily en bonus zijn altijd zichtbaar, ook vóór groepkeuze', async ({ page }) => {
+test('daily en bonus zijn tijdelijk verborgen (herintroductie na levels)', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.daily-btn')).toBeVisible();
-  await expect(page.locator('.mode-btn.bonus-btn')).toBeVisible();
+  await expect(page.locator('.daily-btn')).not.toBeVisible();
+  await expect(page.locator('.mode-btn.bonus-btn')).not.toBeVisible();
 });
 
 test('zonder groepkeuze zijn geen sets zichtbaar (alleen daily + bonus)', async ({ page }) => {
@@ -53,11 +53,11 @@ test('groep 5: toont sets 5.4, 5.5, 5.6, 5.7 — niet 6.x', async ({ page }) => 
   await expect(page.locator('#level-select .mode-btn', { hasText: 'Noord-Holland' })).not.toBeVisible();
 });
 
-test('groep 5: daily en bonus blijven zichtbaar', async ({ page }) => {
+test('groep 5: daily en bonus zijn verborgen (tijdelijk)', async ({ page }) => {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '5' }).click();
-  await expect(page.locator('.daily-btn')).toBeVisible();
-  await expect(page.locator('.mode-btn.bonus-btn')).toBeVisible();
+  await expect(page.locator('.daily-btn')).not.toBeVisible();
+  await expect(page.locator('.mode-btn.bonus-btn')).not.toBeVisible();
 });
 
 // ── Groep 6 filtert juist ─────────────────────────────────────────────────────
@@ -126,10 +126,9 @@ test('#64: groep-select verliest no-selection na keuze', async ({ page }) => {
 
 test('groep-knoppen zijn zichtbaar boven de set-lijst (niet daarna)', async ({ page }) => {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // selecteer groep zodat sets verschijnen
   const groupWrap = page.locator('.group-select');
-  const levelList = page.locator('#level-select');
   await expect(groupWrap).toBeVisible();
-  await expect(levelList).toBeVisible();
 
   // group-select moet eerder in de DOM staan dan de eerste .mode-btn
   const groupY = await groupWrap.boundingBox().then(b => b?.y ?? 0);

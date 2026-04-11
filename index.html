@@ -1736,28 +1736,6 @@ function _renderLevelSelect() {
   const el = document.getElementById('level-select');
   el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
 
-  // Daily challenge bovenaan, apart van de reguliere sets
-  const todayResult = (() => { try { return localStorage.getItem(dailyStorageKey()); } catch (_) { return null; } })();
-  const dailyBtn = document.createElement('button');
-  dailyBtn.className = 'daily-btn' + (todayResult ? ' done' : '');
-  const sub = document.createElement('span');
-  sub.className = 'daily-sub';
-  if (todayResult) {
-    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag — al gedaan! ✓'));
-    sub.textContent = todayResult;
-    dailyBtn.onclick = null;
-  } else {
-    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag'));
-    sub.textContent = '10 steden, elke dag anders — meerkeuze';
-    dailyBtn.onclick = () => selectLevel(98);
-  }
-  dailyBtn.appendChild(sub);
-  el.appendChild(dailyBtn);
-
-  const hr0 = document.createElement('hr');
-  hr0.className = 'level-divider';
-  el.appendChild(hr0);
-
   // Groep-selectieknoppen
   const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
   if (!selectedGroup) {
@@ -1781,18 +1759,8 @@ function _renderLevelSelect() {
   el.appendChild(groupWrap);
 
   Object.entries(SETS).forEach(([num, set]) => {
-    if (set.daily) return; // al apart weergegeven
-    if (set.bonus) {
-      const hr = document.createElement('hr');
-      hr.className = 'level-divider';
-      el.appendChild(hr);
-      const btn = document.createElement('button');
-      btn.className = 'mode-btn bonus-btn';
-      btn.textContent = set.name;
-      btn.onclick = () => selectLevel(Number(num));
-      el.appendChild(btn);
-      return;
-    }
+    if (set.daily) return; // tijdelijk verborgen
+    if (set.bonus) return; // tijdelijk verborgen
     // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
     if (!selectedGroup || set.group !== Number(selectedGroup)) return;
     const btn = document.createElement('button');

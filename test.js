@@ -170,8 +170,9 @@ const radii = ALL_CITIES.map(c => cityRadius(c));
 const minR = Math.min(...radii), maxR = Math.max(...radii);
 expect('cityRadius geeft waarden terug in bereik 4–12', minR >= 4 && maxR <= 12,
   `bereik: ${minR}–${maxR}`);
-expect('Amsterdam (grootste stad) heeft de grootste straal',
-  cityRadius(ALL_CITIES.find(c => c.name === 'Amsterdam')) === maxR);
+const largestCity = ALL_CITIES.reduce((a, b) => b.pop > a.pop ? b : a);
+expect('grootste stad heeft de grootste straal',
+  cityRadius(largestCity) === maxR, `grootste: ${largestCity.name} (${largestCity.pop})`);
 
 section('normalize()');
 
@@ -680,6 +681,49 @@ BALTISCHE_WATEREN.forEach(naam => {
 const count70waters = ALL_WATERS.filter(w => w.sets?.includes(70)).length;
 expect('Set 70 heeft precies 4 wateren', count70waters === 4,
   `heeft er ${count70waters}`);
+
+// ── Set 71 — Landen van Europa (issue #40) ───────────────────
+
+section('Set 71 — Landen van Europa');
+
+const SET71_LANDEN = [
+  'Portugal','Spanje','Frankrijk','België','Nederland','Luxemburg',
+  'Verenigd Koninkrijk','Ierland','IJsland','Duitsland','Denemarken',
+  'Noorwegen','Zweden','Finland','Oostenrijk','Zwitserland',
+  'Italië','Polen','Tsjechië','Hongarije',
+];
+const SET71_HOOFDSTEDEN = [
+  'Lissabon','Madrid','Parijs','Brussel','Amsterdam','Luxemburg',
+  'Londen','Dublin','Reykjavík','Berlijn','Kopenhagen',
+  'Oslo','Stockholm','Helsinki','Wenen','Bern',
+  'Rome','Warschau','Praag','Boedapest',
+];
+
+expect('Set 71 bestaat in SETS',        !!SETS[71]);
+expect('Set 71 is groep 7',             SETS[71]?.group === 7);
+expect('Set 71 heeft 2 fases',          SETS[71]?.phases?.length === 2);
+expect('Set 71 fase 1 is country',      SETS[71]?.phases?.[0]?.quizType === 'country');
+expect('Set 71 fase 2 is place',        SETS[71]?.phases?.[1]?.quizType === 'place');
+expect('Set 71 heeft bounds',           Array.isArray(SETS[71]?.bounds));
+expect('Set 71 clickCorrectKm = 100',   SETS[71]?.clickCorrectKm === 100);
+
+const landen71 = ALL_COUNTRIES.filter(c => c.sets?.includes(71));
+expect('Set 71 heeft 20 landen', landen71.length === 20,
+  `heeft er ${landen71.length}`);
+
+SET71_LANDEN.forEach(naam => {
+  const land = ALL_COUNTRIES.find(c => c.name === naam && c.sets?.includes(71));
+  expect(`${naam} in ALL_COUNTRIES (set 71)`, !!land);
+});
+
+const steden71 = ALL_CITIES.filter(c => c.sets?.includes(71));
+expect('Set 71 heeft 20 steden', steden71.length === 20,
+  `heeft er ${steden71.length}`);
+
+SET71_HOOFDSTEDEN.forEach(naam => {
+  const stad = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(71));
+  expect(`${naam} in ALL_CITIES (set 71)`, !!stad);
+});
 
 // ── Samenvatting ──────────────────────────────────────────────
 

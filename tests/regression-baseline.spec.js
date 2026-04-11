@@ -96,99 +96,16 @@ test('set 61 — klik-op-kaart: ver klikken geeft afstandsfeedback met "km"', as
   await expect(page.locator('#feedback')).toContainText('km');
 });
 
-// ── Set 98 — Dagelijkse uitdaging ──────────────────────────────────────────────
-// De daily heeft GEEN mode-select: selectLevel(98) start direct in MC-modus.
+// ── Set 98 & 99 — tijdelijk verborgen ─────────────────────────────────────────
+// Daily en bonus zijn tijdelijk verborgen tijdens uitrol van Geobas 7 & 8 levels.
+// Herintroductie gepland na oplevering van alle levels (#63).
 
-async function startDaily(page) {
+test('set 98 — daily-btn is tijdelijk verborgen', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.daily-btn').click();
-  await page.waitForSelector('#question-text');
-}
+  await expect(page.locator('.daily-btn')).not.toBeVisible();
+});
 
-async function answerMCCorrectly(page) {
-  const name = await page.evaluate(() => currentCity.name);
-  await page.locator('.opt', { hasText: name }).click();
-  // Wacht tot auto-advance klaar is: volgende vraag (opts enabled) of eindscherm
-  await page.waitForFunction(() => {
-    const endVisible = document.getElementById('end-screen')?.offsetParent !== null;
-    if (endVisible) return true;
-    const opts = document.querySelectorAll('.opt');
-    return opts.length > 0 && !opts[0].disabled;
-  }, { timeout: 10000 });
-}
-
-test('set 98 verschijnt als .daily-btn bovenaan het level-menu', async ({ page }) => {
+test('set 99 — bonus-btn is tijdelijk verborgen', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.daily-btn')).toBeVisible();
-  await expect(page.locator('.daily-btn')).toContainText('Uitdaging van vandaag');
-});
-
-test('set 98 — klikken gaat direct naar quiz (geen mode-select)', async ({ page }) => {
-  await startDaily(page);
-  // Mode-select mag niet zichtbaar zijn — quiz start direct
-  await expect(page.locator('#mode-select')).not.toBeVisible();
-  await expect(page.locator('#question-text')).toBeVisible();
-  await expect(page.locator('.opt')).toHaveCount(4);
-});
-
-test('set 98 — mastery 1: één correct antwoord mastered een stad', async ({ page }) => {
-  await startDaily(page);
-
-  await answerMCCorrectly(page);
-  await page.waitForTimeout(300);
-  const mastered = await page.evaluate(() => {
-    return Object.values(streak).filter(s => s >= mastery()).length;
-  });
-  expect(mastered).toBeGreaterThanOrEqual(1);
-});
-
-test('set 98 — voltooien toont eindscherm met emoji-grid', async ({ page }) => {
-  test.setTimeout(90_000);
-  await startDaily(page);
-
-  // Daily: 10 vragen, mastery=1 → elke vraag één keer correct = klaar
-  for (let i = 0; i < 10; i++) {
-    await answerMCCorrectly(page);
-  }
-
-  await expect(page.locator('#end-screen')).toBeVisible({ timeout: 5000 });
-  const endText = await page.locator('#end-screen').textContent();
-  expect(endText).toMatch(/[🟢🔴]/u);
-});
-
-// ── Set 99 — Bonus ─────────────────────────────────────────────────────────────
-
-test('set 99 verschijnt als laatste item in het level-menu', async ({ page }) => {
-  await page.goto('/');
-  const buttons = page.locator('#level-select .mode-btn');
-  const count = await buttons.count();
-  await expect(buttons.nth(count - 1)).toContainText('Bonus');
-});
-
-test('set 99 — meerkeuze: start, vraag zichtbaar, 4 opties', async ({ page }) => {
-  await openSet(page, 'Bonus');
-  await startMode(page, 'Meerkeuze');
-
-  await expect(page.locator('#question-text')).toBeVisible();
-  await expect(page.locator('.opt')).toHaveCount(4);
-});
-
-test('set 99 — typen: start, correct antwoord geeft feedback', async ({ page }) => {
-  await openSet(page, 'Bonus');
-  await startMode(page, 'Typen');
-
-  await answerCorrectlyTyped(page);
-  await expect(page.locator('#feedback')).not.toBeEmpty();
-});
-
-test('set 99 — mastery 1: één correct antwoord mastered een stad', async ({ page }) => {
-  await openSet(page, 'Bonus');
-  await startMode(page, 'Typen');
-
-  await answerCorrectlyTyped(page);
-  await page.waitForTimeout(300);
-  const mastered = await page.evaluate(() => {
-    return Object.values(streak).filter(s => s >= mastery()).length;
-  });
-  expect(mastered).toBeGreaterThanOrEqual(1);
+  await expect(page.locator('.mode-btn.bonus-btn')).not.toBeVisible();
 });
