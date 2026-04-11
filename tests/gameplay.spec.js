@@ -2,6 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 async function startQuiz(page, mode = 0) {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // set 54 (provincies) is groep 5
   await page.locator('#level-select .mode-btn').first().click();
   await page.locator('#mode-select .mode-btn').nth(mode).click();
   await page.waitForSelector('#question-text');

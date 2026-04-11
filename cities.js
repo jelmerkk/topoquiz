@@ -148,6 +148,22 @@ const ALL_CITIES = [
   { name: "Vlaardingen",         lat: 51.91, lon: 4.34, pop:   71000, sets: [66] },
   { name: "Schiedam",            lat: 51.92, lon: 4.40, pop:   84000, sets: [66] },
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
+  // ── Set 70: Baltische hoofdsteden + Helsinki (fase 2 pilot; min. 4 voor MC-modus) ──
+  { name: "Tallinn",  lat: 59.44, lon: 24.75, pop:  450000, sets: [70] },
+  { name: "Riga",     lat: 56.95, lon: 24.11, pop:  614000, sets: [70] },
+  { name: "Vilnius",  lat: 54.69, lon: 25.28, pop:  580000, sets: [70] },
+  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [70] },
+];
+
+// Landen voor sets met quizType 'country'.
+// lat/lon = centroïd (voor pan-to en als fallback klik-punt).
+const ALL_COUNTRIES = [
+  // ── Set 70: Baltische staten + Finland ────────────────────────
+  // Finland erbij zodat MC-modus altijd 4 opties kan tonen (minimum voor set-grootte)
+  { name: 'Estland',  lat: 58.67, lon: 25.54, sets: [70] },
+  { name: 'Letland',  lat: 56.88, lon: 24.60, sets: [70] },
+  { name: 'Litouwen', lat: 55.17, lon: 23.88, sets: [70] },
+  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [70] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -168,6 +184,11 @@ const ALL_WATERS = [
   { name: 'Noordzeekanaal',       lat: 52.46, lon: 4.70 },
   { name: 'Amsterdam-Rijnkanaal', lat: 52.20, lon: 5.00, aliases: ['Amsterdam Rijnkanaal'] },
   { name: 'Nieuwe Waterweg',      lat: 51.90, lon: 4.10, aliases: ['Nieuwe waterweg'] },
+  // ── Set 70: Baltische wateren (fase 3 pilot-level) ────────────────────────────
+  { name: 'Oostzee',    lat: 58.5,  lon: 19.0, sets: [70] },
+  { name: 'Finse Golf', lat: 60.0,  lon: 25.5, sets: [70] },
+  { name: 'Rigabocht',  lat: 57.3,  lon: 22.5, sets: [70] },
+  { name: 'Daugava',    lat: 56.5,  lon: 25.5, sets: [70] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -188,22 +209,38 @@ const ALL_PROVINCES = [
 ];
 
 // Set-definities. Nummers = Geobas-hoofdstuknummer (54 = hoofdstuk 5.4, enz.).
+// Viewport-bounds per schaal
+const NL_BOUNDS    = [[50.699, 3.325], [53.566, 7.261]];
+const EU_BOUNDS    = [[34, -25], [72, 45]];
+const WORLD_BOUNDS = [[-60, -180], [75, 180]];
+
 // quizType: 'place'    → kaart met stippen, plaatsnamen raden
 //           'province' → provincies inkleuren, provincienamen raden
+//           'water'    → wateren inkleuren
 // fitOnStart: true  → zoom in op de plaatsen/provincies van dit level bij de start
 //             false → toon heel Nederland
+// bounds: optioneel [[lat,lon],[lat,lon]] — overschrijft NL_BOUNDS bij laden en terugkeer
+// clickCorrectKm / clickCloseKm: optioneel — overschrijft globale drempelwaarden
 const SETS = {
-   54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false },
-   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false },
-   55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false },
-   56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false },
-   61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true  },
-   62: { name: '6.2 – Zeeland',               quizType: 'place',    fitOnStart: true  },
-   63: { name: '6.3 – Groningen en Drenthe',  quizType: 'place',    fitOnStart: true  },
-   64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true  },
-   65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true  },
-   66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true  },
-   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true  },
+   54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false, group: 5 },
+   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false, group: 5 },
+   55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false, group: 5 },
+   56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false, group: 5 },
+   61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true,  group: 6 },
+   62: { name: '6.2 – Zeeland',               quizType: 'place',    fitOnStart: true,  group: 6 },
+   63: { name: '6.3 – Groningen en Drenthe',  quizType: 'place',    fitOnStart: true,  group: 6 },
+   64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true,  group: 6 },
+   65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true,  group: 6 },
+   66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
+   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
+   // Test-level voor v2.0 pilot — 2 fases (stap 5 voegt waters-fase toe)
+   70: { name: 'Test: Baltische staten', group: 7, mastery: 1,
+         bounds: [[52, 14], [64, 32]], clickCorrectKm: 60, clickCloseKm: 180,
+         phases: [
+           { id: 'countries', label: 'Landen',      quizType: 'country' },
+           { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
+           { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
+         ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
    // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
@@ -220,4 +257,4 @@ function cityRadius(city) {
 }
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, SETS, cityRadius };
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
