@@ -115,3 +115,36 @@ test('set 70 — fase 2 #qtot toont 4 (hoofdsteden + Helsinki)', async ({ page }
   const tot = await page.locator('#qtot').textContent();
   expect(Number(tot)).toBe(4);
 });
+
+// ── Fase 3: wateren (stap 5) ──────────────────────────────────────────────────
+
+async function waitForPhaseStart(page) {
+  await page.waitForFunction(() => {
+    const t = document.getElementById('phase-transition');
+    if (t && getComputedStyle(t).display !== 'none') return false;
+    const opts = document.querySelectorAll('.opt');
+    return opts.length > 0 && !opts[0].disabled;
+  }, { timeout: 15000 });
+}
+
+test('set 70 — na fases 1+2: fase 3 "Zeeën" gestart', async ({ page }) => {
+  test.setTimeout(60_000);
+  await startPhaseQuiz(page);
+  for (let i = 0; i < 4; i++) await answerMCCorrectly(page);
+  await waitForPhaseStart(page);
+  for (let i = 0; i < 4; i++) await answerMCCorrectly(page);
+  await waitForPhaseStart(page);
+  await expect(page.locator('#question-text')).toHaveText('Welk water is dit?', { timeout: 5000 });
+  await expect(page.locator('#phase-label')).toContainText('Zeeën');
+});
+
+test('set 70 — fase 3: #qtot toont 4 (Baltische wateren)', async ({ page }) => {
+  test.setTimeout(60_000);
+  await startPhaseQuiz(page);
+  for (let i = 0; i < 4; i++) await answerMCCorrectly(page);
+  await waitForPhaseStart(page);
+  for (let i = 0; i < 4; i++) await answerMCCorrectly(page);
+  await waitForPhaseStart(page);
+  const totW = await page.locator('#qtot').textContent();
+  expect(Number(totW)).toBe(4);
+});

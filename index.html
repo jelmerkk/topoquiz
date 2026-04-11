@@ -804,7 +804,14 @@ function smoothGeoJSON(data) {
 function buildWaterLayer() {
   if (waterQuizLayer) { map.removeLayer(waterQuizLayer); }
   waterLayers = {};
-  waterQuizLayer = L.geoJSON(smoothGeoJSON(waterFeatureData), {
+  // Alleen de waters tonen die relevant zijn voor de huidige activeCities
+  // (filtert NL-waters weg bij Baltische sets en vice versa)
+  const activeNames = new Set(activeCities.map(w => w.name));
+  const filteredData = {
+    ...waterFeatureData,
+    features: waterFeatureData.features.filter(f => activeNames.has(f.properties.name)),
+  };
+  waterQuizLayer = L.geoJSON(smoothGeoJSON(filteredData), {
     style: WATER_DEFAULT,
     interactive: false,
     onEachFeature: (feature, layer) => {
@@ -1177,7 +1184,11 @@ function initLevel(setNumber) {
     activeCities = ALL_PROVINCES;
     buildProvinceLayer();
   } else if (_qt === 'water') {
-    activeCities = ALL_WATERS;
+    // Gefaseerde sets: filter op set-specifieke wateren (met sets-veld)
+    // Set 57 en andere niet-gefaseerde sets: alle wateren zonder sets-veld
+    activeCities = SETS[setNumber].phases
+      ? ALL_WATERS.filter(w => w.sets?.includes(setNumber))
+      : ALL_WATERS.filter(w => !w.sets);
     buildWaterLayer();
   } else if (_qt === 'country') {
     activeCities = ALL_COUNTRIES.filter(c => c.sets.includes(setNumber));
@@ -1294,12 +1305,13 @@ function renderQuestion() {
     // Verberg alle markers/highlights — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar Nederland
+    // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar set-bounds
     if (isWater) {
       Object.entries(waterLayers).forEach(([name, layer]) => {
         layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
       });
-      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8, animate: true });
+      const _wb = SETS[selectedSet].bounds || NL_BOUNDS;
+      map.fitBounds(_wb, { padding: [4, 4], maxZoom: 8, animate: true });
     }
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince) {

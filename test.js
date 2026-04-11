@@ -395,17 +395,19 @@ expect('Set 70 is groep 7',             SETS[70]?.group === 7);
 section('ALL_WATERS — structuur');
 
 expect('ALL_WATERS is gedefinieerd', Array.isArray(ALL_WATERS));
-expect('ALL_WATERS heeft precies 16 wateren', ALL_WATERS.length === 16,
+expect('ALL_WATERS heeft precies 20 wateren (16 NL + 4 Baltisch)', ALL_WATERS.length === 20,
   `heeft er ${ALL_WATERS?.length}`);
 
 const waterMissingFields = ALL_WATERS.filter(w => !w.name || w.lat == null || w.lon == null);
 expect('Elk water heeft name, lat, lon', waterMissingFields.length === 0,
   waterMissingFields.map(w => w.name || '(naamloos)').join(', '));
 
-const waterOutOfBounds = ALL_WATERS.filter(w =>
-  w.lat < NL_LAT[0] || w.lat > NL_LAT[1] || w.lon < NL_LON[0] || w.lon > NL_LON[1]
-);
-expect('Alle watercoördinaten liggen binnen Nederland', waterOutOfBounds.length === 0,
+// Wateren met sets-veld zijn set-specifiek (bijv. Baltisch) en mogen buiten NL liggen.
+const waterOutOfBounds = ALL_WATERS.filter(w => {
+  if (w.sets) return false; // set-specifieke wateren mogen buiten NL liggen
+  return w.lat < NL_LAT[0] || w.lat > NL_LAT[1] || w.lon < NL_LON[0] || w.lon > NL_LON[1];
+});
+expect('NL-watercoördinaten liggen binnen Nederland', waterOutOfBounds.length === 0,
   waterOutOfBounds.map(w => `${w.name} (${w.lat}, ${w.lon})`).join(', '));
 
 const waterNames = ALL_WATERS.map(w => w.name);
@@ -584,10 +586,12 @@ expect(
   ALL_PROVINCES.length === 12
 );
 
-// Set 57: altijd gelijk aan ALL_WATERS
+// Set 57: NL-wateren (zonder sets-veld)
+const nlWaters = ALL_WATERS.filter(w => !w.sets);
 expect(
-  'Set 57: activeCities-pool = aantal wateren (16)',
-  ALL_WATERS.length === 16
+  'Set 57: NL-waterenpool heeft precies 16 wateren',
+  nlWaters.length === 16,
+  `heeft er ${nlWaters.length}`
 );
 
 // ── ALL_COUNTRIES — stap 3 (country quizType) ────────────────
@@ -648,6 +652,34 @@ BALTISCHE_HOOFDSTEDEN.forEach(naam => {
 const count70cities = ALL_CITIES.filter(c => c.sets.includes(70)).length;
 expect('Set 70 heeft precies 4 steden (hoofdsteden + Helsinki voor MC-modus)', count70cities === 4,
   `heeft er ${count70cities}`);
+
+// ── Set 70 — fase 3: wateren (stap 5) ────────────────────────
+
+section('Set 70 — fase 3 wateren (stap 5)');
+
+expect('Set 70 heeft 3 fases', SETS[70]?.phases?.length === 3,
+  `heeft er ${SETS[70]?.phases?.length}`);
+
+if (SETS[70]?.phases?.length >= 3) {
+  expect('Set 70 fase 2 id: waters',    SETS[70].phases[2].id === 'waters');
+  expect('Set 70 fase 2 label: Zeeën',  SETS[70].phases[2].label === 'Zeeën',
+    `label: ${SETS[70].phases[2].label}`);
+  expect('Set 70 fase 2 quizType: water', SETS[70].phases[2].quizType === 'water',
+    `quizType: ${SETS[70].phases[2].quizType}`);
+}
+
+section('Set 70 — Baltische wateren (stap 5)');
+
+const BALTISCHE_WATEREN = ['Oostzee', 'Finse Golf', 'Rigabocht', 'Daugava'];
+BALTISCHE_WATEREN.forEach(naam => {
+  const water = ALL_WATERS.find(w => w.name === naam);
+  expect(`${naam} aanwezig in ALL_WATERS`, !!water);
+  expect(`${naam} zit in set 70`, water?.sets?.includes(70));
+});
+
+const count70waters = ALL_WATERS.filter(w => w.sets?.includes(70)).length;
+expect('Set 70 heeft precies 4 wateren', count70waters === 4,
+  `heeft er ${count70waters}`);
 
 // ── Samenvatting ──────────────────────────────────────────────
 

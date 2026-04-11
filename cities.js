@@ -184,6 +184,11 @@ const ALL_WATERS = [
   { name: 'Noordzeekanaal',       lat: 52.46, lon: 4.70 },
   { name: 'Amsterdam-Rijnkanaal', lat: 52.20, lon: 5.00, aliases: ['Amsterdam Rijnkanaal'] },
   { name: 'Nieuwe Waterweg',      lat: 51.90, lon: 4.10, aliases: ['Nieuwe waterweg'] },
+  // ── Set 70: Baltische wateren (fase 3 pilot-level) ────────────────────────────
+  { name: 'Oostzee',    lat: 58.5,  lon: 19.0, sets: [70] },
+  { name: 'Finse Golf', lat: 60.0,  lon: 25.5, sets: [70] },
+  { name: 'Rigabocht',  lat: 57.3,  lon: 22.5, sets: [70] },
+  { name: 'Daugava',    lat: 56.5,  lon: 25.5, sets: [70] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -234,6 +239,7 @@ const SETS = {
          phases: [
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
+           { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
