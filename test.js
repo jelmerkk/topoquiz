@@ -385,7 +385,7 @@ expect('NL_BOUNDS is gedefinieerd',    Array.isArray(NL_BOUNDS) && NL_BOUNDS.len
 expect('EU_BOUNDS is gedefinieerd',    Array.isArray(EU_BOUNDS) && EU_BOUNDS.length === 2);
 expect('WORLD_BOUNDS is gedefinieerd', Array.isArray(WORLD_BOUNDS) && WORLD_BOUNDS.length === 2);
 expect('Set 70 bestaat in SETS',       !!SETS[70]);
-expect('Set 70 heeft bounds EU_BOUNDS', SETS[70]?.bounds === EU_BOUNDS);
+expect('Set 70 heeft bounds (Baltisch viewport)', Array.isArray(SETS[70]?.bounds) && SETS[70].bounds[0][0] === 52 && SETS[70].bounds[1][1] === 30);
 expect('Set 70 heeft clickCorrectKm 60', SETS[70]?.clickCorrectKm === 60);
 expect('Set 70 heeft clickCloseKm 180',  SETS[70]?.clickCloseKm === 180);
 expect('Set 70 is groep 7',             SETS[70]?.group === 7);

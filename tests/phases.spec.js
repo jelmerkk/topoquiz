@@ -45,6 +45,24 @@ async function answerMCCorrectly(page) {
   }, { timeout: 10000 });
 }
 
+// ── Viewport bij start ────────────────────────────────────────────────────────
+
+test('set 70 — MC start: kaartzoom > 5 (Baltische viewport, niet heel Europa)', async ({ page }) => {
+  await startPhaseQuiz(page);
+  const zoom = await page.evaluate(() => map.getZoom());
+  expect(zoom).toBeGreaterThan(5);
+});
+
+test('set 70 — MC start: eerste land is zichtbaar in viewport', async ({ page }) => {
+  await startPhaseQuiz(page);
+  const visible = await page.evaluate(() => {
+    const bounds = map.getBounds();
+    const country = activeCities[0];
+    return bounds.contains([country.lat, country.lon]);
+  });
+  expect(visible).toBe(true);
+});
+
 // ── Fase-label en voortgang ────────────────────────────────────────────────────
 
 test('set 70 — fase 1: voortgangslabel toont "Landen"', async ({ page }) => {

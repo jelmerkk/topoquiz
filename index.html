@@ -919,8 +919,6 @@ function setHighlightCountry(country) {
       : (streak[name] >= mastery() ? COUNTRY_MASTERED : COUNTRY_DEFAULT));
   });
   if (countryLayers[country.name]) countryLayers[country.name].bringToFront();
-  const latlng = [country.lat, country.lon];
-  if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
 }
 
 // Afstand van klikpunt tot een landspolygoon in km (ondersteunt Polygon en MultiPolygon)
