@@ -762,7 +762,7 @@ const tileLayer = USE_CARTO_TILES
   ? L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
-      minZoom: 4, maxZoom: 19,
+      minZoom: 3, maxZoom: 19,
     })
   : L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
@@ -865,12 +865,13 @@ function setHighlightWater(water, mapMode = false) {
 let provinceFeatureData = null;
 let provinceLayers = {};    // statnaam → Leaflet layer (alleen actief tijdens province-quiz)
 let provinceQuizLayer = null;
+let provinceBorderLayer = null; // vaste achtergrondlaag met NL-grenzen (verborgen bij EU/wereld-sets)
 
 const provinceDataPromise = fetch('/provincie_2023.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(data => {
     provinceFeatureData = data;
-    L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
+    provinceBorderLayer = L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
   })
   .catch(err => {
     console.error('Provinciedata kon niet geladen worden:', err);
@@ -924,9 +925,11 @@ const countryDataPromise = fetch('/landen-europa.geojson')
 function buildCountryLayer() {
   if (countryQuizLayer) { map.removeLayer(countryQuizLayer); }
   countryLayers = {};
+  const activeNames = new Set(activeCities.map(c => c.name));
   countryQuizLayer = L.geoJSON(countryFeatureData, {
     style: COUNTRY_DEFAULT,
     interactive: false,
+    filter: feature => activeNames.has(feature.properties.name),
     onEachFeature: (feature, layer) => {
       const name = feature.properties.name;
       if (name) countryLayers[name] = layer;
@@ -940,7 +943,14 @@ function setHighlightCountry(country) {
       ? COUNTRY_HIGHLIGHT
       : (streak[name] >= mastery() ? COUNTRY_MASTERED : COUNTRY_DEFAULT));
   });
-  if (countryLayers[country.name]) countryLayers[country.name].bringToFront();
+  const layer = countryLayers[country.name];
+  if (layer) {
+    layer.bringToFront();
+    // Zoom naar het land in MC/typen modus; in klik-modus blijft het volledig overzicht
+    if (gameMode !== 'map') {
+      map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
+    }
+  }
 }
 
 // Afstand van klikpunt tot een landspolygoon in km (ondersteunt Polygon en MultiPolygon)
@@ -2030,6 +2040,11 @@ async function startQuiz(mode) {
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'block';
+  // Verberg NL-provinciegrenzen bij EU/wereld-sets (heeft bounds-veld)
+  if (provinceBorderLayer) {
+    if (SETS[selectedSet].bounds) provinceBorderLayer.remove();
+    else if (!map.hasLayer(provinceBorderLayer)) provinceBorderLayer.addTo(map);
+  }
   requestAnimationFrame(() => {
     map.invalidateSize();
     const _set = SETS[selectedSet];
