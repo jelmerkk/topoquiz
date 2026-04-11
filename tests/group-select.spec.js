@@ -97,6 +97,31 @@ test('groepkeuze opgeslagen in sessionStorage', async ({ page }) => {
   expect(stored).toBe('5');
 });
 
+// ── #64: prominente knoppen vóór eerste selectie ──────────────────────────────
+
+test('#64: instructietekst zichtbaar als nog geen groep geselecteerd', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.group-hint')).toBeVisible();
+  await expect(page.locator('.group-hint')).toContainText('Kies je groep');
+});
+
+test('#64: instructietekst verdwijnt na groepkeuze', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click();
+  await expect(page.locator('.group-hint')).not.toBeVisible();
+});
+
+test('#64: groep-select heeft class no-selection vóór keuze', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.group-select.no-selection')).toBeVisible();
+});
+
+test('#64: groep-select verliest no-selection na keuze', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '6' }).click();
+  await expect(page.locator('.group-select.no-selection')).not.toBeVisible();
+});
+
 // ── Groep-knoppen staan BOVEN de set-lijst ────────────────────────────────────
 
 test('groep-knoppen zijn zichtbaar boven de set-lijst (niet daarna)', async ({ page }) => {

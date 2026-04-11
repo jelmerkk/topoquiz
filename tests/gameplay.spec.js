@@ -53,6 +53,11 @@ test('typ-modus: correct antwoord indienen werkt', async ({ page }) => {
   await expect(page.locator('#feedback')).not.toBeEmpty();
 });
 
+test('#65: restart-knop op eindscherm zegt "Speel nog een quiz"', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#restart-btn')).toContainText('Speel nog een quiz');
+});
+
 test('progressbalk vordert na correct antwoord', async ({ page }) => {
   await startQuiz(page, 0);
   const before = await page.locator('#progress-bar').evaluate(el => el.style.width);

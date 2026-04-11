@@ -100,13 +100,35 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: all 0.15s;
 }
 @media (hover: hover) { .group-btn:hover { background: #1e2e50; border-color: #5880c8; color: #fff; } }
 .group-btn.active {
   background: #1a3f8a;
   border-color: #4a90d9;
   color: #fff;
+}
+/* Prominente stijl als nog geen groep geselecteerd is */
+.group-select.no-selection .group-btn {
+  padding: 14px 4px;
+  background: #1e2e50;
+  border-color: #4a90d9;
+  color: #c8d8ff;
+  font-size: 1rem;
+  animation: pulse-group 1.8s ease-in-out infinite;
+}
+.group-select.no-selection .group-btn:nth-child(2) { animation-delay: 0.15s; }
+.group-select.no-selection .group-btn:nth-child(3) { animation-delay: 0.30s; }
+.group-select.no-selection .group-btn:nth-child(4) { animation-delay: 0.45s; }
+@keyframes pulse-group {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 144, 217, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.35); }
+}
+.group-hint {
+  font-size: 0.82rem;
+  color: #8ab4f8;
+  margin: 0 0 6px;
+  text-align: center;
 }
 .daily-btn {
   display: block; width: 100%; padding: 16px; margin-bottom: 18px;
@@ -690,7 +712,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
     </div>
     <p id="rating-thanks" style="display:none">Bedankt! 🙏</p>
   </div>
-  <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
+  <button id="restart-btn" onclick="showStartScreen()">Speel nog een quiz 🔄</button>
   <button class="fb-open-btn fb-open-btn--end" onclick="openFeedback()">💬 Feedback of fout melden</button>
 </div>
 
@@ -1738,8 +1760,14 @@ function _renderLevelSelect() {
 
   // Groep-selectieknoppen
   const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
+  if (!selectedGroup) {
+    const hint = document.createElement('p');
+    hint.className = 'group-hint';
+    hint.textContent = 'Kies je groep om te beginnen';
+    el.appendChild(hint);
+  }
   const groupWrap = document.createElement('div');
-  groupWrap.className = 'group-select';
+  groupWrap.className = 'group-select' + (!selectedGroup ? ' no-selection' : '');
   [5, 6, 7, 8].forEach(g => {
     const btn = document.createElement('button');
     btn.className = 'group-btn' + (selectedGroup === String(g) ? ' active' : '');
