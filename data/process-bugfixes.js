@@ -131,55 +131,66 @@ function fixLuxemburg() {
   console.log('  ✓ gewesten.geojson bijgewerkt');
 }
 
-// ── Fix #76: Belgische Maas (zuidelijk traject) ─────────────────
+// ── Fix #76: Belgische Maas — volledig traject (La Meuse + Maas) ──
 
-function fixMaasZuiden() {
-  const maasPath = path.join(__dirname, 'overpass', 'maas-zuiden.json');
-  if (!fs.existsSync(maasPath)) {
-    console.log('\n⚠️  maas-zuiden.json niet gevonden, sla fix #76 over');
-    console.log('   Draai eerst: node data/fetch-bugfixes.js (na Overpass beschikbaar is)');
+function fixMaasWallonie() {
+  const walPath = path.join(__dirname, 'overpass', 'maas-wallonie.json');
+  if (!fs.existsSync(walPath)) {
+    console.log('\n⚠️  maas-wallonie.json niet gevonden, sla fix #76 over');
     return;
   }
 
-  const raw = JSON.parse(fs.readFileSync(maasPath, 'utf8'));
-  if (raw.elements.length === 0) { console.log('\n⚠️  maas-zuiden.json heeft geen elementen'); return; }
+  const raw = JSON.parse(fs.readFileSync(walPath, 'utf8'));
+  if (raw.elements.length === 0) { console.log('\n⚠️  maas-wallonie.json heeft geen elementen'); return; }
 
-  // Chain de ways
+  // Chain + RDP voor het Waalse traject (La Meuse + Maas)
   const chained = chain(raw.elements);
   const simplified = rdp(chained, 0.003).map(([lon, lat]) => [+lon.toFixed(4), +lat.toFixed(4)]);
 
   const lats = simplified.map(c => c[1]);
-  console.log(`\n#76 Maas zuiden: ${raw.elements.length} ways → ${simplified.length} punten | lat ${Math.min(...lats).toFixed(3)}-${Math.max(...lats).toFixed(3)}`);
+  console.log(`\n#76 Maas Wallonië: ${raw.elements.length} ways → ${simplified.length} punten`);
+  console.log(`  lat: ${Math.min(...lats).toFixed(3)} – ${Math.max(...lats).toFixed(3)}`);
 
-  // Lees wateren.geojson, voeg het stuk toe aan de bestaande Belgische Maas
+  // Zorg dat de lijn van zuid naar noord loopt
+  const southToNorth = simplified[0][1] < simplified[simplified.length-1][1]
+    ? simplified : [...simplified].reverse();
+
+  // Lees wateren.geojson
   const waterPath = path.join(__dirname, '..', 'wateren.geojson');
   const geojson = JSON.parse(fs.readFileSync(waterPath, 'utf8'));
 
   const maasIdx = geojson.features.findIndex(
     f => f.properties.name === 'Maas' && JSON.stringify(f.properties.sets) === JSON.stringify([72])
   );
-  if (maasIdx < 0) { console.log('  ⚠️  Maas (sets:[72]) niet gevonden in wateren.geojson'); return; }
+  if (maasIdx < 0) { console.log('  ⚠️  Maas (sets:[72]) niet gevonden'); return; }
 
   const existingCoords = geojson.features[maasIdx].geometry.coordinates;
-  const existingStart  = existingCoords[0]; // [lon, lat] southernmost existing point
+  // Bestaande lijn ook van zuid naar noord
+  const existingS2N = existingCoords[0][1] < existingCoords[existingCoords.length-1][1]
+    ? existingCoords : [...existingCoords].reverse();
 
-  // Controleer of simplified aansluit op het begin van de bestaande lijn
-  const newEnd     = simplified[simplified.length-1]; // meest noordelijk punt van het zuidelijk stuk
-  const newStart   = simplified[0]; // meest zuidelijk punt
-  const distToStart = dist(newEnd, existingStart);
+  const existingStart = existingS2N[0]; // zuidelijkste punt bestaande lijn
+  const newEnd = southToNorth[southToNorth.length-1]; // noordelijkste punt nieuw stuk
 
-  console.log(`  Bestaande Maas start: [${existingStart}]`);
-  console.log(`  Nieuw stuk eind: [${newEnd}], afstand: ${distToStart.toFixed(4)}°`);
+  // Vind aansluitpunt: zoek in bestaande lijn het punt het dichtst bij het noordeinde van het nieuwe stuk
+  let bestI = 0, bestD = Infinity;
+  for (let i = 0; i < existingS2N.length; i++) {
+    const d = dist(newEnd, existingS2N[i]);
+    if (d < bestD) { bestD = d; bestI = i; }
+  }
 
-  let merged;
-  if (distToStart < 0.05) {
-    // Voeg zuidelijk stuk toe vóór bestaande coördinaten
-    merged = [...simplified.slice(0, -1), ...existingCoords];
-    console.log(`  Samengevoegd: ${simplified.length} + ${existingCoords.length} = ${merged.length} punten`);
-  } else {
-    console.log(`  ⚠️  Stukken sluiten niet aan (afstand ${distToStart.toFixed(4)}° > 0.05). Alleen registreren.`);
+  console.log(`  Bestaande lijn start: [${existingStart}] (${existingS2N.length} pt)`);
+  console.log(`  Nieuw stuk eind (noordelijk): [${newEnd}]`);
+  console.log(`  Beste aansluitpunt in bestaande lijn: index ${bestI}, afstand ${bestD.toFixed(4)}°`);
+
+  if (bestD > 0.1) {
+    console.log('  ⚠️  Aansluitpunt te ver (> 0.1°). Controleer data manueel.');
     return;
   }
+
+  // Samenvoegen: nieuw stuk t/m aansluitpunt, dan rest van bestaande lijn
+  const merged = [...southToNorth, ...existingS2N.slice(bestI + 1)];
+  console.log(`  Samengevoegd: ${southToNorth.length} + ${existingS2N.length - bestI - 1} = ${merged.length} punten`);
 
   geojson.features[maasIdx].geometry.coordinates = merged;
   fs.writeFileSync(waterPath, JSON.stringify(geojson));
@@ -189,5 +200,5 @@ function fixMaasZuiden() {
 // ── Uitvoeren ───────────────────────────────────────────────────
 
 fixLuxemburg();
-fixMaasZuiden();
+fixMaasWallonie();
 console.log('\nDone.');
