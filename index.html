@@ -1127,6 +1127,7 @@ let mapClickMarker = null; // tijdelijke marker na klik op kaart
 let activeCities = [];
 let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
+let cumulativeOk = 0, cumulativeErr = 0; // totaal over alle fases heen (reset alleen bij nieuwe quiz)
 let currentCity = null, answered = false;
 let hintRevealed = 0; // aantal tekens van de hint dat getoond is
 let currentPhaseIndex = 0; // actieve fase-index voor sets met phases-array
@@ -1474,6 +1475,7 @@ function recordCorrect(city, fb, close = false) {
   }
   streak[city.name]++;
   sessionOk++;
+  cumulativeOk++;
   const mastered = streak[city.name] >= mastery();
   if (mastered) {
     applyMasteredStyle(city.name);
@@ -1501,6 +1503,7 @@ function recordWrong(city, fb) {
   streak[city.name] = 0;
   city._hadWrong = true;
   sessionErr++;
+  cumulativeErr++;
   consecutiveCorrect = 0;
   fb.textContent = `Helaas! 😅 Het was ${city.name} — je krijgt nog een kans! 💪`;
   fb.className = 'fb-err';
@@ -1656,8 +1659,8 @@ function showEnd() {
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
     document.getElementById(id).style.display = 'none');
   document.getElementById('end-screen').style.display = 'block';
-  const total = sessionOk + sessionErr;
-  const pct   = total ? Math.round(sessionOk / total * 100) : 100;
+  const total = cumulativeOk + cumulativeErr;
+  const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
   const _endQts  = _endSet.phases ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
   const isProvince = !_endSet.phases && _endSet.quizType === 'province';
@@ -1681,13 +1684,13 @@ function showEnd() {
     document.getElementById('end-stars').style.display = '';
     document.getElementById('end-text').innerHTML =
       _endSet.phases
-        ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+        ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
+        : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
 
   if (!isDaily) {
     // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
-    const stars = sessionErr === 0 ? 3 : pct >= 80 ? 2 : 1;
+    const stars = cumulativeErr === 0 ? 3 : pct >= 80 ? 2 : 1;
     const starsEl = document.getElementById('end-stars');
     starsEl.innerHTML = '';
     for (let i = 0; i < 3; i++) {
@@ -1994,6 +1997,7 @@ async function startQuiz(mode) {
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = consecutiveCorrect = 0;
+    cumulativeOk = cumulativeErr = 0;
     updateScoreboard(); // initialiseert ook #phase-label
   } else {
     // Herstel visuele staat van gememoreerde plaatsen/provincies
