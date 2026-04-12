@@ -124,15 +124,15 @@ expect('Er zijn precies 12 provinciehoofdsteden (set 55)', capitals.length === 1
 
 section('ALL_PROVINCES');
 
-const nlProvinces = ALL_PROVINCES.filter(p => !p.sets);
-expect('Er zijn precies 12 NL-provincies (zonder sets)', nlProvinces.length === 12,
+const nlProvinces = ALL_PROVINCES.filter(p => p.sets?.includes(54));
+expect('Er zijn precies 12 NL-provincies (set 54)', nlProvinces.length === 12,
   `gevonden: ${nlProvinces.length}`);
 
 const provMissingFields = ALL_PROVINCES.filter(p => !p.name || p.lat == null || p.lon == null);
 expect('Elke provincie heeft name, lat, lon', provMissingFields.length === 0,
   provMissingFields.map(p => p.name || '(naamloos)').join(', '));
 
-// NL-provincies (geen sets-veld) moeten binnen Nederland liggen; set-specifiek mag buiten
+// NL-provincies (set 54) moeten binnen Nederland liggen; set-specifiek mag buiten
 const provOutOfBounds = nlProvinces.filter(p =>
   p.lat < NL_LAT[0] || p.lat > NL_LAT[1] || p.lon < NL_LON[0] || p.lon > NL_LON[1]
 );
@@ -400,9 +400,9 @@ const waterMissingFields = ALL_WATERS.filter(w => !w.name || w.lat == null || w.
 expect('Elk water heeft name, lat, lon', waterMissingFields.length === 0,
   waterMissingFields.map(w => w.name || '(naamloos)').join(', '));
 
-// Wateren met sets-veld zijn set-specifiek (bijv. Baltisch) en mogen buiten NL liggen.
+// Alleen NL-wateren (set 57) moeten binnen Nederland liggen
 const waterOutOfBounds = ALL_WATERS.filter(w => {
-  if (w.sets) return false; // set-specifieke wateren mogen buiten NL liggen
+  if (!w.sets?.includes(57)) return false; // niet-NL wateren mogen buiten NL liggen
   return w.lat < NL_LAT[0] || w.lat > NL_LAT[1] || w.lon < NL_LON[0] || w.lon > NL_LON[1];
 });
 expect('NL-watercoördinaten liggen binnen Nederland', waterOutOfBounds.length === 0,
@@ -581,14 +581,14 @@ Object.entries(SET_SNAPSHOTS).forEach(([num, expected]) => {
   );
 });
 
-// Set 54: altijd gelijk aan ALL_PROVINCES (provincies-quiz)
+// Set 54: provincies-quiz — 12 NL-provincies
 expect(
   'Set 54: activeCities-pool = 12 NL-provincies',
-  ALL_PROVINCES.filter(p => !p.sets).length === 12
+  ALL_PROVINCES.filter(p => p.sets?.includes(54)).length === 12
 );
 
-// Set 57: NL-wateren (zonder sets-veld)
-const nlWaters = ALL_WATERS.filter(w => !w.sets);
+// Set 57: NL-wateren (sets:[57])
+const nlWaters = ALL_WATERS.filter(w => w.sets?.includes(57));
 expect(
   'Set 57: NL-waterenpool heeft precies 16 wateren',
   nlWaters.length === 16,

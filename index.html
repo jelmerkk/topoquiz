@@ -771,21 +771,28 @@ const tileLayer = USE_CARTO_TILES
 
 tileLayer.addTo(map);
 
-// Provincie-stijlen
-const PROV_BORDER    = { color: '#666', weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
-const PROV_DEFAULT   = { color: '#5a7aaa', weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8', fillOpacity: 0.2  };
-const PROV_HIGHLIGHT = { color: '#c07000', weight: 2.5, opacity: 1,    fillColor: '#f0a500', fillOpacity: 0.6  };
-const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#58CC02', fillOpacity: 0.4  };
+// ── Gedeelde kleurtokens ──────────────────────────────────────────────────────
+const C_HIGHLIGHT_BORDER = '#c07000';
+const C_HIGHLIGHT_FILL   = '#f0a500';
+const C_MASTERED_BORDER  = '#1b5e20';
+const C_MASTERED_FILL    = '#58CC02';
 
-// Waterstijlen — blauw (zelfde kleurlogica als provincies maar blauw)
-const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5', fillOpacity: 0.2 };
-const WATER_HIGHLIGHT = { color: '#c07000', weight: 5,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5 };
-const WATER_MASTERED  = { color: '#1b5e20', weight: 3,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3 };
+// Provincie-stijlen
+const PROV_BORDER    = { color: '#666',     weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
+const PROV_DEFAULT   = { color: '#5a7aaa',  weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8',        fillOpacity: 0.2  };
+const PROV_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 2.5, opacity: 1,    fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.6  };
+const PROV_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9,  fillColor: C_MASTERED_FILL,  fillOpacity: 0.4  };
+
+// Waterstijlen
+const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5',        fillOpacity: 0.2 };
+const WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 5,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5 };
+const WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 3,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3 };
 const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
-const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6', fillOpacity: 0.35 };
-const COUNTRY_HIGHLIGHT = { color: '#c07000', weight: 3,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5  };
-const COUNTRY_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3  };
+// Landstijlen
+const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6',        fillOpacity: 0.35 };
+const COUNTRY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5  };
+const COUNTRY_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3  };
 
 // ── polygonTypes-register ─────────────────────────────────────────────────────
 // Centraal configuratie-object voor alle polygon-quizTypes.
@@ -797,7 +804,7 @@ const polygonTypes = {
     layers: {},
     quizLayer: null,
     styles: { default: PROV_DEFAULT, highlight: PROV_HIGHLIGHT, mastered: PROV_MASTERED },
-    nameKey: 'statnaam',
+    nameKey: 'name',
     afterHighlight(item) {
       const latlng = [item.lat, item.lon];
       if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
@@ -875,24 +882,21 @@ function buildPolygonLayer(type) {
   const activeNames = new Set(activeCities.map(c => c.name));
 
   let geoData = t.featureData;
-  if (type === 'water') {
-    // Water: smooth curves + filter op feature-level sets (oplossing dubbele Maas)
-    const isPhased = !!SETS[selectedSet].phases;
-    geoData = smoothGeoJSON({
-      ...geoData,
-      features: geoData.features.filter(f => {
-        if (!activeNames.has(f.properties.name)) return false;
-        const fSets = f.properties.sets;
-        if (fSets?.length) return fSets.includes(selectedSet);
-        return !isPhased;
-      }),
-    });
-  }
+  if (type === 'water') geoData = smoothGeoJSON(geoData);
 
   t.quizLayer = L.geoJSON(geoData, {
     style: t.styles.default,
     interactive: false,
-    filter: f => activeNames.has(f.properties[t.nameKey]),
+    filter: f => {
+      const name = f.properties[t.nameKey];
+      if (!activeNames.has(name)) return false;
+      // Feature-level sets: oplossing voor dubbele namen (bijv. Maas NL vs Maas België)
+      const fSets = f.properties.sets;
+      if (fSets?.length) return fSets.includes(selectedSet);
+      // Geen feature-sets: toon alleen als de data-array ook geen set-specificatie heeft
+      // (geeft hetzelfde resultaat als de old isPhased-check: enkel voor niet-gefaseerde sets)
+      return !SETS[selectedSet].phases;
+    },
     onEachFeature: (f, layer) => {
       const name = f.properties[t.nameKey];
       if (name) t.layers[name] = layer;
@@ -964,27 +968,9 @@ polygonTypes.country.dataPromise = fetch('/landen-europa.geojson')
   .then(data => { polygonTypes.country.featureData = data; })
   .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
 
-// Afstand van klikpunt tot een landspolygoon in km (ondersteunt Polygon en MultiPolygon)
-function distanceToCountry(lat, lon, countryName) {
-  const feature = polygonTypes.country.featureData?.features?.find(f => f.properties.name === countryName);
-  if (!feature) return Infinity;
-  const geom = feature.geometry;
-  const polygons = geom.type === 'MultiPolygon' ? geom.coordinates : [geom.coordinates];
-  let minDist = Infinity;
-  for (const poly of polygons) {
-    if (pointInPolygon(lat, lon, poly[0])) return 0;
-    for (const ring of poly) {
-      for (let i = 0; i < ring.length - 1; i++) {
-        const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-        if (d < minDist) minDist = d;
-      }
-    }
-  }
-  return minDist;
-}
 
 const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
-const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#58CC02', fillOpacity: 1   };
+const MASTERED_STYLE = { color: C_MASTERED_BORDER, weight: 1.5, fillColor: C_MASTERED_FILL, fillOpacity: 1 };
 
 const markerLayer = L.layerGroup().addTo(map);
 const revealedLayer = L.layerGroup().addTo(map); // groene stippen voor geraden steden in kaart-klik modus
@@ -1049,12 +1035,26 @@ function pointInPolygon(lat, lon, coords) {
   return inside;
 }
 
-// Afstand van klikpunt tot een waterlichaam (LineString of Polygon) in km
-function distanceToWater(lat, lon, waterName) {
-  const feature = polygonTypes.water.featureData?.features?.find(f => f.properties.name === waterName);
+// Afstand van klikpunt tot een polygon- of lijnfeature in km (water, land, provincie)
+function distanceToFeature(lat, lon, name, type) {
+  const featureData = polygonTypes[type]?.featureData;
+  const feature = featureData?.features?.find(f => f.properties.name === name);
   if (!feature) return Infinity;
   const geom = feature.geometry;
   const coords = geom.coordinates;
+  if (geom.type === 'MultiPolygon') {
+    let minDist = Infinity;
+    for (const poly of coords) {
+      if (pointInPolygon(lat, lon, poly[0])) return 0;
+      for (const ring of poly) {
+        for (let i = 0; i < ring.length - 1; i++) {
+          const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
+          if (d < minDist) minDist = d;
+        }
+      }
+    }
+    return minDist;
+  }
   if (geom.type === 'Polygon') {
     const inOuter = pointInPolygon(lat, lon, coords[0]);
     const inHole  = coords.length > 1 && coords.slice(1).some(hole => pointInPolygon(lat, lon, hole));
@@ -1220,16 +1220,10 @@ function initLevel(setNumber) {
 
   const _qt = currentQuizType(); // respecteert phases[currentPhaseIndex] als die er is
   if (_qt === 'province') {
-    activeCities = SETS[setNumber].phases
-      ? ALL_PROVINCES.filter(p => p.sets?.includes(setNumber))
-      : ALL_PROVINCES;
+    activeCities = ALL_PROVINCES.filter(p => p.sets.includes(setNumber));
     buildPolygonLayer('province');
   } else if (_qt === 'water') {
-    // Gefaseerde sets: filter op set-specifieke wateren (met sets-veld)
-    // Set 57 en andere niet-gefaseerde sets: alle wateren zonder sets-veld
-    activeCities = SETS[setNumber].phases
-      ? ALL_WATERS.filter(w => w.sets?.includes(setNumber))
-      : ALL_WATERS.filter(w => !w.sets);
+    activeCities = ALL_WATERS.filter(w => w.sets.includes(setNumber));
     buildPolygonLayer('water');
   } else if (_qt === 'country') {
     activeCities = ALL_COUNTRIES.filter(c => c.sets.includes(setNumber));
@@ -1527,10 +1521,8 @@ function handleMapClick(e) {
   const _hqQt  = currentQuizType();
   const isWater   = _hqQt === 'water';
   const isCountry = _hqQt === 'country';
-  const distKm = isWater
-    ? distanceToWater(e.latlng.lat, e.latlng.lng, city.name)
-    : isCountry
-    ? distanceToCountry(e.latlng.lat, e.latlng.lng, city.name)
+  const distKm = (isWater || isCountry)
+    ? distanceToFeature(e.latlng.lat, e.latlng.lng, city.name, _hqQt)
     : haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
   const result = clickResult(distKm, selectedSet);
 
