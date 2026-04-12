@@ -829,9 +829,18 @@ function buildWaterLayer() {
   // Alleen de waters tonen die relevant zijn voor de huidige activeCities
   // (filtert NL-waters weg bij Baltische sets en vice versa)
   const activeNames = new Set(activeCities.map(w => w.name));
+  const isPhased = !!SETS[selectedSet].phases;
   const filteredData = {
     ...waterFeatureData,
-    features: waterFeatureData.features.filter(f => activeNames.has(f.properties.name)),
+    // Filter op naam én op sets-property van het feature zelf:
+    // - feature met sets:[n] → alleen tonen in die specifieke set
+    // - feature zonder sets → alleen tonen in niet-gefaseerde sets
+    features: waterFeatureData.features.filter(f => {
+      if (!activeNames.has(f.properties.name)) return false;
+      const fSets = f.properties.sets;
+      if (fSets?.length) return fSets.includes(selectedSet);
+      return !isPhased;
+    }),
   };
   waterQuizLayer = L.geoJSON(smoothGeoJSON(filteredData), {
     style: WATER_DEFAULT,
@@ -878,13 +887,27 @@ const provinceDataPromise = fetch('/provincie_2023.geojson')
     provinceFeatureData = null;
   });
 
+// Laad gewesten (België) en voeg toe aan provinceFeatureData zodra beide klaar zijn
+fetch('/gewesten.geojson')
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(data => {
+    if (provinceFeatureData) {
+      provinceFeatureData.features.push(...data.features);
+    } else {
+      provinceFeatureData = data;
+    }
+  })
+  .catch(err => console.warn('Gewestendata kon niet geladen worden:', err));
+
 // Bouw een interactieve provincielaag voor de quiz (één keer per speelsessie).
 function buildProvinceLayer() {
   if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); }
   provinceLayers = {};
+  const activeNames = new Set(activeCities.map(p => p.name));
   provinceQuizLayer = L.geoJSON(provinceFeatureData, {
     style: PROV_DEFAULT,
     interactive: false,
+    filter: feature => activeNames.has(feature.properties.statnaam),
     onEachFeature: (feature, layer) => {
       const name = feature.properties.statnaam;
       if (name) provinceLayers[name] = layer;
@@ -1211,7 +1234,9 @@ function initLevel(setNumber) {
 
   const _qt = currentQuizType(); // respecteert phases[currentPhaseIndex] als die er is
   if (_qt === 'province') {
-    activeCities = ALL_PROVINCES;
+    activeCities = SETS[setNumber].phases
+      ? ALL_PROVINCES.filter(p => p.sets?.includes(setNumber))
+      : ALL_PROVINCES;
     buildProvinceLayer();
   } else if (_qt === 'water') {
     // Gefaseerde sets: filter op set-specifieke wateren (met sets-veld)
@@ -1345,7 +1370,7 @@ function renderQuestion() {
     }
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince) {
-    document.getElementById('question-text').textContent = 'Welke provincie is dit?';
+    document.getElementById('question-text').textContent = currentCity.kind === 'gewest' ? 'Welk gewest is dit?' : 'Welke provincie is dit?';
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
     setHighlightProvince(currentCity);
   } else if (isWater) {

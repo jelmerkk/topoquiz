@@ -126,17 +126,19 @@ expect('Alle provinciehoofdsteden zitten in set 55', capitalsInSet55.length === 
 
 section('ALL_PROVINCES');
 
-expect('Er zijn precies 12 provincies', ALL_PROVINCES.length === 12,
-  `gevonden: ${ALL_PROVINCES.length}`);
+const nlProvinces = ALL_PROVINCES.filter(p => !p.sets);
+expect('Er zijn precies 12 NL-provincies (zonder sets)', nlProvinces.length === 12,
+  `gevonden: ${nlProvinces.length}`);
 
 const provMissingFields = ALL_PROVINCES.filter(p => !p.name || p.lat == null || p.lon == null);
 expect('Elke provincie heeft name, lat, lon', provMissingFields.length === 0,
   provMissingFields.map(p => p.name || '(naamloos)').join(', '));
 
-const provOutOfBounds = ALL_PROVINCES.filter(p =>
+// NL-provincies (geen sets-veld) moeten binnen Nederland liggen; set-specifiek mag buiten
+const provOutOfBounds = nlProvinces.filter(p =>
   p.lat < NL_LAT[0] || p.lat > NL_LAT[1] || p.lon < NL_LON[0] || p.lon > NL_LON[1]
 );
-expect('Alle provinciecoördinaten liggen binnen Nederland', provOutOfBounds.length === 0,
+expect('NL-provinciecoördinaten liggen binnen Nederland', provOutOfBounds.length === 0,
   provOutOfBounds.map(p => `${p.name} (${p.lat}, ${p.lon})`).join(', '));
 
 // Controleer dat elke hoofdstad ook een bijbehorende provinciehoofdstad heeft
@@ -396,7 +398,7 @@ expect('Set 70 is groep 7',             SETS[70]?.group === 7);
 section('ALL_WATERS — structuur');
 
 expect('ALL_WATERS is gedefinieerd', Array.isArray(ALL_WATERS));
-expect('ALL_WATERS heeft precies 20 wateren (16 NL + 4 Baltisch)', ALL_WATERS.length === 20,
+expect('ALL_WATERS heeft precies 22 wateren (16 NL + 4 Baltisch + 2 Belgisch)', ALL_WATERS.length === 22,
   `heeft er ${ALL_WATERS?.length}`);
 
 const waterMissingFields = ALL_WATERS.filter(w => !w.name || w.lat == null || w.lon == null);
@@ -411,9 +413,12 @@ const waterOutOfBounds = ALL_WATERS.filter(w => {
 expect('NL-watercoördinaten liggen binnen Nederland', waterOutOfBounds.length === 0,
   waterOutOfBounds.map(w => `${w.name} (${w.lat}, ${w.lon})`).join(', '));
 
-const waterNames = ALL_WATERS.map(w => w.name);
-const waterDuplicates = waterNames.filter((n, i) => waterNames.indexOf(n) !== i);
-expect('Geen dubbele waternamen', waterDuplicates.length === 0, waterDuplicates.join(', '));
+// Dubbele namen zijn OK als ze verschillende sets hebben (bijv. NL Maas vs Belgische Maas)
+const waterDuplicates = ALL_WATERS.filter((w, i) =>
+  ALL_WATERS.findIndex(x => x.name === w.name && JSON.stringify(x.sets) === JSON.stringify(w.sets)) !== i
+);
+expect('Geen échte dubbele waternamen (zelfde naam + zelfde sets)', waterDuplicates.length === 0,
+  waterDuplicates.map(w => w.name).join(', '));
 
 const VERWACHTE_WATEREN = [
   'Noordzee', 'Waddenzee', 'Oosterschelde', 'Westerschelde',
@@ -583,8 +588,8 @@ Object.entries(SET_SNAPSHOTS).forEach(([num, expected]) => {
 
 // Set 54: altijd gelijk aan ALL_PROVINCES (provincies-quiz)
 expect(
-  'Set 54: activeCities-pool = aantal provincies (12)',
-  ALL_PROVINCES.length === 12
+  'Set 54: activeCities-pool = 12 NL-provincies',
+  ALL_PROVINCES.filter(p => !p.sets).length === 12
 );
 
 // Set 57: NL-wateren (zonder sets-veld)
@@ -723,6 +728,50 @@ expect('Set 71 heeft 20 steden', steden71.length === 20,
 SET71_HOOFDSTEDEN.forEach(naam => {
   const stad = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(71));
   expect(`${naam} in ALL_CITIES (set 71)`, !!stad);
+});
+
+// ── Set 72 — België en Luxemburg (issue #41) ─────────────────
+
+section('Set 72 — België en Luxemburg');
+
+const SET72_STEDEN = [
+  'Antwerpen','Gent','Brugge','Brussel','Luik','Namen','Charleroi',
+  'Bergen','Mechelen','Leuven','Hasselt','Bastogne','Oostende','Luxemburg',
+];
+const SET72_GEWESTEN = ['Vlaanderen','Wallonië','Brussels Hoofdstedelijk Gewest'];
+
+expect('Set 72 bestaat in SETS',        !!SETS[72]);
+expect('Set 72 is groep 7',             SETS[72]?.group === 7);
+expect('Set 72 heeft 4 fases',          SETS[72]?.phases?.length === 4);
+expect('Set 72 fase 1 is country',      SETS[72]?.phases?.[0]?.quizType === 'country');
+expect('Set 72 fase 2 is province',     SETS[72]?.phases?.[1]?.quizType === 'province');
+expect('Set 72 fase 3 is place',        SETS[72]?.phases?.[2]?.quizType === 'place');
+expect('Set 72 fase 4 is water',        SETS[72]?.phases?.[3]?.quizType === 'water');
+expect('Set 72 heeft bounds',           Array.isArray(SETS[72]?.bounds));
+
+// Luxemburg (land) zit al in ALL_COUNTRIES via set 71 — nu ook in 72
+const lux = ALL_COUNTRIES.find(c => c.name === 'Luxemburg');
+expect('Luxemburg in ALL_COUNTRIES (set 72)', lux?.sets?.includes(72));
+
+// Gewesten
+SET72_GEWESTEN.forEach(naam => {
+  const g = ALL_PROVINCES.find(p => p.name === naam);
+  expect(`${naam} in ALL_PROVINCES`, !!g);
+  expect(`${naam} heeft sets:[72]`, g?.sets?.includes(72));
+});
+expect('Set 72 heeft 3 gewesten', ALL_PROVINCES.filter(p => p.sets?.includes(72)).length === 3);
+
+// Steden
+SET72_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(72));
+  expect(`${naam} in ALL_CITIES (set 72)`, !!s);
+});
+expect('Set 72 heeft 14 steden', ALL_CITIES.filter(c => c.sets?.includes(72)).length === 14);
+
+// Wateren
+['Schelde','Maas'].forEach(naam => {
+  const w72 = ALL_WATERS.find(w => w.name === naam && w.sets?.includes(72));
+  expect(`${naam} in ALL_WATERS (set 72)`, !!w72);
 });
 
 // ── Samenvatting ──────────────────────────────────────────────

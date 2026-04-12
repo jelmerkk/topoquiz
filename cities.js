@@ -157,8 +157,8 @@ const ALL_CITIES = [
   { name: "Lissabon",  lat: 38.72, lon: -9.14,  pop: 2956000, sets: [71] },
   { name: "Madrid",    lat: 40.42, lon: -3.70,  pop: 3348000, sets: [71] },
   { name: "Parijs",    lat: 48.86, lon: 2.35,   pop: 2161000, sets: [71] },
-  { name: "Brussel",   lat: 50.85, lon: 4.35,   pop:  185000, sets: [71] },
-  { name: "Luxemburg", lat: 49.61, lon: 6.13,   pop:  125000, sets: [71] },
+  { name: "Brussel",   lat: 50.85, lon: 4.35,   pop:  185000, sets: [71, 72] },
+  { name: "Luxemburg", lat: 49.61, lon: 6.13,   pop:  125000, sets: [71, 72] },
   { name: "Londen",    lat: 51.51, lon: -0.13,  pop: 9541000, sets: [71] },
   { name: "Dublin",    lat: 53.33, lon: -6.25,  pop:  592000, sets: [71] },
   { name: "Reykjavík", lat: 64.13, lon: -21.82, pop:  136000, sets: [71] },
@@ -172,6 +172,19 @@ const ALL_CITIES = [
   { name: "Warschau",  lat: 52.23, lon: 21.01,  pop: 1794000, sets: [71] },
   { name: "Praag",     lat: 50.08, lon: 14.44,  pop: 1357000, sets: [71] },
   { name: "Boedapest", lat: 47.50, lon: 19.05,  pop: 1752000, sets: [71] },
+  // ── Set 72: Belgische steden (7.2 België en Luxemburg) ───────────────────────
+  { name: "Antwerpen", lat: 51.22, lon: 4.40,   pop:  530000, sets: [72] },
+  { name: "Gent",      lat: 51.05, lon: 3.72,   pop:  263000, sets: [72] },
+  { name: "Brugge",    lat: 51.21, lon: 3.22,   pop:  119000, sets: [72] },
+  { name: "Luik",      lat: 50.63, lon: 5.57,   pop:  197000, sets: [72] },
+  { name: "Namen",     lat: 50.47, lon: 4.87,   pop:  110000, sets: [72] },
+  { name: "Charleroi", lat: 50.41, lon: 4.44,   pop:  202000, sets: [72] },
+  { name: "Bergen",    lat: 50.45, lon: 3.96,   pop:   96000, sets: [72] },
+  { name: "Mechelen",  lat: 51.03, lon: 4.48,   pop:   86000, sets: [72] },
+  { name: "Leuven",    lat: 50.88, lon: 4.70,   pop:   99000, sets: [72] },
+  { name: "Hasselt",   lat: 50.93, lon: 5.33,   pop:   77000, sets: [72] },
+  { name: "Bastogne",  lat: 50.00, lon: 5.72,   pop:   16000, sets: [72] },
+  { name: "Oostende",  lat: 51.23, lon: 2.92,   pop:   71000, sets: [72] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -189,7 +202,7 @@ const ALL_COUNTRIES = [
   { name: 'Frankrijk',           lat: 46.7,  lon:  2.6,  sets: [71] },
   { name: 'België',              lat: 50.8,  lon:  4.8,  sets: [71] },
   { name: 'Nederland',           lat: 52.4,  lon:  5.6,  sets: [71] },
-  { name: 'Luxemburg',           lat: 49.7,  lon:  6.1,  sets: [71] },
+  { name: 'Luxemburg',           lat: 49.7,  lon:  6.1,  sets: [71, 72] },
   { name: 'Verenigd Koninkrijk', lat: 54.4,  lon: -2.1,  sets: [71] },
   { name: 'Ierland',             lat: 53.1,  lon: -7.8,  sets: [71] },
   { name: 'IJsland',             lat: 64.8,  lon: -18.7, sets: [71] },
@@ -223,6 +236,9 @@ const ALL_WATERS = [
   { name: 'Noordzeekanaal',       lat: 52.46, lon: 4.70 },
   { name: 'Amsterdam-Rijnkanaal', lat: 52.20, lon: 5.00, aliases: ['Amsterdam Rijnkanaal'] },
   { name: 'Nieuwe Waterweg',      lat: 51.90, lon: 4.10, aliases: ['Nieuwe waterweg'] },
+  // ── Set 72: Belgische rivieren (7.2 België en Luxemburg) ─────────────────────
+  { name: 'Schelde', lat: 51.22, lon: 4.05, sets: [72] },
+  { name: 'Maas',    lat: 50.63, lon: 5.57, sets: [72] },
   // ── Set 70: Baltische wateren (fase 3 pilot-level) ────────────────────────────
   { name: 'Oostzee',    lat: 58.5,  lon: 19.0, sets: [70] },
   { name: 'Finse Golf', lat: 60.0,  lon: 25.5, sets: [70] },
@@ -233,6 +249,12 @@ const ALL_WATERS = [
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
 // Namen komen exact overeen met de 'statnaam'-eigenschap in provincie_2023.geojson.
 const ALL_PROVINCES = [
+  // ── Set 72: Belgische gewesten (7.2 België en Luxemburg) ─────────────────────
+  // Namen moeten overeenkomen met de 'statnaam'-property in gewesten.geojson
+  { name: 'Vlaanderen',                     lat: 51.05, lon: 3.87, kind: 'gewest', sets: [72] },
+  { name: 'Wallonië',                       lat: 50.18, lon: 5.10, kind: 'gewest', sets: [72] },
+  { name: 'Brussels Hoofdstedelijk Gewest', lat: 50.85, lon: 4.35, kind: 'gewest', sets: [72] },
+  // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
   { name: 'Drenthe',       lat: 52.87, lon: 6.47, aliases: [] },
@@ -279,6 +301,16 @@ const SETS = {
          phases: [
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
+         ] },
+   // Set 7.2: België en Luxemburg — 4 fases: land, gewesten, steden, wateren
+   72: { name: '7.2 – België en Luxemburg', group: 7, mastery: 1,
+         bounds: [[49.4, 2.3], [51.8, 6.6]],
+         clickCorrectKm: 40, clickCloseKm: 120,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'regions',   label: 'Gewesten', quizType: 'province' },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Test-level voor v2.0 pilot — 2 fases (stap 5 voegt waters-fase toe)
    70: { name: 'Test: Baltische staten', group: 7, mastery: 1,
