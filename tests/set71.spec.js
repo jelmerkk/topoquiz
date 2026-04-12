@@ -1,5 +1,5 @@
 /**
- * Set 71 — Landen van Europa (issue #40)
+ * Set 71 — Landen en hoofdsteden (issue #40)
  *
  * Fase 1: 20 Europese landen (country quizType)
  * Fase 2: 20 hoofdsteden (place quizType)
@@ -13,7 +13,7 @@ const { test, expect } = require('@playwright/test');
 async function openSet71(page) {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '7' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: 'Landen van Europa' }).click();
+  await page.locator('#level-select .mode-btn', { hasText: 'Landen en hoofdsteden' }).click();
   await expect(page.locator('#mode-select')).toBeVisible();
 }
 
@@ -28,7 +28,7 @@ async function startSet71(page) {
 test('set 71 verschijnt in groep 7', async ({ page }) => {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Landen van Europa' })).toBeVisible();
+  await expect(page.locator('#level-select .mode-btn', { hasText: 'Landen en hoofdsteden' })).toBeVisible();
 });
 
 test('set 71 — mode-select bereikbaar', async ({ page }) => {
@@ -56,7 +56,7 @@ test('set 71 — fase 1: #qtot toont 20', async ({ page }) => {
 
 test('set 71 — fase 1: landpolygoon zichtbaar op kaart', async ({ page }) => {
   await startSet71(page);
-  const hasLayer = await page.evaluate(() => countryQuizLayer !== null);
+  const hasLayer = await page.evaluate(() => polygonTypes.country.quizLayer !== null);
   expect(hasLayer).toBe(true);
 });
 

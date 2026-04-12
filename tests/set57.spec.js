@@ -46,7 +46,7 @@ test('set 57 (Wateren) klik-op-kaart: waterlagen zijn verborgen tijdens de vraag
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
   const allHidden = await page.evaluate(() => {
-    return Object.entries(waterLayers).every(([name, layer]) => {
+    return Object.entries(polygonTypes.water.layers).every(([name, layer]) => {
       const style = layer.options;
       const mastered = (streak[name] || 0) >= mastery();
       return mastered || (style.opacity === 0 && style.fillOpacity === 0);
