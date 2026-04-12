@@ -49,7 +49,7 @@ test('set 70 — meerkeuze: polygoon gemarkeerd (geen punt-marker)', async ({ pa
 
   // Country quizType toont een polygoon-laag, geen gewone punt-marker
   const hasCountryLayer = await page.evaluate(() => {
-    return typeof countryQuizLayer !== 'undefined' && countryQuizLayer !== null;
+    return polygonTypes.country.quizLayer !== null;
   });
   expect(hasCountryLayer).toBe(true);
 });

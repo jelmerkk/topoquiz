@@ -783,18 +783,61 @@ const WATER_HIGHLIGHT = { color: '#c07000', weight: 5,   opacity: 1,   fillColor
 const WATER_MASTERED  = { color: '#1b5e20', weight: 3,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3 };
 const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
-// Waterwegen — lokaal bestand, gebundeld in de repo.
-let waterFeatureData = null;
-let waterLayers = {};     // naam → Leaflet layer (alleen actief tijdens water-quiz)
-let waterQuizLayer = null;
+const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6', fillOpacity: 0.35 };
+const COUNTRY_HIGHLIGHT = { color: '#c07000', weight: 3,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5  };
+const COUNTRY_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3  };
 
-const waterDataPromise = fetch('/wateren.geojson')
+// ── polygonTypes-register ─────────────────────────────────────────────────────
+// Centraal configuratie-object voor alle polygon-quizTypes.
+// featureData/layers/quizLayer worden gevuld tijdens runtime.
+// afterHighlight: type-specifiek zoom/pan-gedrag na het markeren van een item.
+const polygonTypes = {
+  province: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: { default: PROV_DEFAULT, highlight: PROV_HIGHLIGHT, mastered: PROV_MASTERED },
+    nameKey: 'statnaam',
+    afterHighlight(item) {
+      const latlng = [item.lat, item.lon];
+      if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+    },
+  },
+  water: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: { default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN },
+    nameKey: 'name',
+    afterHighlight(item) {
+      const layer = this.layers[item.name];
+      if (layer) {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 10 });
+      }
+    },
+  },
+  country: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: { default: COUNTRY_DEFAULT, highlight: COUNTRY_HIGHLIGHT, mastered: COUNTRY_MASTERED },
+    nameKey: 'name',
+    afterHighlight(item) {
+      const layer = this.layers[item.name];
+      if (layer && gameMode !== 'map') {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
+      }
+    },
+  },
+};
+
+// Waterwegen — lokaal bestand, gebundeld in de repo.
+polygonTypes.water.dataPromise = fetch('/wateren.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(data => { waterFeatureData = data; })
-  .catch(err => {
-    console.error('Waterdata kon niet geladen worden:', err);
-    waterFeatureData = null;
-  });
+  .then(data => { polygonTypes.water.featureData = data; })
+  .catch(err => { console.error('Waterdata kon niet geladen worden:', err); });
 
 // Catmull-Rom spline: maakt vloeiende curves van LineString-coördinaten.
 // Voegt tussenliggende punten toe zodat rivieren/kanalen niet hoekig zijn.
@@ -823,162 +866,107 @@ function smoothGeoJSON(data) {
   })};
 }
 
-function buildWaterLayer() {
-  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); }
-  waterLayers = {};
-  // Alleen de waters tonen die relevant zijn voor de huidige activeCities
-  // (filtert NL-waters weg bij Baltische sets en vice versa)
-  const activeNames = new Set(activeCities.map(w => w.name));
-  const isPhased = !!SETS[selectedSet].phases;
-  const filteredData = {
-    ...waterFeatureData,
-    // Filter op naam én op sets-property van het feature zelf:
-    // - feature met sets:[n] → alleen tonen in die specifieke set
-    // - feature zonder sets → alleen tonen in niet-gefaseerde sets
-    features: waterFeatureData.features.filter(f => {
-      if (!activeNames.has(f.properties.name)) return false;
-      const fSets = f.properties.sets;
-      if (fSets?.length) return fSets.includes(selectedSet);
-      return !isPhased;
-    }),
-  };
-  waterQuizLayer = L.geoJSON(smoothGeoJSON(filteredData), {
-    style: WATER_DEFAULT,
+// ── Generieke polygon-laagfuncties (vervangen 3× copy-paste per type) ────────
+
+function buildPolygonLayer(type) {
+  const t = polygonTypes[type];
+  if (t.quizLayer) { map.removeLayer(t.quizLayer); }
+  t.layers = {};
+  const activeNames = new Set(activeCities.map(c => c.name));
+
+  let geoData = t.featureData;
+  if (type === 'water') {
+    // Water: smooth curves + filter op feature-level sets (oplossing dubbele Maas)
+    const isPhased = !!SETS[selectedSet].phases;
+    geoData = smoothGeoJSON({
+      ...geoData,
+      features: geoData.features.filter(f => {
+        if (!activeNames.has(f.properties.name)) return false;
+        const fSets = f.properties.sets;
+        if (fSets?.length) return fSets.includes(selectedSet);
+        return !isPhased;
+      }),
+    });
+  }
+
+  t.quizLayer = L.geoJSON(geoData, {
+    style: t.styles.default,
     interactive: false,
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.name;
-      if (name) waterLayers[name] = layer;
+    filter: f => activeNames.has(f.properties[t.nameKey]),
+    onEachFeature: (f, layer) => {
+      const name = f.properties[t.nameKey];
+      if (name) t.layers[name] = layer;
     },
   }).addTo(map);
 }
 
-function setHighlightWater(water, mapMode = false) {
-  Object.entries(waterLayers).forEach(([name, layer]) => {
-    if (name === water.name) {
-      layer.setStyle(WATER_HIGHLIGHT);
-    } else if (mapMode) {
-      // In kaart-klik modus: niet-geraden wateren blijven verborgen
-      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
+function setHighlightPolygon(type, item, mapMode = false) {
+  const t = polygonTypes[type];
+  Object.entries(t.layers).forEach(([name, layer]) => {
+    if (name === item.name) {
+      layer.setStyle(t.styles.highlight);
+    } else if (mapMode && t.styles.hidden) {
+      // In kaart-klik modus: niet-geraden items verborgen (alleen water heeft hidden-stijl)
+      layer.setStyle(streak[name] >= mastery() ? t.styles.mastered : t.styles.hidden);
     } else {
-      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT);
+      layer.setStyle(streak[name] >= mastery() ? t.styles.mastered : t.styles.default);
     }
   });
-  if (waterLayers[water.name]) {
-    waterLayers[water.name].bringToFront();
-    map.fitBounds(waterLayers[water.name].getBounds(), { padding: [60, 60], maxZoom: 10 });
-  }
+  if (t.afterHighlight) t.afterHighlight.call(t, item);
+}
+
+function applyMasteredStyle(name) {
+  const city = activeCities.find(c => c.name === name);
+  if (city?.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
+  Object.values(polygonTypes).forEach(t => {
+    if (t.layers[name]) t.layers[name].setStyle(t.styles.mastered);
+  });
+}
+
+function clearPolygonLayers() {
+  Object.values(polygonTypes).forEach(t => {
+    if (t.quizLayer) { map.removeLayer(t.quizLayer); t.quizLayer = null; }
+    t.layers = {};
+  });
 }
 
 // Provinciegrenzen — lokaal bestand (oorsprong: cartomap.github.io, MIT, WGS84)
 // Gebundeld in de repo zodat de quiz offline werkt en niet afhankelijk is van een externe URL.
-let provinceFeatureData = null;
-let provinceLayers = {};    // statnaam → Leaflet layer (alleen actief tijdens province-quiz)
-let provinceQuizLayer = null;
-let provinceBorderLayer = null; // vaste achtergrondlaag met NL-grenzen (verborgen bij EU/wereld-sets)
+let provinceBorderLayer = null; // vaste achtergrondlaag met NL-grenzen
 
-const provinceDataPromise = fetch('/provincie_2023.geojson')
+polygonTypes.province.dataPromise = fetch('/provincie_2023.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(data => {
-    provinceFeatureData = data;
+    polygonTypes.province.featureData = data;
     provinceBorderLayer = L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
   })
-  .catch(err => {
-    console.error('Provinciedata kon niet geladen worden:', err);
-    provinceFeatureData = null;
-  });
+  .catch(err => { console.error('Provinciedata kon niet geladen worden:', err); });
 
 // Laad gewesten (België) en voeg toe aan provinceFeatureData zodra beide klaar zijn
 fetch('/gewesten.geojson')
   .then(r => r.ok ? r.json() : Promise.reject(r.status))
   .then(data => {
-    if (provinceFeatureData) {
-      provinceFeatureData.features.push(...data.features);
+    const pt = polygonTypes.province;
+    if (pt.featureData) {
+      pt.featureData.features.push(...data.features);
     } else {
-      provinceFeatureData = data;
+      pt.featureData = data;
     }
   })
   .catch(err => console.warn('Gewestendata kon niet geladen worden:', err));
 
-// Bouw een interactieve provincielaag voor de quiz (één keer per speelsessie).
-function buildProvinceLayer() {
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); }
-  provinceLayers = {};
-  const activeNames = new Set(activeCities.map(p => p.name));
-  provinceQuizLayer = L.geoJSON(provinceFeatureData, {
-    style: PROV_DEFAULT,
-    interactive: false,
-    filter: feature => activeNames.has(feature.properties.statnaam),
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.statnaam;
-      if (name) provinceLayers[name] = layer;
-    },
-  }).addTo(map);
-}
-
-function setHighlightProvince(province) {
-  Object.entries(provinceLayers).forEach(([name, layer]) => {
-    layer.setStyle(name === province.name
-      ? PROV_HIGHLIGHT
-      : (streak[name] >= mastery() ? PROV_MASTERED : PROV_DEFAULT));
-  });
-  if (provinceLayers[province.name]) provinceLayers[province.name].bringToFront();
-  const latlng = [province.lat, province.lon];
-  if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
-}
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
 // Landsgrenzen — voor quizType 'country' (laden per set via landen-europa.geojson)
-let countryFeatureData = null;
-let countryLayers = {};    // naam → Leaflet layer (alleen actief tijdens country-quiz)
-let countryQuizLayer = null;
-
-const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6', fillOpacity: 0.35 };
-const COUNTRY_HIGHLIGHT = { color: '#c07000', weight: 3,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5  };
-const COUNTRY_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3  };
-
-const countryDataPromise = fetch('/landen-europa.geojson')
+polygonTypes.country.dataPromise = fetch('/landen-europa.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(data => { countryFeatureData = data; })
-  .catch(err => {
-    console.error('Landendata kon niet geladen worden:', err);
-    countryFeatureData = null;
-  });
-
-function buildCountryLayer() {
-  if (countryQuizLayer) { map.removeLayer(countryQuizLayer); }
-  countryLayers = {};
-  const activeNames = new Set(activeCities.map(c => c.name));
-  countryQuizLayer = L.geoJSON(countryFeatureData, {
-    style: COUNTRY_DEFAULT,
-    interactive: false,
-    filter: feature => activeNames.has(feature.properties.name),
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.name;
-      if (name) countryLayers[name] = layer;
-    },
-  }).addTo(map);
-}
-
-function setHighlightCountry(country) {
-  Object.entries(countryLayers).forEach(([name, layer]) => {
-    layer.setStyle(name === country.name
-      ? COUNTRY_HIGHLIGHT
-      : (streak[name] >= mastery() ? COUNTRY_MASTERED : COUNTRY_DEFAULT));
-  });
-  const layer = countryLayers[country.name];
-  if (layer) {
-    layer.bringToFront();
-    // Zoom naar het land in MC/typen modus; in klik-modus blijft het volledig overzicht
-    if (gameMode !== 'map') {
-      map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
-    }
-  }
-}
+  .then(data => { polygonTypes.country.featureData = data; })
+  .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
 
 // Afstand van klikpunt tot een landspolygoon in km (ondersteunt Polygon en MultiPolygon)
 function distanceToCountry(lat, lon, countryName) {
-  const feature = countryFeatureData?.features?.find(f => f.properties.name === countryName);
+  const feature = polygonTypes.country.featureData?.features?.find(f => f.properties.name === countryName);
   if (!feature) return Infinity;
   const geom = feature.geometry;
   const polygons = geom.type === 'MultiPolygon' ? geom.coordinates : [geom.coordinates];
@@ -1063,7 +1051,7 @@ function pointInPolygon(lat, lon, coords) {
 
 // Afstand van klikpunt tot een waterlichaam (LineString of Polygon) in km
 function distanceToWater(lat, lon, waterName) {
-  const feature = waterFeatureData?.features?.find(f => f.properties.name === waterName);
+  const feature = polygonTypes.water.featureData?.features?.find(f => f.properties.name === waterName);
   if (!feature) return Infinity;
   const geom = feature.geometry;
   const coords = geom.coordinates;
@@ -1228,26 +1216,24 @@ function initLevel(setNumber) {
   markerLayer.clearLayers();
   revealedLayer.clearLayers();
   if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
-  if (countryQuizLayer) { map.removeLayer(countryQuizLayer); countryQuizLayer = null; countryLayers = {}; }
+  clearPolygonLayers();
 
   const _qt = currentQuizType(); // respecteert phases[currentPhaseIndex] als die er is
   if (_qt === 'province') {
     activeCities = SETS[setNumber].phases
       ? ALL_PROVINCES.filter(p => p.sets?.includes(setNumber))
       : ALL_PROVINCES;
-    buildProvinceLayer();
+    buildPolygonLayer('province');
   } else if (_qt === 'water') {
     // Gefaseerde sets: filter op set-specifieke wateren (met sets-veld)
     // Set 57 en andere niet-gefaseerde sets: alle wateren zonder sets-veld
     activeCities = SETS[setNumber].phases
       ? ALL_WATERS.filter(w => w.sets?.includes(setNumber))
       : ALL_WATERS.filter(w => !w.sets);
-    buildWaterLayer();
+    buildPolygonLayer('water');
   } else if (_qt === 'country') {
     activeCities = ALL_COUNTRIES.filter(c => c.sets.includes(setNumber));
-    buildCountryLayer();
+    buildPolygonLayer('country');
   } else {
     if (SETS[setNumber].daily) {
       activeCities = dailyCities(todayStr());
@@ -1299,9 +1285,9 @@ function initStreak() {
     streak[c.name] = 0;
     c._hadWrong = false;
     if (c.marker) c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) });
-    if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_DEFAULT);
-    if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_DEFAULT);
-    if (countryLayers[c.name]) countryLayers[c.name].setStyle(COUNTRY_DEFAULT);
+    Object.values(polygonTypes).forEach(t => {
+      if (t.layers[c.name]) t.layers[c.name].setStyle(t.styles.default);
+    });
   });
 }
 
@@ -1362,25 +1348,22 @@ function renderQuestion() {
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
     // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar set-bounds
     if (isWater) {
-      Object.entries(waterLayers).forEach(([name, layer]) => {
+      Object.entries(polygonTypes.water.layers).forEach(([name, layer]) => {
         layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
       });
       const _wb = SETS[selectedSet].bounds || NL_BOUNDS;
       map.fitBounds(_wb, { padding: [4, 4], maxZoom: 8, animate: true });
     }
     document.getElementById('question-text').textContent = currentCity.name;
-  } else if (isProvince) {
-    document.getElementById('question-text').textContent = currentCity.kind === 'gewest' ? 'Welk gewest is dit?' : 'Welke provincie is dit?';
+  } else if (isProvince || isWater || isCountry) {
+    const QUESTION_TEXT = {
+      province: item => item.kind === 'gewest' ? 'Welk gewest is dit?' : 'Welke provincie is dit?',
+      water:    ()   => 'Welk water is dit?',
+      country:  ()   => 'Welk land is dit?',
+    };
+    document.getElementById('question-text').textContent = QUESTION_TEXT[_rqQt](currentCity);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightProvince(currentCity);
-  } else if (isWater) {
-    document.getElementById('question-text').textContent = 'Welk water is dit?';
-    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightWater(currentCity);
-  } else if (isCountry) {
-    document.getElementById('question-text').textContent = 'Welk land is dit?';
-    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightCountry(currentCity);
+    setHighlightPolygon(_rqQt, currentCity);
   } else {
     document.getElementById('question-text').textContent = 'Welke plaats is dit?';
     setHighlight(currentCity);
@@ -1499,10 +1482,7 @@ function recordCorrect(city, fb, close = false) {
   sessionOk++;
   const mastered = streak[city.name] >= mastery();
   if (mastered) {
-    if (city.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
-    if (provinceLayers[city.name]) provinceLayers[city.name].setStyle(PROV_MASTERED);
-    if (waterLayers[city.name]) waterLayers[city.name].setStyle(WATER_MASTERED);
-    if (countryLayers[city.name]) countryLayers[city.name].setStyle(COUNTRY_MASTERED);
+    applyMasteredStyle(city.name);
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
       : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
@@ -1563,9 +1543,9 @@ function handleMapClick(e) {
 
   // Highlight de echte locatie
   if (isWater) {
-    setHighlightWater(city, true);
+    setHighlightPolygon('water', city, true);
   } else if (isCountry) {
-    setHighlightCountry(city);
+    setHighlightPolygon('country', city);
   } else {
     setHighlight(city);
   }
@@ -1826,9 +1806,7 @@ function _renderLevelSelect() {
 
 function _renderModeSelect(setNumber) {
   // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
-  if (countryQuizLayer)  { map.removeLayer(countryQuizLayer); countryQuizLayer = null; countryLayers = {}; }
+  clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
 
@@ -1963,9 +1941,7 @@ function _renderStartScreen() {
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
   revealedLayer.clearLayers();
   if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
-  if (countryQuizLayer)  { map.removeLayer(countryQuizLayer); countryQuizLayer = null; countryLayers = {}; }
+  clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
   ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
@@ -1991,24 +1967,11 @@ async function startQuiz(mode) {
   // Bepaal welke quizTypes nodig zijn (één of meerdere bij gefaseerde sets)
   const _set = SETS[selectedSet];
   const _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
-  if (_allQts.includes('province')) {
-    await provinceDataPromise;
-    if (!provinceFeatureData) {
-      alert('De provinciekaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
-      history.back(); return;
-    }
-  }
-  if (_allQts.includes('water')) {
-    await waterDataPromise;
-    if (!waterFeatureData) {
-      alert('De waterkaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
-      history.back(); return;
-    }
-  }
-  if (_allQts.includes('country')) {
-    await countryDataPromise;
-    if (!countryFeatureData) {
-      alert('De landenkaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
+  for (const qt of _allQts) {
+    if (!polygonTypes[qt]) continue;
+    await polygonTypes[qt].dataPromise;
+    if (!polygonTypes[qt].featureData) {
+      alert('De kaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
       history.back(); return;
     }
   }
@@ -2044,10 +2007,7 @@ async function startQuiz(mode) {
     // Herstel visuele staat van gememoreerde plaatsen/provincies
     activeCities.forEach(c => {
       if (streak[c.name] >= mastery()) {
-        if (c.marker) c.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(c) });
-        if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_MASTERED);
-        if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_MASTERED);
-        if (countryLayers[c.name]) countryLayers[c.name].setStyle(COUNTRY_MASTERED);
+        applyMasteredStyle(c.name);
       }
     });
     updateHardList();
