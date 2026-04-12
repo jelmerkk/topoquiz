@@ -296,7 +296,7 @@ const SETS = {
    66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
    67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
    // Set 7.1: Landen van Europa — 2 fases: landen (country) + hoofdsteden (place)
-   71: { name: '7.1 – Landen van Europa', group: 7, mastery: 1,
+   71: { name: '7.1 – Landen en hoofdsteden', group: 7, mastery: 1,
          bounds: [[ 34, -25], [72, 32]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
