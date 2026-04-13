@@ -114,7 +114,7 @@ function fixLuxemburg() {
 
   const feature = {
     type: 'Feature',
-    properties: { name: 'Luxemburg' },
+    properties: { name: 'Luxemburg', sets: [72] },
     geometry: { type: 'Polygon', coordinates: [simplified] },
   };
 
