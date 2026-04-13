@@ -35,3 +35,18 @@ test('set 72 — fase 1: #qtot toont 4 (3 gewesten + Luxemburg)', async ({ page 
   await page.waitForSelector('#qtot');
   await expect(page.locator('#qtot')).toHaveText('4');
 });
+
+test('set 72 — Luxemburg-polygoon is de OSM-grens (>100 punten), niet de 7-punts landen-versie', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '7' }).click();
+  await page.locator('#level-select .mode-btn', { hasText: 'België' }).click();
+  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
+  await page.waitForSelector('#qtot');
+  await page.waitForFunction(() =>
+    typeof polygonTypes !== 'undefined' && polygonTypes?.province?.layers?.Luxemburg !== undefined
+  );
+  const pts = await page.evaluate(() =>
+    polygonTypes.province.layers.Luxemburg.getLatLngs()[0].length
+  );
+  expect(pts).toBeGreaterThan(100);
+});
