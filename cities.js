@@ -154,9 +154,9 @@ const ALL_CITIES = [
   { name: "Vilnius",  lat: 54.69, lon: 25.28, pop:  580000, sets: [70] },
   { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [70, 71], capital: true },
   // ── Set 71: Europese hoofdsteden (7.1 Landen van Europa) ─────────────────────
-  { name: "Lissabon",   lat: 38.72, lon: -9.14,  pop: 2956000, sets: [71], capital: true },
-  { name: "Madrid",     lat: 40.42, lon: -3.70,  pop: 3348000, sets: [71], capital: true },
-  { name: "Parijs",     lat: 48.86, lon: 2.35,   pop: 2161000, sets: [71], capital: true },
+  { name: "Lissabon",   lat: 38.72, lon: -9.14,  pop: 2956000, sets: [71, 73], capital: true },
+  { name: "Madrid",     lat: 40.42, lon: -3.70,  pop: 3348000, sets: [71, 73], capital: true },
+  { name: "Parijs",     lat: 48.86, lon: 2.35,   pop: 2161000, sets: [71, 73], capital: true },
   { name: "Brussel",    lat: 50.85, lon: 4.35,   pop:  185000, sets: [71, 72], capital: true },
   { name: "Luxemburg",  lat: 49.61, lon: 6.13,   pop:  125000, sets: [71, 72], capital: true },
   { name: "Londen",     lat: 51.51, lon: -0.13,  pop: 9541000, sets: [71], capital: true },
@@ -185,6 +185,24 @@ const ALL_CITIES = [
   { name: "Hasselt",   lat: 50.93, lon: 5.33,   pop:   77000, sets: [72] },
   { name: "Bastogne",  lat: 50.00, lon: 5.72,   pop:   16000, sets: [72] },
   { name: "Oostende",  lat: 51.23, lon: 2.92,   pop:   71000, sets: [72] },
+  // ── Set 73: Steden van Frankrijk, Spanje en Portugal (7.3) ──────────────────
+  // (Parijs, Madrid, Lissabon staan al in set 71 hierboven, sets uitgebreid met 73)
+  { name: "Lyon",         lat: 45.75, lon:  4.84,  pop: 1702000, sets: [73] },
+  { name: "Marseille",    lat: 43.30, lon:  5.37,  pop: 1575000, sets: [73] },
+  { name: "Toulouse",     lat: 43.60, lon:  1.44,  pop:  937000, sets: [73] },
+  { name: "Bordeaux",     lat: 44.84, lon: -0.58,  pop:  794000, sets: [73] },
+  { name: "Straatsburg",  lat: 48.57, lon:  7.75,  pop:  486000, sets: [73] },
+  { name: "Lille",        lat: 50.63, lon:  3.07,  pop:  228000, sets: [73] },
+  { name: "Reims",        lat: 49.25, lon:  4.03,  pop:  182000, sets: [73] },
+  { name: "Dijon",        lat: 47.32, lon:  5.04,  pop:  157000, sets: [73] },
+  { name: "Nice",         lat: 43.70, lon:  7.27,  pop:  348000, sets: [73] },
+  { name: "Le Havre",     lat: 49.49, lon:  0.11,  pop:  173000, sets: [73] },
+  { name: "Barcelona",    lat: 41.39, lon:  2.15,  pop: 5586000, sets: [73] },
+  { name: "Sevilla",      lat: 37.39, lon: -5.99,  pop: 1302000, sets: [73] },
+  { name: "Valencia",     lat: 39.47, lon: -0.38,  pop:  814000, sets: [73] },
+  { name: "Bilbao",       lat: 43.26, lon: -2.93,  pop:  352000, sets: [73] },
+  { name: "Porto",        lat: 41.16, lon: -8.63,  pop:  300000, sets: [73] },
+  { name: "Gibraltar",    lat: 36.14, lon: -5.35,  pop:   33000, sets: [73] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -244,6 +262,10 @@ const ALL_WATERS = [
   { name: 'Finse Golf', lat: 60.0,  lon: 25.5, sets: [70] },
   { name: 'Rigabocht',  lat: 57.3,  lon: 22.5, sets: [70] },
   { name: 'Daugava',    lat: 56.5,  lon: 25.5, sets: [70] },
+  // ── Set 73: Rivieren van Frankrijk, Spanje en Portugal (7.3) ─────────────────
+  { name: 'Seine',  lat: 49.0, lon:  1.5, sets: [73] },
+  { name: 'Loire',  lat: 47.5, lon:  1.0, sets: [73] },
+  { name: 'Rhône',  lat: 44.5, lon:  4.8, sets: [73] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -255,6 +277,15 @@ const ALL_PROVINCES = [
   { name: 'Wallonië',                       lat: 50.18, lon: 5.10, kind: 'gewest', sets: [72] },
   { name: 'Brussels Hoofdstedelijk Gewest', lat: 50.85, lon: 4.35, kind: 'gewest', sets: [72] },
   { name: 'Luxemburg',                      lat: 49.70, lon: 6.10, kind: 'gewest', sets: [72] },
+  // ── Set 73: Gebieden van Frankrijk, Spanje en Portugal (7.3) ────────────────
+  // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
+  { name: 'Bretagne',         lat: 48.20, lon: -2.93, kind: 'gewest', sets: [73] },
+  { name: 'Normandië',        lat: 49.00, lon:  0.40, kind: 'gewest', sets: [73] },
+  { name: 'Elzas',            lat: 48.40, lon:  7.50, kind: 'gewest', sets: [73] },
+  { name: 'Centraal Massief', lat: 45.40, lon:  2.80, kind: 'gewest', sets: [73] },
+  { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', sets: [73] },
+  { name: 'Corsica',          lat: 42.15, lon:  9.10, kind: 'gewest', sets: [73] },
+  { name: 'Mallorca',         lat: 39.70, lon:  3.00, kind: 'gewest', sets: [73] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -319,6 +350,15 @@ const SETS = {
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
            { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
+         ] },
+   // Set 7.3: Frankrijk, Spanje en Portugal — 3 fases: steden, gebieden, rivieren
+   73: { name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,
+         bounds: [[35, -12], [52, 10]],
+         clickCorrectKm: 80, clickCloseKm: 240,
+         phases: [
+           { id: 'cities',   label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',  label: 'Gebieden', quizType: 'province' },
+           { id: 'rivers',   label: 'Rivieren', quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
