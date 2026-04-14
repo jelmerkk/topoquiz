@@ -123,9 +123,11 @@ Punt-aantallen en endpoint-coördinaten zeggen **niks** over of een chain klopt.
 | Viewer | Rendert | Gebruik voor |
 |---|---|---|
 | [debug-wateren.html](../../../debug-wateren.html) | `wateren.geojson` (LineStrings rood, polygonen blauw) | Rivieren, zeeën, kanalen, meren |
-| [debug-gewesten.html](../../../debug-gewesten.html) | `gewesten.geojson` (alle features blauw) | Gewesten, regio's, eilanden, gebergtes, kuststroken |
+| [debug-gewesten.html](../../../debug-gewesten.html) | `gewesten.geojson` (blauw) **+** runtime fuzzy-ellipsen uit `cities.js` `ALL_PROVINCES` (paars, stippel) | Gewesten, regio's, eilanden, gebergtes, kuststroken, fuzzy gebieden (Alpen, Elzas, ...) |
 
 Beide tonen de `properties.name` als permanente tooltip in het midden van elke feature, over een OSM-tile-achtergrond. Voor landen: maak `debug-landen.html` op hetzelfde patroon als je `landen-europa.geojson` gaat uitbreiden.
+
+**Fuzzy ellipsen** — `shape: 'fuzzy'` entries in `ALL_PROVINCES` (met `rx`/`ry` in graden) zijn runtime-gegenereerd en zitten níet in `gewesten.geojson`. `debug-gewesten.html` laadt `cities.js` in en tekent ze zelf met `L.polygon` — dezelfde formule als `buildEllipseFeature()` in `index.html`. Nieuwe fuzzy entry toevoegen → ververs de debug-viewer → de ellips verschijnt automatisch. Géén extra script nodig.
 
 **Uitvoeringssjabloon** — werkt voor beide viewers, pas alleen pad en views aan:
 

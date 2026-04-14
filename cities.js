@@ -295,6 +295,7 @@ const ALL_PROVINCES = [
   { name: 'Centraal Massief', lat: 45.20, lon:  3.45, kind: 'gewest', shape: 'fuzzy', rx: 1.50, ry: 1.25, sets: [73] },
   { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', shape: 'fuzzy', rx: 2.60, ry: 0.55, sets: [73] },
   { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
+  { name: 'Alpen',            lat: 45.00, lon:  6.90, kind: 'gewest', shape: 'fuzzy', rx: 0.90, ry: 1.40, sets: [73] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },

@@ -215,7 +215,7 @@ const gewestenPath = path.join(__dirname, '..', 'gewesten.geojson');
 const gewesten = JSON.parse(fs.readFileSync(gewestenPath, 'utf8'));
 
 // Runtime-ellipsen: zorg dat oude handmatige polygonen worden opgeruimd.
-const FUZZY_RUNTIME_NAMES = ['Elzas', 'Centraal Massief', 'Pyreneeën', 'Costa Blanca'];
+const FUZZY_RUNTIME_NAMES = ['Elzas', 'Centraal Massief', 'Pyreneeën', 'Costa Blanca', 'Alpen'];
 gewesten.features = gewesten.features.filter(f => !FUZZY_RUNTIME_NAMES.includes(f.properties.name));
 
 for (const feat of regionFeatures) {
