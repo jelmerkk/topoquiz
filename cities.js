@@ -203,6 +203,8 @@ const ALL_CITIES = [
   { name: "Bilbao",       lat: 43.26, lon: -2.93,  pop:  352000, sets: [73] },
   { name: "Porto",        lat: 41.16, lon: -8.63,  pop:  300000, sets: [73] },
   { name: "Gibraltar",    lat: 36.14, lon: -5.35,  pop:   33000, sets: [73] },
+  { name: "Málaga",       lat: 36.72, lon: -4.42,  pop:  579000, sets: [73], aliases: ['Malaga'] },
+  { name: "Monaco",       lat: 43.73, lon:  7.42,  pop:   39000, sets: [73] },
 ];
 
 // Landen voor sets met quizType 'country'.
