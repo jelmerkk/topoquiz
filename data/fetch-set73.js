@@ -76,8 +76,8 @@ const QUERIES = [
   {
     name: 'tajo',
     out: 'tajo.json',
-    // Taag (Tejo/Tajo) — derde grote Iberische rivier, door ES en PT, monding Lissabon
-    q: 'relation["name"="Tajo"]["waterway"="river"];out geom qt;',
+    // Taag (Tejo/Tajo) — OSM-naam is "Río Tajo" (name:nl=Taag, name:pt=Rio Tejo)
+    q: 'relation["name"="Río Tajo"]["waterway"="river"];out geom qt;',
   },
   // Andorra als admin-grens (land met admin_level=2)
   {

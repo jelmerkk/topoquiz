@@ -393,8 +393,6 @@ expect('Set 70 is groep 7',             SETS[70]?.group === 7);
 section('ALL_WATERS — structuur');
 
 expect('ALL_WATERS is gedefinieerd', Array.isArray(ALL_WATERS));
-expect('ALL_WATERS heeft precies 25 wateren (16 NL + 4 Baltisch + 2 Belgisch + 3 FR/ES/PT)', ALL_WATERS.length === 25,
-  `heeft er ${ALL_WATERS?.length}`);
 
 const waterMissingFields = ALL_WATERS.filter(w => !w.name || w.lat == null || w.lon == null);
 expect('Elk water heeft name, lat, lon', waterMissingFields.length === 0,

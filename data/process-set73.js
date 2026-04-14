@@ -146,7 +146,37 @@ const riverFeatures = [
   processRiver('seine.json', 'Seine', SETS_73, 0.003, 0.05),
   processRiver('loire.json', 'Loire', SETS_73, 0.003, 0.1),  // relation-query met main_stream filter
   processRiver('rhone.json', 'Rhône', SETS_73, 0.003, 0.1),
+  processRiver('tajo.json',  'Taag',  SETS_73, 0.003, 0.1),  // Río Tajo — main_stream filter
 ].filter(Boolean);
+
+// Handmatige waterlichamen: Het Kanaal + Middellandse Zee (west) als polygonen
+const handmatigeWateren = [
+  {
+    name: 'Het Kanaal',
+    sets: SETS_73,
+    // Ruwe outline: tussen Cornwall/Bretagne (west) en Dover/Calais (oost)
+    coords: [[-5.5,48.5],[-5.0,50.3],[-3.5,50.7],[-1.5,50.9],[0.5,51.1],[1.5,51.0],
+              [1.9,50.9],[1.6,50.5],[0.2,50.0],[-1.4,49.6],[-2.6,49.3],[-4.2,48.7],
+              [-5.2,48.3],[-5.5,48.5]],
+  },
+  {
+    name: 'Middellandse Zee',
+    sets: SETS_73,
+    // Westelijke Middellandse Zee: Straat van Gibraltar → Golf van Genua → Tyrreense zee-mond
+    coords: [[-5.6,35.9],[-2.0,35.5],[2.0,36.0],[5.0,37.5],[8.0,39.5],[9.5,41.0],
+              [9.8,43.5],[7.5,43.8],[5.0,43.5],[3.0,43.3],[0.5,41.0],[-0.5,38.5],
+              [-2.5,36.7],[-5.6,35.9]],
+  },
+];
+
+for (const w of handmatigeWateren) {
+  console.log(`  ${w.name}: handmatig polygoon (${w.coords.length} punten)`);
+  riverFeatures.push({
+    type: 'Feature',
+    properties: { name: w.name, sets: w.sets },
+    geometry: { type: 'Polygon', coordinates: [w.coords] },
+  });
+}
 
 const waterPath = path.join(__dirname, '..', 'wateren.geojson');
 const wateren = JSON.parse(fs.readFileSync(waterPath, 'utf8'));
@@ -174,6 +204,7 @@ const regionFeatures = [
   processRegion('normandie.json', 'Normandië',        SETS_73),
   processRegion('corsica.json',   'Corsica',          SETS_73),
   processRegion('mallorca.json',  'Mallorca',         SETS_73),
+  processRegion('andorra.json',   'Andorra',          SETS_73),
 ].filter(Boolean);
 
 // Elzas, Centraal Massief, Pyreneeën — handmatige polygonen (geen eenduidige OSM-administratieve grens)
@@ -194,6 +225,16 @@ const handmatigGebieden = [
     coords: [[2.0500,45.2000],[2.8000,44.3000],[3.9500,44.1000],[4.8500,44.2500],
               [4.9000,44.7000],[4.5000,45.5000],[3.9000,46.1000],[3.2000,46.3000],
               [2.6000,46.2000],[2.0500,45.8000],[2.0500,45.2000]],
+  },
+  {
+    name: 'Costa Blanca',
+    sets: SETS_73,
+    // Kuststrook Alicante-provincie: Denia (noord) → Torrevieja (zuid),
+    // landinwaarts ~25km zodat Alicante/Benidorm binnen het polygoon vallen.
+    coords: [[ 0.1200,38.8600],[ 0.0200,38.6400],[-0.1300,38.5400],[-0.2900,38.4000],
+              [-0.4800,38.3500],[-0.6300,38.0800],[-0.7100,37.9700],[-0.8500,37.9400],
+              [-0.9500,38.1500],[-0.9200,38.3500],[-0.7000,38.5500],[-0.4500,38.7000],
+              [-0.2000,38.8000],[ 0.0000,38.8500],[ 0.1200,38.8600]],
   },
   {
     name: 'Pyreneeën',

@@ -268,6 +268,9 @@ const ALL_WATERS = [
   { name: 'Seine',  lat: 49.0, lon:  1.5, sets: [73] },
   { name: 'Loire',  lat: 47.5, lon:  1.0, sets: [73] },
   { name: 'Rhône',  lat: 44.5, lon:  4.8, sets: [73] },
+  { name: 'Taag',   lat: 39.5, lon: -7.5, sets: [73], aliases: ['Tajo', 'Tejo'] },
+  { name: 'Het Kanaal',       lat: 50.3, lon: -1.5, sets: [73], aliases: ['Kanaal', 'Engels Kanaal'] },
+  { name: 'Middellandse Zee', lat: 40.0, lon:  5.0, sets: [73] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -288,6 +291,8 @@ const ALL_PROVINCES = [
   { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', sets: [73] },
   { name: 'Corsica',          lat: 42.15, lon:  9.10, kind: 'gewest', sets: [73] },
   { name: 'Mallorca',         lat: 39.70, lon:  3.00, kind: 'gewest', sets: [73] },
+  { name: 'Andorra',          lat: 42.55, lon:  1.60, kind: 'gewest', sets: [73] },
+  { name: 'Costa Blanca',     lat: 38.35, lon: -0.45, kind: 'gewest', sets: [73] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },

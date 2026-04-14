@@ -116,14 +116,23 @@ Als je een **nieuw** top-level `*.geojson` bestand hebt aangemaakt (niet alleen 
 
 ### 7a. Debug-screenshot workflow — de enige echte sanity check
 
-Punt-aantallen en endpoint-coördinaten zeggen **niks** over of een chain klopt. Alleen een visuele check tegen OSM-tegels laat zien of de geometrie correct is. Doe dit altijd voordat je merged.
+Punt-aantallen en endpoint-coördinaten zeggen **niks** over of een chain klopt. Alleen een visuele check tegen OSM-tegels laat zien of de geometrie correct is. Doe dit altijd voordat je merged. Dit geldt net zo goed voor **handmatige polygonen** (Costa Blanca, Elzas, …) — zonder screenshot plak je zomaar een kuststrook in de zee. Gebeurd. Echt.
 
-`debug-wateren.html` (repo root) rendert `wateren.geojson` op een Leaflet-kaart met OSM als achtergrond — LineStrings rood, polygonen blauw, namen als permanente tooltip. Gebruik hem zo:
+**Twee permanente debug-viewers** in de repo root:
+
+| Viewer | Rendert | Gebruik voor |
+|---|---|---|
+| [debug-wateren.html](../../../debug-wateren.html) | `wateren.geojson` (LineStrings rood, polygonen blauw) | Rivieren, zeeën, kanalen, meren |
+| [debug-gewesten.html](../../../debug-gewesten.html) | `gewesten.geojson` (alle features blauw) | Gewesten, regio's, eilanden, gebergtes, kuststroken |
+
+Beide tonen de `properties.name` als permanente tooltip in het midden van elke feature, over een OSM-tile-achtergrond. Voor landen: maak `debug-landen.html` op hetzelfde patroon als je `landen-europa.geojson` gaat uitbreiden.
+
+**Uitvoeringssjabloon** — werkt voor beide viewers, pas alleen pad en views aan:
 
 ```bash
-# Server al draaiend? Skip deze regel.
-npx serve . -p 8765 &
-sleep 1
+# Server al draaiend? Check eerst, start anders:
+pgrep -f 'serve . -p 8765' >/dev/null || (npx serve . -p 8765 > /tmp/serve.log 2>&1 &)
+mkdir -p debug
 
 node -e "
 const { chromium } = require('playwright');
@@ -131,9 +140,11 @@ const { chromium } = require('playwright');
   const b = await chromium.launch();
   const p = await b.newPage();
   await p.setViewportSize({ width: 1400, height: 900 });
+  // Kies: debug-wateren.html of debug-gewesten.html
   await p.goto('http://localhost:8765/debug-wateren.html', { waitUntil: 'networkidle' });
   await p.waitForTimeout(1500);
-  // Pas center/zoom aan op de feature die je verifieert:
+  // Pas center/zoom aan op de feature die je verifieert.
+  // Voor rivieren: altijd overzicht + bron + monding. Voor polygonen: overzicht + ingezoomd.
   const views = [
     { name: 'overzicht', lat: 46.5, lon: 1.5,  zoom: 7  },
     { name: 'bron',      lat: 44.9, lon: 4.2,  zoom: 10 },
@@ -142,17 +153,21 @@ const { chromium } = require('playwright');
   for (const v of views) {
     await p.evaluate(({lat,lon,zoom}) => map.setView([lat,lon], zoom), v);
     await p.waitForTimeout(800);
-    await p.screenshot({ path: \`debug/loire-\${v.name}.png\` });
+    await p.screenshot({ path: \`debug/<taak>-\${v.name}.png\` });
   }
   await b.close();
 })();
 "
 ```
 
-Lees de PNG's met de Read tool — Claude Code toont ze visueel. Wat je checkt per view:
-- **Overzicht**: volgt de rode lijn de echte rivier over het hele bbox? Geen sprongen naar andere riviernamen (Seine/Rhône moeten niet "aan de Loire hangen").
-- **Bron**: start de lijn op de juiste plek (vaak in de bergen) en niet ergens in het midden?
-- **Monding**: eindigt de lijn in zee/estuarium? Géén dubbele/zigzag lijnen vlak voor de monding — dat is het klassieke `chain()`-artefact waarbij een zijtak heen-en-weer is gelegd.
+**Daarna**: lees elke PNG met de Read tool — Claude Code toont hem visueel. Vergelijk rode lijn / blauw polygoon tegen de OSM-tegels eronder.
+
+Wat je checkt per view:
+- **Rivier — overzicht**: volgt de rode lijn de echte rivier over het hele bbox? Geen sprongen naar andere riviernamen (Seine/Rhône moeten niet "aan de Loire hangen").
+- **Rivier — bron**: start de lijn op de juiste plek (vaak in de bergen) en niet ergens in het midden?
+- **Rivier — monding**: eindigt de lijn in zee/estuarium? Géén dubbele/zigzag lijnen vlak voor de monding — dat is het klassieke `chain()`-artefact waarbij een zijtak heen-en-weer is gelegd.
+- **Polygoon (handmatig OF uit OSM)**: ligt het op de juiste plek *op land/zee zoals bedoeld*? Typische bug bij handmatige kuststroken: coördinaten-volgorde of een te-ver-naar-zee-punt zet de hele strook in het water. Altijd ingezoomd kijken of de bekende steden/landmerken binnen het polygoon vallen.
+- **Polygoon — overlapcheck**: als je meerdere features voor één set hebt (Pyreneeën + Andorra + Costa Blanca in 7.3), zoom uit naar overzicht om te zien of ze elkaar niet onbedoeld overlappen op rare plekken.
 
 **Wat zigzag betekent**: `chain(ways, maxGap)` is greedy en bidirectioneel. Als `maxGap` te groot is, plakt hij zijrivieren aan de hoofdstroom via een tributary-mond, loopt de zijrivier op, en keert terug — dat zie je als dubbele lijn. **Oplossing**: verlaag `maxGap` (probeer 0.3 → 0.5 → 1.0) of stap over op `relation["name"="..."]` met `main_stream`-rolfilter.
 
@@ -177,6 +192,7 @@ Lees de PNG's met de Read tool — Claude Code toont ze visueel. Wat je checkt p
 - **Nooit** coastline-ways via bbox proberen te chainen voor zeeën — gebruik multipolygon relations. (#37 is op deze manier twee keer mislukt.)
 - **Nooit** bestaande fetch-scripts overschrijven voor een nieuwe taak — maak een nieuw script zodat reruns reproduceerbaar blijven.
 - **Nooit** een rivier releasen zonder debug-screenshot van bron, midden én monding. Punt-aantal en endpoint-coördinaten zijn géén bewijs van correctheid — de Loire had 326 pts en plausibele lat-bbox terwijl de hele lijn verdubbeld was.
+- **Nooit** een handmatig polygoon (kuststrook, gebergte, woestijn) releasen zonder `debug-gewesten.html` screenshot op ingezoomd niveau. Eerste versie van Costa Blanca plakte volledig in de Middellandse Zee — dat was onzichtbaar in cijfers, glashelder in de screenshot.
 
 ## Vervolgacties na skill-afloop
 
