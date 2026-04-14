@@ -144,7 +144,7 @@ const SETS_73 = [73];
 console.log('\nRivieren:');
 const riverFeatures = [
   processRiver('seine.json', 'Seine', SETS_73, 0.003, 0.05),
-  processRiver('loire.json', 'Loire', SETS_73, 0.005, 2.0),  // grote gap: rivier maakt brede bocht
+  processRiver('loire.json', 'Loire', SETS_73, 0.003, 0.1),  // relation-query met main_stream filter
   processRiver('rhone.json', 'Rhône', SETS_73, 0.003, 0.1),
 ].filter(Boolean);
 

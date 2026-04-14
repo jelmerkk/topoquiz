@@ -63,14 +63,27 @@ const QUERIES = [
   {
     name: 'loire',
     out: 'loire.json',
-    // Loire als ways — bbox dekt bron (44.8°N,4.2°E) t/m monding Saint-Nazaire (47.3°N,-2.2°E)
-    q: 'way["name"="La Loire"]["waterway"="river"](44.5,-2.5,47.5,4.5);out geom qt;',
+    // Loire als relatie — geeft role=main_stream, voorkomt dubbellijn-artefact van de way-query
+    // (bij ways-query pakt hij ook side_stream kanaal-aftakkingen, die parallel aan de hoofdstroom lopen)
+    q: 'relation["name"="La Loire"]["waterway"="river"];out geom qt;',
   },
   {
     name: 'rhone',
     out: 'rhone.json',
     // Rhône als relatie — bevat hoofd- en zijstromen in de juiste volgorde
     q: 'relation["name"="Le Rhône"]["waterway"="river"];out geom qt;',
+  },
+  {
+    name: 'tajo',
+    out: 'tajo.json',
+    // Taag (Tejo/Tajo) — derde grote Iberische rivier, door ES en PT, monding Lissabon
+    q: 'relation["name"="Tajo"]["waterway"="river"];out geom qt;',
+  },
+  // Andorra als admin-grens (land met admin_level=2)
+  {
+    name: 'andorra',
+    out: 'andorra.json',
+    q: 'relation["name"="Andorra"]["admin_level"="2"]["boundary"="administrative"];out geom qt;',
   },
   // Gebieden (administratieve relaties)
   {

@@ -56,11 +56,13 @@ Gebruik altijd een **nieuw** fetch-script per taak (bijv. `fetch-loire.js`) of b
 
 | Doel | Query-template | Waarom |
 |---|---|---|
-| Rivier (middelgroot, NL/DE) | `way["name"="<Name>"]["waterway"="river"](bbox);out geom qt;` | Snel, losse way-segmenten die chain() plakt |
-| Rivier (FR, verplicht lidwoord) | `way["name"="La Seine"]...` / `way["name"="Le Rhône"]...` | OSM gebruikt lokale naam mét lidwoord |
-| Rivier als relatie | `relation["name"="<Name>"]["waterway"="river"];out geom qt;` | Voor rivieren waar losse ways te moeilijk te chainen zijn, maar kan rate-limit raken |
+| **Grote rivier (default-keuze)** | `relation["name"="<Name>"]["waterway"="river"];out geom qt;` | Relatie heeft `role=main_stream` vs `side_stream`/`tributary` — filter op main_stream voorkomt dubbellijn-artefact (zie Loire) |
+| Kleine rivier (NL, 1–2 segmenten) | `way["name"="<Name>"]["waterway"="river"](bbox);out geom qt;` | Alleen OK als de rivier nauwelijks zijkanalen heeft en je weet dat het hele traject uit enkele ways bestaat |
+| Rivier (FR, verplicht lidwoord) | `relation["name"="La Seine"]["waterway"="river"]...` / `...["name"="Le Rhône"]...` | OSM gebruikt lokale naam mét lidwoord |
 | Admin-grens (gewest, regio, land) | `relation["name"="<Name>"]["admin_level"="<N>"]["boundary"="administrative"];out geom qt;` | admin_level: 2=land, 4=provincie/staat, 6=arrondissement |
 | Zee / waterlichaam met grens | `relation["name"="<Name>"];out geom qt;` | Multipolygon met de randen van dat specifieke waterlichaam |
+
+**Default = relatie voor rivieren.** De way-bbox-query is snel maar heeft een fatale valkuil: bij grote rivieren met parallelle kanalen/zijtakken die dezelfde naam delen (Loire heeft 166 `side_stream` vs 118 `main_stream` leden) levert het een bundel van parallelle lijnen op. `chain()` plakt die dan allemaal aan elkaar en je krijgt een *dubbele* of *zigzag* lijn over het volledige traject — zichtbaar pas bij de debug-screenshot, niet bij punt-telling. De relatie-query met `role=main_stream` filter (al geïmplementeerd in `processRiver()`) produceert één schone hoofdstroom.
 
 **Bbox** voor way-queries: `(south,west,north,east)` in decimale graden. Houd hem krap om irrelevante matches te voorkomen, maar ruim genoeg om de hele feature te dekken.
 
@@ -109,9 +111,52 @@ Als je een **nieuw** top-level `*.geojson` bestand hebt aangemaakt (niet alleen 
 ### 7. Test en verifieer
 
 1. **`npm test`** — bestaande tests moeten groen blijven (let op `test.js` ALL_WATERS/ALL_PROVINCES counts).
-2. **Lokaal visueel** — `npx serve .`, open de set, kijk of de polygoon klopt.
+2. **Visuele verificatie via debug-viewer (VERPLICHT bij nieuwe rivieren)** — zie hieronder.
 3. **Nieuwe regressietest** — overweeg een test die bevestigt dat de polygoon minimaal X punten heeft (vergelijkbaar met `tests/set72.spec.js` Luxemburg-test).
-4. **Debug-viewer** — voor wateren: gebruik `debug-wateren.html` + Playwright screenshots zoals beschreven in `project_water_debug.md`.
+
+### 7a. Debug-screenshot workflow — de enige echte sanity check
+
+Punt-aantallen en endpoint-coördinaten zeggen **niks** over of een chain klopt. Alleen een visuele check tegen OSM-tegels laat zien of de geometrie correct is. Doe dit altijd voordat je merged.
+
+`debug-wateren.html` (repo root) rendert `wateren.geojson` op een Leaflet-kaart met OSM als achtergrond — LineStrings rood, polygonen blauw, namen als permanente tooltip. Gebruik hem zo:
+
+```bash
+# Server al draaiend? Skip deze regel.
+npx serve . -p 8765 &
+sleep 1
+
+node -e "
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage();
+  await p.setViewportSize({ width: 1400, height: 900 });
+  await p.goto('http://localhost:8765/debug-wateren.html', { waitUntil: 'networkidle' });
+  await p.waitForTimeout(1500);
+  // Pas center/zoom aan op de feature die je verifieert:
+  const views = [
+    { name: 'overzicht', lat: 46.5, lon: 1.5,  zoom: 7  },
+    { name: 'bron',      lat: 44.9, lon: 4.2,  zoom: 10 },
+    { name: 'monding',   lat: 47.3, lon: -2.2, zoom: 10 },
+  ];
+  for (const v of views) {
+    await p.evaluate(({lat,lon,zoom}) => map.setView([lat,lon], zoom), v);
+    await p.waitForTimeout(800);
+    await p.screenshot({ path: \`debug/loire-\${v.name}.png\` });
+  }
+  await b.close();
+})();
+"
+```
+
+Lees de PNG's met de Read tool — Claude Code toont ze visueel. Wat je checkt per view:
+- **Overzicht**: volgt de rode lijn de echte rivier over het hele bbox? Geen sprongen naar andere riviernamen (Seine/Rhône moeten niet "aan de Loire hangen").
+- **Bron**: start de lijn op de juiste plek (vaak in de bergen) en niet ergens in het midden?
+- **Monding**: eindigt de lijn in zee/estuarium? Géén dubbele/zigzag lijnen vlak voor de monding — dat is het klassieke `chain()`-artefact waarbij een zijtak heen-en-weer is gelegd.
+
+**Wat zigzag betekent**: `chain(ways, maxGap)` is greedy en bidirectioneel. Als `maxGap` te groot is, plakt hij zijrivieren aan de hoofdstroom via een tributary-mond, loopt de zijrivier op, en keert terug — dat zie je als dubbele lijn. **Oplossing**: verlaag `maxGap` (probeer 0.3 → 0.5 → 1.0) of stap over op `relation["name"="..."]` met `main_stream`-rolfilter.
+
+### 8. Visueel geverifieerd → commit
 
 ## Taalvalkuilen — snelreferentie
 
@@ -131,6 +176,7 @@ Als je een **nieuw** top-level `*.geojson` bestand hebt aangemaakt (niet alleen 
 - **Nooit** een polygoon in `gewesten.geojson` zetten zonder `sets: [...]` property — dan faalt de filter in gefaseerde sets.
 - **Nooit** coastline-ways via bbox proberen te chainen voor zeeën — gebruik multipolygon relations. (#37 is op deze manier twee keer mislukt.)
 - **Nooit** bestaande fetch-scripts overschrijven voor een nieuwe taak — maak een nieuw script zodat reruns reproduceerbaar blijven.
+- **Nooit** een rivier releasen zonder debug-screenshot van bron, midden én monding. Punt-aantal en endpoint-coördinaten zijn géén bewijs van correctheid — de Loire had 326 pts en plausibele lat-bbox terwijl de hele lijn verdubbeld was.
 
 ## Vervolgacties na skill-afloop
 
