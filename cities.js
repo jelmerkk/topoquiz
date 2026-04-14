@@ -148,12 +148,8 @@ const ALL_CITIES = [
   { name: "Vlaardingen",         lat: 51.91, lon: 4.34, pop:   71000, sets: [66] },
   { name: "Schiedam",            lat: 51.92, lon: 4.40, pop:   84000, sets: [66] },
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
-  // ── Set 70: Baltische hoofdsteden + Helsinki (fase 2 pilot; min. 4 voor MC-modus) ──
-  { name: "Tallinn",  lat: 59.44, lon: 24.75, pop:  450000, sets: [70] },
-  { name: "Riga",     lat: 56.95, lon: 24.11, pop:  614000, sets: [70] },
-  { name: "Vilnius",  lat: 54.69, lon: 25.28, pop:  580000, sets: [70] },
-  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [70, 71], capital: true },
   // ── Set 71: Europese hoofdsteden (7.1 Landen van Europa) ─────────────────────
+  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [71], capital: true },
   { name: "Lissabon",   lat: 38.72, lon: -9.14,  pop: 2956000, sets: [71, 73], capital: true },
   { name: "Madrid",     lat: 40.42, lon: -3.70,  pop: 3348000, sets: [71, 73], capital: true },
   { name: "Parijs",     lat: 48.86, lon: 2.35,   pop: 2161000, sets: [71, 73], capital: true },
@@ -210,13 +206,8 @@ const ALL_CITIES = [
 // Landen voor sets met quizType 'country'.
 // lat/lon = centroïd (voor pan-to en als fallback klik-punt).
 const ALL_COUNTRIES = [
-  // ── Set 70: Baltische staten + Finland ────────────────────────
-  // Finland erbij zodat MC-modus altijd 4 opties kan tonen (minimum voor set-grootte)
-  { name: 'Estland',  lat: 58.67, lon: 25.54, sets: [70] },
-  { name: 'Letland',  lat: 56.88, lon: 24.60, sets: [70] },
-  { name: 'Litouwen', lat: 55.17, lon: 23.88, sets: [70] },
-  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [70, 71] },
   // ── Set 71: Landen van Europa (7.1) ───────────────────────────
+  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [71] },
   { name: 'Portugal',            lat: 39.6,  lon: -8.3,  sets: [71] },
   { name: 'Spanje',              lat: 40.4,  lon: -3.7,  sets: [71] },
   { name: 'Frankrijk',           lat: 46.7,  lon:  2.6,  sets: [71] },
@@ -259,11 +250,6 @@ const ALL_WATERS = [
   // ── Set 72: Belgische rivieren (7.2 België en Luxemburg) ─────────────────────
   { name: 'Schelde', lat: 51.22, lon: 4.05, sets: [72] },
   { name: 'Maas',    lat: 50.63, lon: 5.57, sets: [72] },
-  // ── Set 70: Baltische wateren (fase 3 pilot-level) ────────────────────────────
-  { name: 'Oostzee',    lat: 58.5,  lon: 19.0, sets: [70] },
-  { name: 'Finse Golf', lat: 60.0,  lon: 25.5, sets: [70] },
-  { name: 'Rigabocht',  lat: 57.3,  lon: 22.5, sets: [70] },
-  { name: 'Daugava',    lat: 56.5,  lon: 25.5, sets: [70] },
   // ── Set 73: Rivieren van Frankrijk, Spanje en Portugal (7.3) ─────────────────
   { name: 'Seine',  lat: 49.0, lon:  1.5, sets: [73] },
   { name: 'Loire',  lat: 47.5, lon:  1.0, sets: [73] },
@@ -352,14 +338,6 @@ const SETS = {
            { id: 'regions', label: 'Gewesten', quizType: 'province' },
            { id: 'cities',  label: 'Steden',   quizType: 'place'    },
            { id: 'waters',  label: 'Wateren',  quizType: 'water'    },
-         ] },
-   // Test-level voor v2.0 pilot — 2 fases (stap 5 voegt waters-fase toe)
-   70: { name: 'Test: Baltische staten', group: 7, mastery: 1,
-         bounds: [[52, 14], [64, 32]], clickCorrectKm: 60, clickCloseKm: 180,
-         phases: [
-           { id: 'countries', label: 'Landen',      quizType: 'country' },
-           { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
-           { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
          ] },
    // Set 7.3: Frankrijk, Spanje en Portugal — 3 fases: steden, gebieden, rivieren
    73: { name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,

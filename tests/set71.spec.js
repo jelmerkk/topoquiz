@@ -4,8 +4,8 @@
  * Fase 1: 20 Europese landen (country quizType)
  * Fase 2: 20 hoofdsteden (place quizType)
  *
- * Infrastructuur (faseovergang, polygoonrendering, qtot) is al bewezen
- * via set 70's tests. Hier: data-correctheid + UI-smoke.
+ * Infrastructuur (faseovergang, polygoonrendering, qtot) is al gedekt
+ * via set 73's tests. Hier: data-correctheid + UI-smoke.
  */
 
 const { test, expect } = require('@playwright/test');

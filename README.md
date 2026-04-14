@@ -49,7 +49,7 @@ Velden per item:
 | `capital` | | `true` voor provinciehoofdsteden (vierkante marker) |
 | `aliases` | | Alternatieve spellingen die als goed worden geaccepteerd |
 
-Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. Baltische wateren); `sets` afwezig = gedeeld (NL wateren, altijd geladen voor set 57).
+Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. rivieren in set 7.3); `sets` afwezig = gedeeld (NL wateren, altijd geladen voor set 57).
 
 ### 2. De set registreren in `SETS`
 
@@ -60,12 +60,13 @@ Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. Baltische wateren); `s
 
 **Meerfasige set** (meerdere elementtypen sequentieel):
 ```js
-70: { name: 'Baltische staten', group: 7, mastery: 1,
-      bounds: [[52, 14], [64, 32]], clickCorrectKm: 60, clickCloseKm: 180,
+73: { name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,
+      bounds: [[35, -12], [52, 10]],
+      clickCorrectKm: 80, clickCloseKm: 240,
       phases: [
-        { id: 'countries', label: 'Landen',      quizType: 'country' },
-        { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
-        { id: 'waters',    label: 'Zeeën',       quizType: 'water'   },
+        { id: 'cities',  label: 'Steden',   quizType: 'place'    },
+        { id: 'regions', label: 'Gebieden', quizType: 'province' },
+        { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
       ] },
 ```
 
