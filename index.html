@@ -2009,7 +2009,7 @@ function showStartScreen() {
   _renderStartScreen();
 }
 
-async function startQuiz(mode) {
+async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
   history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
   // Bepaal welke quizTypes nodig zijn (één of meerdere bij gefaseerde sets)
@@ -2023,7 +2023,9 @@ async function startQuiz(mode) {
       history.back(); return;
     }
   }
-  currentPhaseIndex = 0; // altijd starten bij fase 0 (voortgang per fase: stap 6)
+  // Deep-link mag naar een latere fase springen; valt terug op 0 als buiten bereik.
+  currentPhaseIndex = (_set.phases && startPhase > 0 && startPhase < _set.phases.length)
+    ? startPhase : 0;
   initLevel(selectedSet);
 
   // Toon/verberg de juiste invoer-UI
@@ -2206,7 +2208,32 @@ async function hardRefresh() {
 // Geef de initiële paginastate een naam zodat popstate correct werkt
 history.replaceState({ screen: 'level-select' }, '');
 
-showStartScreen();
+// Dev deep-link: ?set=73&mode=mc&phase=2 springt direct de quiz in.
+// Alleen bedoeld voor snel testen op dev/preview-builds.
+async function _maybeDeepLink() {
+  const params = new URLSearchParams(location.search);
+  const setParam = params.get('set');
+  if (!setParam) return false;
+  const setNum = parseInt(setParam, 10);
+  if (!SETS[setNum]) return false;
+  selectedSet = setNum;
+
+  const modeParam = params.get('mode');
+  if (!modeParam) {
+    history.replaceState({ screen: 'mode-select', set: setNum }, '');
+    _renderModeSelect(setNum);
+    return true;
+  }
+  if (!['mc', 'text', 'map'].includes(modeParam)) return false;
+
+  const phaseParam = parseInt(params.get('phase') || '0', 10);
+  await startQuiz(modeParam, isNaN(phaseParam) ? 0 : phaseParam);
+  return true;
+}
+
+(async () => {
+  if (!(await _maybeDeepLink())) showStartScreen();
+})();
 </script>
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
   <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
