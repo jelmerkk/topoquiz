@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gewesten debug</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>html,body,#map{margin:0;height:100vh}</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="cities.js"></script>
+<script>
+const map = L.map('map').setView([48, 5], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// Harde polygonen uit gewesten.geojson (blauw)
+fetch('gewesten.geojson').then(r=>r.json()).then(gj => {
+  L.geoJSON(gj, {
+    style: () => ({ color: '#1e40af', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.35 }),
+    onEachFeature: (f, layer) => {
+      layer.bindTooltip(f.properties.name, { permanent: true, direction: 'center', className: 'lbl' });
+    }
+  }).addTo(map);
+});
+
+// Runtime fuzzy-ellipsen uit cities.js ALL_PROVINCES (paars/stippel).
+// Houdt dezelfde formule aan als buildEllipseFeature() in index.html, maar
+// in [lat,lon]-volgorde voor L.polygon — geen [lon,lat] nodig.
+function fuzzyEllipse(entry) {
+  const N = 64, coords = [];
+  for (let i = 0; i <= N; i++) {
+    const a = (i / N) * 2 * Math.PI;
+    coords.push([entry.lat + entry.ry * Math.sin(a), entry.lon + entry.rx * Math.cos(a)]);
+  }
+  return L.polygon(coords, {
+    color: '#7a5fa8', weight: 2, opacity: 0.9, dashArray: '6 5',
+    fillColor: '#a890d0', fillOpacity: 0.18,
+  }).bindTooltip(entry.name, { permanent: true, direction: 'center', className: 'lbl' });
+}
+
+if (typeof ALL_PROVINCES !== 'undefined') {
+  ALL_PROVINCES
+    .filter(p => p.shape === 'fuzzy')
+    .forEach(p => fuzzyEllipse(p).addTo(map));
+}
+</script>
+<style>.lbl{background:none;border:none;box-shadow:none;font-weight:bold;font-size:11px;color:#000}</style>
+</body>
+</html>

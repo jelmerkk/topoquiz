@@ -2,6 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 async function startQuiz(page, mode = 0) {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // set 54 (provincies) is groep 5
   await page.locator('#level-select .mode-btn').first().click();
   await page.locator('#mode-select .mode-btn').nth(mode).click();
   await page.waitForSelector('#question-text');
@@ -50,6 +51,11 @@ test('typ-modus: correct antwoord indienen werkt', async ({ page }) => {
   await page.locator('#city-input').fill(cityName);
   await page.locator('#city-input').press('Enter');
   await expect(page.locator('#feedback')).not.toBeEmpty();
+});
+
+test('#65: restart-knop op eindscherm zegt "Speel nog een quiz"', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#restart-btn')).toContainText('Speel nog een quiz');
 });
 
 test('progressbalk vordert na correct antwoord', async ({ page }) => {

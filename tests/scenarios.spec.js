@@ -3,6 +3,7 @@ const { test, expect } = require('@playwright/test');
 // Helper: start province quiz (set 54, first level) in given mode
 async function startProvinceQuiz(page, mode /* 0=mc, 1=text */) {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // set 54 is groep 5
   await page.locator('#level-select .mode-btn').first().click();
   await page.locator('#mode-select .mode-btn').nth(mode).click();
   await page.waitForSelector('#question-text');
@@ -104,6 +105,7 @@ test('typmodus: typfout in lang woord geeft "Bijna!" feedback', async ({ page })
 
 async function startMapClickQuiz(page) {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // set 55 is groep 5
   await page.locator('#level-select .mode-btn').nth(1).click(); // set 55 (plaatsen)
   await page.locator('#mode-select .mode-btn:visible').nth(2).click(); // kaart-klik
   await page.waitForSelector('#question-text');

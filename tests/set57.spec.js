@@ -1,27 +1,31 @@
 const { test, expect } = require('@playwright/test');
 
+async function openWateren(page) {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click(); // set 57 is groep 5
+  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+}
+
 test('set 57 (Wateren) verschijnt in het level-menu', async ({ page }) => {
   await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click();
   await expect(page.locator('#level-select .mode-btn', { hasText: 'Wateren' })).toBeVisible();
 });
 
 test('set 57 (Wateren) kan worden gestart in meerkeuze modus', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
   await expect(page.locator('#question-text')).toHaveText('Welk water is dit?');
   await expect(page.locator('.opt')).toHaveCount(4);
 });
 
 test('set 57 (Wateren) heeft een klik-op-kaart modus', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await expect(page.locator('#map-mode-btn')).toBeVisible();
 });
 
 test('set 57 (Wateren) klik-op-kaart: waternaam zichtbaar als vraagtekst', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
   const name = await page.evaluate(() => currentCity.name);
@@ -29,24 +33,20 @@ test('set 57 (Wateren) klik-op-kaart: waternaam zichtbaar als vraagtekst', async
 });
 
 test('set 57 (Wateren) klik-op-kaart: klik ver weg geeft afstandsfeedback', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
-  // Klik buiten Nederland (België) — altijd fout
   await page.evaluate(() => map.fire('click', { latlng: L.latLng(50.0, 4.0) }));
   await expect(page.locator('#feedback')).not.toBeEmpty();
   await expect(page.locator('#feedback')).toContainText('km');
 });
 
 test('set 57 (Wateren) klik-op-kaart: waterlagen zijn verborgen tijdens de vraag', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
-  // Niet-geraden wateren moeten opacity 0 hebben
   const allHidden = await page.evaluate(() => {
-    return Object.entries(waterLayers).every(([name, layer]) => {
+    return Object.entries(polygonTypes.water.layers).every(([name, layer]) => {
       const style = layer.options;
       const mastered = (streak[name] || 0) >= mastery();
       return mastered || (style.opacity === 0 && style.fillOpacity === 0);
@@ -56,8 +56,7 @@ test('set 57 (Wateren) klik-op-kaart: waterlagen zijn verborgen tijdens de vraag
 });
 
 test('set 57 (Wateren) klik-op-kaart: klik op exacte label-locatie geeft correct', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#level-select .mode-btn', { hasText: 'Wateren' }).click();
+  await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
   await page.evaluate(() => {

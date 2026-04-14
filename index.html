@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="1.14.1">
+<meta name="version" content="2.0.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -85,6 +85,51 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 }
 .map-click-mode #map-click-hint { display: block; }
 
+.group-select {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+.group-btn {
+  flex: 1;
+  padding: 10px 4px;
+  background: #1a2540;
+  border: 2px solid #3b5280;
+  color: #8ab4f8;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+@media (hover: hover) { .group-btn:hover { background: #1e2e50; border-color: #5880c8; color: #fff; } }
+.group-btn.active {
+  background: #1a3f8a;
+  border-color: #4a90d9;
+  color: #fff;
+}
+/* Prominente stijl als nog geen groep geselecteerd is */
+.group-select.no-selection .group-btn {
+  padding: 14px 4px;
+  background: #1e2e50;
+  border-color: #4a90d9;
+  color: #c8d8ff;
+  font-size: 1rem;
+  animation: pulse-group 1.8s ease-in-out infinite;
+}
+.group-select.no-selection .group-btn:nth-child(2) { animation-delay: 0.15s; }
+.group-select.no-selection .group-btn:nth-child(3) { animation-delay: 0.30s; }
+.group-select.no-selection .group-btn:nth-child(4) { animation-delay: 0.45s; }
+@keyframes pulse-group {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 144, 217, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.35); }
+}
+.group-hint {
+  font-size: 0.82rem;
+  color: #8ab4f8;
+  margin: 0 0 6px;
+  text-align: center;
+}
 .daily-btn {
   display: block; width: 100%; padding: 16px; margin-bottom: 18px;
   background: #1a3a1a; border: 2px solid #58CC02; color: #fff;
@@ -615,7 +660,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 </div>
 
 <div id="score-bar" style="display:none">
-  <span>🌟 <span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
+  <span>🌟 <span id="phase-label" style="display:none;margin-right:3px;color:#8ab4f8;font-size:0.8rem"></span><span id="sc-mastered" class="sc-mastered">0</span>/<b id="qtot">46</b> geleerd</span>
   <div id="progress-wrap"><div id="progress-bar"></div></div>
   <span id="sc-streak-wrap" style="display:none">🔥 <span id="sc-streak" class="sc-mastered">0</span></span>
   <span>✅ <span id="sc-ok" class="sc-ok">0</span> &nbsp;❌ <span id="sc-err" class="sc-err">0</span></span>
@@ -645,6 +690,11 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
   <ul id="hard-list"></ul>
 </div>
 
+<!-- Fase-overgangsscherm: toont kort "🎉 Landen af! Nu: Hoofdsteden →" tussen fases -->
+<div id="phase-transition" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,0.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div id="phase-transition-text" style="font-size:1.6rem;color:#fff;text-align:center;padding:24px;line-height:1.4"></div>
+</div>
+
 <div id="end-screen">
   <div id="end-stars"></div>
   <h2>🎉 Gefeliciteerd!</h2>
@@ -662,7 +712,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
     </div>
     <p id="rating-thanks" style="display:none">Bedankt! 🙏</p>
   </div>
-  <button id="restart-btn" onclick="showStartScreen()">Nog een keer! 🔄</button>
+  <button id="restart-btn" onclick="showStartScreen()">Speel nog een quiz 🔄</button>
   <button class="fb-open-btn fb-open-btn--end" onclick="openFeedback()">💬 Feedback of fout melden</button>
 </div>
 
@@ -690,7 +740,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="cities.js"></script>
 <script>
-const NL_BOUNDS = [[50.699, 3.325], [53.566, 7.261]];
+// NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS worden geladen via cities.js
 
 const map = L.map('leaflet-map', {
   zoomControl: true,
@@ -712,7 +762,7 @@ const tileLayer = USE_CARTO_TILES
   ? L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
-      minZoom: 6, maxZoom: 19,
+      minZoom: 3, maxZoom: 19,
     })
   : L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
@@ -721,30 +771,89 @@ const tileLayer = USE_CARTO_TILES
 
 tileLayer.addTo(map);
 
-// Provincie-stijlen
-const PROV_BORDER    = { color: '#666', weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
-const PROV_DEFAULT   = { color: '#5a7aaa', weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8', fillOpacity: 0.2  };
-const PROV_HIGHLIGHT = { color: '#c07000', weight: 2.5, opacity: 1,    fillColor: '#f0a500', fillOpacity: 0.6  };
-const PROV_MASTERED  = { color: '#1b5e20', weight: 2,   opacity: 0.9,  fillColor: '#58CC02', fillOpacity: 0.4  };
+// ── Gedeelde kleurtokens ──────────────────────────────────────────────────────
+const C_HIGHLIGHT_BORDER = '#c07000';
+const C_HIGHLIGHT_FILL   = '#f0a500';
+const C_MASTERED_BORDER  = '#1b5e20';
+const C_MASTERED_FILL    = '#58CC02';
 
-// Waterstijlen — blauw (zelfde kleurlogica als provincies maar blauw)
-const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5', fillOpacity: 0.2 };
-const WATER_HIGHLIGHT = { color: '#c07000', weight: 5,   opacity: 1,   fillColor: '#f0a500', fillOpacity: 0.5 };
-const WATER_MASTERED  = { color: '#1b5e20', weight: 3,   opacity: 0.9, fillColor: '#58CC02', fillOpacity: 0.3 };
+// Provincie-stijlen
+const PROV_BORDER    = { color: '#666',     weight: 1.2, opacity: 0.55, fill: false, dashArray: '5 4' };
+const PROV_DEFAULT   = { color: '#5a7aaa',  weight: 1.5, opacity: 0.7,  fillColor: '#8ab4f8',        fillOpacity: 0.2  };
+const PROV_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 2.5, opacity: 1,    fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.6  };
+const PROV_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9,  fillColor: C_MASTERED_FILL,  fillOpacity: 0.4  };
+
+// Fuzzy-stijlen — voor gebergtes, historische regio's en kuststroken zonder scherpe grens.
+// Onderbroken rand, paarse tint, lagere opacity zodat het visueel contrasteert met bestuurlijke polygonen.
+const FUZZY_DEFAULT   = { color: '#7a5fa8', weight: 2,   opacity: 0.75, dashArray: '6 5', fillColor: '#a890d0', fillOpacity: 0.12 };
+const FUZZY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,    dashArray: '6 5', fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.35 };
+const FUZZY_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2.5, opacity: 0.9,  dashArray: '6 5', fillColor: C_MASTERED_FILL,  fillOpacity: 0.25 };
+
+// Waterstijlen
+const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5',        fillOpacity: 0.2 };
+const WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 5,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5 };
+const WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 3,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3 };
 const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
-// Waterwegen — lokaal bestand, gebundeld in de repo.
-let waterFeatureData = null;
-let waterLayers = {};     // naam → Leaflet layer (alleen actief tijdens water-quiz)
-let waterQuizLayer = null;
+// Landstijlen
+const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6',        fillOpacity: 0.35 };
+const COUNTRY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5  };
+const COUNTRY_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3  };
 
-const waterDataPromise = fetch('/wateren.geojson')
+// ── polygonTypes-register ─────────────────────────────────────────────────────
+// Centraal configuratie-object voor alle polygon-quizTypes.
+// featureData/layers/quizLayer worden gevuld tijdens runtime.
+// afterHighlight: type-specifiek zoom/pan-gedrag na het markeren van een item.
+const polygonTypes = {
+  province: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: {
+      default: PROV_DEFAULT, highlight: PROV_HIGHLIGHT, mastered: PROV_MASTERED,
+      fuzzyDefault: FUZZY_DEFAULT, fuzzyHighlight: FUZZY_HIGHLIGHT, fuzzyMastered: FUZZY_MASTERED,
+    },
+    nameKey: 'name',
+    afterHighlight(item) {
+      const latlng = [item.lat, item.lon];
+      if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+    },
+  },
+  water: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: { default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN },
+    nameKey: 'name',
+    afterHighlight(item) {
+      const layer = this.layers[item.name];
+      if (layer) {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 10 });
+      }
+    },
+  },
+  country: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: { default: COUNTRY_DEFAULT, highlight: COUNTRY_HIGHLIGHT, mastered: COUNTRY_MASTERED },
+    nameKey: 'name',
+    afterHighlight(item) {
+      const layer = this.layers[item.name];
+      if (layer && gameMode !== 'map') {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
+      }
+    },
+  },
+};
+
+// Waterwegen — lokaal bestand, gebundeld in de repo.
+polygonTypes.water.dataPromise = fetch('/wateren.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(data => { waterFeatureData = data; })
-  .catch(err => {
-    console.error('Waterdata kon niet geladen worden:', err);
-    waterFeatureData = null;
-  });
+  .then(data => { polygonTypes.water.featureData = data; })
+  .catch(err => { console.error('Waterdata kon niet geladen worden:', err); });
 
 // Catmull-Rom spline: maakt vloeiende curves van LineString-coördinaten.
 // Voegt tussenliggende punten toe zodat rivieren/kanalen niet hoekig zijn.
@@ -773,82 +882,148 @@ function smoothGeoJSON(data) {
   })};
 }
 
-function buildWaterLayer() {
-  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); }
-  waterLayers = {};
-  waterQuizLayer = L.geoJSON(smoothGeoJSON(waterFeatureData), {
-    style: WATER_DEFAULT,
+// ── Generieke polygon-laagfuncties (vervangen 3× copy-paste per type) ────────
+
+// Genereer een ellipse-polygoon (64 punten) rond (lat,lon) met assen rx,ry in graden.
+// Wordt gebruikt voor ALL_PROVINCES-entries met shape:'fuzzy' — bergketens, historische
+// streken en kuststroken die niet tot op de meter begrensd moeten worden.
+function buildEllipseFeature(entry) {
+  const N = 64;
+  const coords = [];
+  for (let i = 0; i <= N; i++) {
+    const a = (i / N) * 2 * Math.PI;
+    coords.push([entry.lon + entry.rx * Math.cos(a), entry.lat + entry.ry * Math.sin(a)]);
+  }
+  return {
+    type: 'Feature',
+    properties: { name: entry.name, sets: entry.sets, shape: 'fuzzy' },
+    geometry: { type: 'Polygon', coordinates: [coords] },
+  };
+}
+
+// Injecteer ellips-features in de province featureData zodra die klaar is.
+// Idempotent: vervangt een bestaande feature met dezelfde naam, zodat hot-reloads clean blijven.
+function ensureFuzzyEllipseFeatures() {
+  const pt = polygonTypes.province;
+  if (!pt.featureData) return;
+  const fuzzyEntries = ALL_PROVINCES.filter(p => p.shape === 'fuzzy');
+  for (const entry of fuzzyEntries) {
+    const feat = buildEllipseFeature(entry);
+    const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
+    if (idx >= 0) pt.featureData.features[idx] = feat;
+    else pt.featureData.features.push(feat);
+  }
+}
+
+function styleForFeature(t, f, stateKey) {
+  if (f.properties.shape === 'fuzzy') {
+    const k = 'fuzzy' + stateKey[0].toUpperCase() + stateKey.slice(1);
+    return t.styles[k] || t.styles[stateKey];
+  }
+  return t.styles[stateKey];
+}
+
+function buildPolygonLayer(type) {
+  const t = polygonTypes[type];
+  if (t.quizLayer) { map.removeLayer(t.quizLayer); }
+  t.layers = {};
+  const activeNames = new Set(activeCities.map(c => c.name));
+
+  if (type === 'province') ensureFuzzyEllipseFeatures();
+
+  let geoData = t.featureData;
+  if (type === 'water') geoData = smoothGeoJSON(geoData);
+
+  t.quizLayer = L.geoJSON(geoData, {
+    style: f => styleForFeature(t, f, 'default'),
     interactive: false,
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.name;
-      if (name) waterLayers[name] = layer;
+    filter: f => {
+      const name = f.properties[t.nameKey];
+      if (!activeNames.has(name)) return false;
+      // Feature-level sets: oplossing voor dubbele namen (bijv. Maas NL vs Maas België)
+      const fSets = f.properties.sets;
+      if (fSets?.length) return fSets.includes(selectedSet);
+      // Geen feature-sets: toon alleen als de data-array ook geen set-specificatie heeft
+      // (geeft hetzelfde resultaat als de old isPhased-check: enkel voor niet-gefaseerde sets)
+      return !SETS[selectedSet].phases;
+    },
+    onEachFeature: (f, layer) => {
+      const name = f.properties[t.nameKey];
+      if (name) t.layers[name] = layer;
+      layer.feature = f;
     },
   }).addTo(map);
 }
 
-function setHighlightWater(water, mapMode = false) {
-  Object.entries(waterLayers).forEach(([name, layer]) => {
-    if (name === water.name) {
-      layer.setStyle(WATER_HIGHLIGHT);
-    } else if (mapMode) {
-      // In kaart-klik modus: niet-geraden wateren blijven verborgen
-      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
+function setHighlightPolygon(type, item, mapMode = false) {
+  const t = polygonTypes[type];
+  Object.entries(t.layers).forEach(([name, layer]) => {
+    const f = layer.feature || { properties: {} };
+    if (name === item.name) {
+      layer.setStyle(styleForFeature(t, f, 'highlight'));
+    } else if (mapMode && t.styles.hidden) {
+      // In kaart-klik modus: niet-geraden items verborgen (alleen water heeft hidden-stijl)
+      layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : t.styles.hidden);
     } else {
-      layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_DEFAULT);
+      layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : styleForFeature(t, f, 'default'));
     }
   });
-  if (waterLayers[water.name]) {
-    waterLayers[water.name].bringToFront();
-    map.fitBounds(waterLayers[water.name].getBounds(), { padding: [60, 60], maxZoom: 10 });
-  }
+  if (t.afterHighlight) t.afterHighlight.call(t, item);
+}
+
+function applyMasteredStyle(name) {
+  const city = activeCities.find(c => c.name === name);
+  if (city?.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
+  Object.values(polygonTypes).forEach(t => {
+    const layer = t.layers[name];
+    if (layer) layer.setStyle(styleForFeature(t, layer.feature || { properties: {} }, 'mastered'));
+  });
+}
+
+function clearPolygonLayers() {
+  Object.values(polygonTypes).forEach(t => {
+    if (t.quizLayer) { map.removeLayer(t.quizLayer); t.quizLayer = null; }
+    t.layers = {};
+  });
 }
 
 // Provinciegrenzen — lokaal bestand (oorsprong: cartomap.github.io, MIT, WGS84)
 // Gebundeld in de repo zodat de quiz offline werkt en niet afhankelijk is van een externe URL.
-let provinceFeatureData = null;
-let provinceLayers = {};    // statnaam → Leaflet layer (alleen actief tijdens province-quiz)
-let provinceQuizLayer = null;
+let provinceBorderLayer = null; // vaste achtergrondlaag met NL-grenzen
 
-const provinceDataPromise = fetch('/provincie_2023.geojson')
+polygonTypes.province.dataPromise = fetch('/provincie_2023.geojson')
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(data => {
-    provinceFeatureData = data;
-    L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
+    polygonTypes.province.featureData = data;
+    provinceBorderLayer = L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
   })
-  .catch(err => {
-    console.error('Provinciedata kon niet geladen worden:', err);
-    provinceFeatureData = null;
-  });
+  .catch(err => { console.error('Provinciedata kon niet geladen worden:', err); });
 
-// Bouw een interactieve provincielaag voor de quiz (één keer per speelsessie).
-function buildProvinceLayer() {
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); }
-  provinceLayers = {};
-  provinceQuizLayer = L.geoJSON(provinceFeatureData, {
-    style: PROV_DEFAULT,
-    interactive: false,
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.statnaam;
-      if (name) provinceLayers[name] = layer;
-    },
-  }).addTo(map);
-}
+// Laad gewesten (België) en voeg toe aan provinceFeatureData zodra beide klaar zijn
+fetch('/gewesten.geojson')
+  .then(r => r.ok ? r.json() : Promise.reject(r.status))
+  .then(data => {
+    const pt = polygonTypes.province;
+    if (pt.featureData) {
+      pt.featureData.features.push(...data.features);
+    } else {
+      pt.featureData = data;
+    }
+  })
+  .catch(err => console.warn('Gewestendata kon niet geladen worden:', err));
 
-function setHighlightProvince(province) {
-  Object.entries(provinceLayers).forEach(([name, layer]) => {
-    layer.setStyle(name === province.name
-      ? PROV_HIGHLIGHT
-      : (streak[name] >= mastery() ? PROV_MASTERED : PROV_DEFAULT));
-  });
-  if (provinceLayers[province.name]) provinceLayers[province.name].bringToFront();
-  const latlng = [province.lat, province.lon];
-  if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
-}
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
+// Landsgrenzen — voor quizType 'country' (laden per set via landen-europa.geojson)
+polygonTypes.country.dataPromise = fetch('/landen-europa.geojson')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(data => { polygonTypes.country.featureData = data; })
+  .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
+
+
 const NORMAL_STYLE   = { color: '#1a2744', weight: 1.5, fillColor: '#4a5a80', fillOpacity: 0.9 };
-const MASTERED_STYLE = { color: '#1b5e20', weight: 1.5, fillColor: '#58CC02', fillOpacity: 1   };
+const MASTERED_STYLE = { color: C_MASTERED_BORDER, weight: 1.5, fillColor: C_MASTERED_FILL, fillOpacity: 1 };
 
 const markerLayer = L.layerGroup().addTo(map);
 const revealedLayer = L.layerGroup().addTo(map); // groene stippen voor geraden steden in kaart-klik modus
@@ -913,12 +1088,26 @@ function pointInPolygon(lat, lon, coords) {
   return inside;
 }
 
-// Afstand van klikpunt tot een waterlichaam (LineString of Polygon) in km
-function distanceToWater(lat, lon, waterName) {
-  const feature = waterFeatureData?.features?.find(f => f.properties.name === waterName);
+// Afstand van klikpunt tot een polygon- of lijnfeature in km (water, land, provincie)
+function distanceToFeature(lat, lon, name, type) {
+  const featureData = polygonTypes[type]?.featureData;
+  const feature = featureData?.features?.find(f => f.properties.name === name);
   if (!feature) return Infinity;
   const geom = feature.geometry;
   const coords = geom.coordinates;
+  if (geom.type === 'MultiPolygon') {
+    let minDist = Infinity;
+    for (const poly of coords) {
+      if (pointInPolygon(lat, lon, poly[0])) return 0;
+      for (const ring of poly) {
+        for (let i = 0; i < ring.length - 1; i++) {
+          const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
+          if (d < minDist) minDist = d;
+        }
+      }
+    }
+    return minDist;
+  }
   if (geom.type === 'Polygon') {
     const inOuter = pointInPolygon(lat, lon, coords[0]);
     const inHole  = coords.length > 1 && coords.slice(1).some(hole => pointInPolygon(lat, lon, hole));
@@ -943,9 +1132,10 @@ function distanceToWater(lat, lon, waterName) {
   return Infinity;
 }
 
-function clickResult(distKm, zoomed) {
-  const correctKm = zoomed ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM;
-  const closeKm   = zoomed ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM;
+function clickResult(distKm, setNumber) {
+  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
+  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
+  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
   if (distKm < correctKm) return 'correct';
   if (distKm < closeKm)   return 'close';
   return 'wrong';
@@ -990,8 +1180,17 @@ let mapClickMarker = null; // tijdelijke marker na klik op kaart
 let activeCities = [];
 let gameMode = 'mc';
 let streak = {}, sessionOk = 0, sessionErr = 0;
+let cumulativeOk = 0, cumulativeErr = 0; // totaal over alle fases heen (reset alleen bij nieuwe quiz)
 let currentCity = null, answered = false;
 let hintRevealed = 0; // aantal tekens van de hint dat getoond is
+let currentPhaseIndex = 0; // actieve fase-index voor sets met phases-array
+
+// Geeft het effectieve quizType terug voor de huidige sessie.
+// Voor gefaseerde sets: de quizType van de actieve fase.
+function currentQuizType() {
+  const set = SETS[selectedSet];
+  return set.phases ? set.phases[currentPhaseIndex].quizType : set.quizType;
+}
 
 // ── Text answer helpers ──────────────────────────────────────
 
@@ -1071,15 +1270,18 @@ function initLevel(setNumber) {
   markerLayer.clearLayers();
   revealedLayer.clearLayers();
   if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer) { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
+  clearPolygonLayers();
 
-  if (SETS[setNumber].quizType === 'province') {
-    activeCities = ALL_PROVINCES;
-    buildProvinceLayer();
-  } else if (SETS[setNumber].quizType === 'water') {
-    activeCities = ALL_WATERS;
-    buildWaterLayer();
+  const _qt = currentQuizType(); // respecteert phases[currentPhaseIndex] als die er is
+  if (_qt === 'province') {
+    activeCities = ALL_PROVINCES.filter(p => p.sets.includes(setNumber));
+    buildPolygonLayer('province');
+  } else if (_qt === 'water') {
+    activeCities = ALL_WATERS.filter(w => w.sets.includes(setNumber));
+    buildPolygonLayer('water');
+  } else if (_qt === 'country') {
+    activeCities = ALL_COUNTRIES.filter(c => c.sets.includes(setNumber));
+    buildPolygonLayer('country');
   } else {
     if (SETS[setNumber].daily) {
       activeCities = dailyCities(todayStr());
@@ -1131,8 +1333,9 @@ function initStreak() {
     streak[c.name] = 0;
     c._hadWrong = false;
     if (c.marker) c.marker.setStyle({ ...NORMAL_STYLE, radius: cityRadius(c) });
-    if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_DEFAULT);
-    if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_DEFAULT);
+    Object.values(polygonTypes).forEach(t => {
+      if (t.layers[c.name]) t.layers[c.name].setStyle(t.styles.default);
+    });
   });
 }
 
@@ -1183,28 +1386,32 @@ function renderQuestion() {
   // Ruim vorige klik-marker op
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
 
-  const isProvince = SETS[selectedSet].quizType === 'province';
-  const isWater    = SETS[selectedSet].quizType === 'water';
+  const _rqQt = currentQuizType();
+  const isProvince = _rqQt === 'province';
+  const isWater    = _rqQt === 'water';
+  const isCountry  = _rqQt === 'country';
   if (gameMode === 'map') {
     // Verberg alle markers/highlights — anders geef je locatie-informatie weg
     if (map.hasLayer(markerLayer)) map.removeLayer(markerLayer);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar Nederland
+    // Bij water: verberg alle nog-niet-geraden waterlagen + reset zoom naar set-bounds
     if (isWater) {
-      Object.entries(waterLayers).forEach(([name, layer]) => {
+      Object.entries(polygonTypes.water.layers).forEach(([name, layer]) => {
         layer.setStyle(streak[name] >= mastery() ? WATER_MASTERED : WATER_HIDDEN);
       });
-      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8, animate: true });
+      const _wb = SETS[selectedSet].bounds || NL_BOUNDS;
+      map.fitBounds(_wb, { padding: [4, 4], maxZoom: 8, animate: true });
     }
     document.getElementById('question-text').textContent = currentCity.name;
-  } else if (isProvince) {
-    document.getElementById('question-text').textContent = 'Welke provincie is dit?';
+  } else if (isProvince || isWater || isCountry) {
+    const QUESTION_TEXT = {
+      province: item => item.kind === 'gewest' ? 'Welk gewest is dit?' : 'Welke provincie is dit?',
+      water:    ()   => 'Welk water is dit?',
+      country:  ()   => 'Welk land is dit?',
+    };
+    document.getElementById('question-text').textContent = QUESTION_TEXT[_rqQt](currentCity);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightProvince(currentCity);
-  } else if (isWater) {
-    document.getElementById('question-text').textContent = 'Welk water is dit?';
-    if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightWater(currentCity);
+    setHighlightPolygon(_rqQt, currentCity);
   } else {
     document.getElementById('question-text').textContent = 'Welke plaats is dit?';
     setHighlight(currentCity);
@@ -1321,11 +1528,10 @@ function recordCorrect(city, fb, close = false) {
   }
   streak[city.name]++;
   sessionOk++;
+  cumulativeOk++;
   const mastered = streak[city.name] >= mastery();
   if (mastered) {
-    if (city.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
-    if (provinceLayers[city.name]) provinceLayers[city.name].setStyle(PROV_MASTERED);
-    if (waterLayers[city.name]) waterLayers[city.name].setStyle(WATER_MASTERED);
+    applyMasteredStyle(city.name);
     fb.innerHTML = close
       ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
       : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
@@ -1350,6 +1556,7 @@ function recordWrong(city, fb) {
   streak[city.name] = 0;
   city._hadWrong = true;
   sessionErr++;
+  cumulativeErr++;
   consecutiveCorrect = 0;
   fb.textContent = `Helaas! 😅 Het was ${city.name} — je krijgt nog een kans! 💪`;
   fb.className = 'fb-err';
@@ -1367,11 +1574,13 @@ function handleMapClick(e) {
   answered = true;
 
   const city = currentCity;
-  const isWater = SETS[selectedSet].quizType === 'water';
-  const distKm = isWater
-    ? distanceToWater(e.latlng.lat, e.latlng.lng, city.name)
+  const _hqQt  = currentQuizType();
+  const isWater   = _hqQt === 'water';
+  const isCountry = _hqQt === 'country';
+  const distKm = (isWater || isCountry)
+    ? distanceToFeature(e.latlng.lat, e.latlng.lng, city.name, _hqQt)
     : haversine(e.latlng.lat, e.latlng.lng, city.lat, city.lon);
-  const result = clickResult(distKm, SETS[selectedSet].fitOnStart);
+  const result = clickResult(distKm, selectedSet);
 
   // Klik-marker tonen (markerLayer blijft verborgen — geeft anders toekomstige locaties weg)
   mapClickMarker = L.circleMarker(e.latlng, {
@@ -1382,7 +1591,9 @@ function handleMapClick(e) {
 
   // Highlight de echte locatie
   if (isWater) {
-    setHighlightWater(city, true);
+    setHighlightPolygon('water', city, true);
+  } else if (isCountry) {
+    setHighlightPolygon('country', city);
   } else {
     setHighlight(city);
   }
@@ -1414,11 +1625,21 @@ function handleMapClick(e) {
 }
 
 function updateScoreboard() {
-  const mc = masteredCount();
+  const mc  = masteredCount();
+  const set = SETS[selectedSet];
   document.getElementById('sc-ok').textContent       = sessionOk;
   document.getElementById('sc-err').textContent      = sessionErr;
   document.getElementById('sc-mastered').textContent = mc;
   document.getElementById('progress-bar').style.width = Math.round(mc / activeCities.length * 100) + '%';
+  const phaseLabel = document.getElementById('phase-label');
+  if (phaseLabel) {
+    if (set.phases) {
+      phaseLabel.textContent = set.phases[currentPhaseIndex].label + ' ';
+      phaseLabel.style.display = '';
+    } else {
+      phaseLabel.style.display = 'none';
+    }
+  }
   const streakWrap = document.getElementById('sc-streak-wrap');
   const streakEl   = document.getElementById('sc-streak');
   if (streakWrap && streakEl) {
@@ -1433,8 +1654,40 @@ function updateScoreboard() {
   updateHardList();
 }
 
+function showPhaseTransition(fromPhase, toPhase, onDone) {
+  const el   = document.getElementById('phase-transition');
+  const text = document.getElementById('phase-transition-text');
+  text.innerHTML = `🎉 <strong>${fromPhase.label}</strong> af!<br>Nu: ${toPhase.label} →`;
+  el.style.display = 'flex';
+  setTimeout(() => {
+    el.style.display = 'none';
+    onDone();
+  }, 1800);
+}
+
 function finishAnswer() {
-  const mc = masteredCount();
+  const mc  = masteredCount();
+  const set = SETS[selectedSet];
+
+  if (mc >= activeCities.length && set.phases) {
+    const nextIdx = currentPhaseIndex + 1;
+    if (nextIdx < set.phases.length) {
+      // Volgende fase: transitiescherm tonen na 2s (zodat de feedback zichtbaar blijft)
+      setTimeout(() => {
+        showPhaseTransition(set.phases[currentPhaseIndex], set.phases[nextIdx], () => {
+          currentPhaseIndex = nextIdx;
+          initLevel(selectedSet);
+          initStreak();
+          sessionOk = sessionErr = consecutiveCorrect = 0;
+          document.getElementById('qtot').textContent = activeCities.length;
+          updateScoreboard();
+          renderQuestion();
+        });
+      }, 2000);
+      return;
+    }
+  }
+
   setTimeout(mc >= activeCities.length ? showEnd : renderQuestion, 2000);
 }
 
@@ -1459,12 +1712,14 @@ function showEnd() {
   ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
     document.getElementById(id).style.display = 'none');
   document.getElementById('end-screen').style.display = 'block';
-  const total = sessionOk + sessionErr;
-  const pct   = total ? Math.round(sessionOk / total * 100) : 100;
-  const isProvince = SETS[selectedSet].quizType === 'province';
-  const isWater    = SETS[selectedSet].quizType === 'water';
+  const total = cumulativeOk + cumulativeErr;
+  const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
+  const _endSet  = SETS[selectedSet];
+  const _endQts  = _endSet.phases ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
+  const isProvince = !_endSet.phases && _endSet.quizType === 'province';
+  const isWater    = !_endSet.phases && _endSet.quizType === 'water';
 
-  const isDaily = SETS[selectedSet].daily;
+  const isDaily = _endSet.daily;
   if (isDaily) {
     const results = activeCities.map(c => dailyAnswers[c.name] === true);
     const correct = results.filter(Boolean).length;
@@ -1481,12 +1736,14 @@ function showEnd() {
     document.getElementById('rating-wrap').style.display = '';
     document.getElementById('end-stars').style.display = '';
     document.getElementById('end-text').innerHTML =
-      `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${sessionOk} van de ${total} goed — ${pct}% raak! 🎯`;
+      _endSet.phases
+        ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
+        : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
 
   if (!isDaily) {
     // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
-    const stars = sessionErr === 0 ? 3 : pct >= 80 ? 2 : 1;
+    const stars = cumulativeErr === 0 ? 3 : pct >= 80 ? 2 : 1;
     const starsEl = document.getElementById('end-stars');
     starsEl.innerHTML = '';
     for (let i = 0; i < 3; i++) {
@@ -1542,37 +1799,35 @@ function _renderLevelSelect() {
   const el = document.getElementById('level-select');
   el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
 
-  // Daily challenge bovenaan, apart van de reguliere sets
-  const todayResult = (() => { try { return localStorage.getItem(dailyStorageKey()); } catch (_) { return null; } })();
-  const dailyBtn = document.createElement('button');
-  dailyBtn.className = 'daily-btn' + (todayResult ? ' done' : '');
-  const sub = document.createElement('span');
-  sub.className = 'daily-sub';
-  if (todayResult) {
-    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag — al gedaan! ✓'));
-    sub.textContent = todayResult;
-    dailyBtn.onclick = null;
-  } else {
-    dailyBtn.appendChild(document.createTextNode('📅 Uitdaging van vandaag'));
-    sub.textContent = '10 steden, elke dag anders — meerkeuze';
-    dailyBtn.onclick = () => selectLevel(98);
+  // Groep-selectieknoppen
+  const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
+  if (!selectedGroup) {
+    const hint = document.createElement('p');
+    hint.className = 'group-hint';
+    hint.textContent = 'Kies je groep om te beginnen';
+    el.appendChild(hint);
   }
-  dailyBtn.appendChild(sub);
-  el.appendChild(dailyBtn);
-
-  const hr0 = document.createElement('hr');
-  hr0.className = 'level-divider';
-  el.appendChild(hr0);
+  const groupWrap = document.createElement('div');
+  groupWrap.className = 'group-select' + (!selectedGroup ? ' no-selection' : '');
+  [5, 6, 7, 8].forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'group-btn' + (selectedGroup === String(g) ? ' active' : '');
+    btn.textContent = `Groep ${g}`;
+    btn.onclick = () => {
+      try { sessionStorage.setItem('selectedGroup', String(g)); } catch (_) {}
+      _renderLevelSelect();
+    };
+    groupWrap.appendChild(btn);
+  });
+  el.appendChild(groupWrap);
 
   Object.entries(SETS).forEach(([num, set]) => {
-    if (set.daily) return; // al apart weergegeven
-    if (set.bonus) {
-      const hr = document.createElement('hr');
-      hr.className = 'level-divider';
-      el.appendChild(hr);
-    }
+    if (set.daily) return; // tijdelijk verborgen
+    if (set.bonus) return; // tijdelijk verborgen
+    // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
+    if (!selectedGroup || set.group !== Number(selectedGroup)) return;
     const btn = document.createElement('button');
-    btn.className = set.bonus ? 'mode-btn bonus-btn' : 'mode-btn';
+    btn.className = 'mode-btn';
     btn.textContent = set.name;
     if (set.beta) {
       const tag = document.createElement('span');
@@ -1599,8 +1854,7 @@ function _renderLevelSelect() {
 
 function _renderModeSelect(setNumber) {
   // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
+  clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
 
@@ -1613,24 +1867,41 @@ function _renderModeSelect(setNumber) {
   document.getElementById('level-select').style.display = 'none';
   document.getElementById('mode-select').style.display  = 'block';
 
-  const isProvince = SETS[setNumber].quizType === 'province';
-  const isWater    = SETS[setNumber].quizType === 'water';
+  const _msSet = SETS[setNumber];
   const descs = document.querySelectorAll('#mode-select .mode-desc');
-  descs[0].textContent = isProvince
-    ? 'Je ziet een provincie gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
-    : isWater
-    ? 'Je ziet een waterweg gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
-    : 'Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!';
-  descs[1].textContent = isProvince
-    ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
-    : isWater
-    ? 'Je typt de naam van de waterweg zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
-    : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
-  // Kaart-klik niet beschikbaar voor provincies; wel voor plaatsen en wateren
-  document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
-  if (descs[2]) descs[2].textContent = isWater
-    ? 'Je ziet de naam van een waterweg en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!'
-    : 'Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!';
+  if (_msSet.phases) {
+    // Gefaseerde set: generieke beschrijvingen (meerdere typen elementen)
+    const labels = _msSet.phases.map(p => p.label).join(', ');
+    descs[0].textContent = `Dit level bevat meerdere categorieën (${labels}). Je ziet steeds één element op de kaart en kiest de naam. Goed om te beginnen!`;
+    descs[1].textContent = `Je typt de naam van elk element zelf in. Hints beschikbaar. Categorieën: ${labels}.`;
+    document.getElementById('map-mode-btn').style.display = '';
+    if (descs[2]) descs[2].textContent = `Je klikt op de kaart waar het gevraagde element ligt. Hoe dichter bij, hoe beter!`;
+  } else {
+    const isProvince = _msSet.quizType === 'province';
+    const isWater    = _msSet.quizType === 'water';
+    const isCountry  = _msSet.quizType === 'country';
+    descs[0].textContent = isProvince
+      ? 'Je ziet een provincie gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
+      : isWater
+      ? 'Je ziet een waterweg gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
+      : isCountry
+      ? 'Je ziet een land gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
+      : 'Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!';
+    descs[1].textContent = isProvince
+      ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
+      : isWater
+      ? 'Je typt de naam van de waterweg zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
+      : isCountry
+      ? 'Je typt de naam van het land zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
+      : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
+    // Kaart-klik niet beschikbaar voor provincies; wel voor plaatsen, wateren en landen
+    document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
+    if (descs[2]) descs[2].textContent = isWater
+      ? 'Je ziet de naam van een waterweg en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!'
+      : isCountry
+      ? 'Je ziet de naam van een land en klikt op de kaart waar dat land ligt. Klik ín het land voor een perfect antwoord!'
+      : 'Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!';
+  }
 }
 
 // ── Publieke navigatiefuncties (met history) ─────────────────
@@ -1647,7 +1918,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v1.14.1';
+const APP_VERSION = 'v2.0.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1718,8 +1989,7 @@ function _renderStartScreen() {
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
   revealedLayer.clearLayers();
   if (!map.hasLayer(markerLayer)) map.addLayer(markerLayer);
-  if (provinceQuizLayer) { map.removeLayer(provinceQuizLayer); provinceQuizLayer = null; provinceLayers = {}; }
-  if (waterQuizLayer)    { map.removeLayer(waterQuizLayer); waterQuizLayer = null; waterLayers = {}; }
+  clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
   ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
@@ -1739,25 +2009,23 @@ function showStartScreen() {
   _renderStartScreen();
 }
 
-async function startQuiz(mode) {
+async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
   history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
-  if (SETS[selectedSet].quizType === 'province') {
-    await provinceDataPromise;
-    if (!provinceFeatureData) {
-      alert('De provinciekaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
-      history.back();
-      return;
+  // Bepaal welke quizTypes nodig zijn (één of meerdere bij gefaseerde sets)
+  const _set = SETS[selectedSet];
+  const _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
+  for (const qt of _allQts) {
+    if (!polygonTypes[qt]) continue;
+    await polygonTypes[qt].dataPromise;
+    if (!polygonTypes[qt].featureData) {
+      alert('De kaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
+      history.back(); return;
     }
   }
-  if (SETS[selectedSet].quizType === 'water') {
-    await waterDataPromise;
-    if (!waterFeatureData) {
-      alert('De waterkaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
-      history.back();
-      return;
-    }
-  }
+  // Deep-link mag naar een latere fase springen; valt terug op 0 als buiten bereik.
+  currentPhaseIndex = (_set.phases && startPhase > 0 && startPhase < _set.phases.length)
+    ? startPhase : 0;
   initLevel(selectedSet);
 
   // Toon/verberg de juiste invoer-UI
@@ -1766,9 +2034,11 @@ async function startQuiz(mode) {
   // Kaart-klik modus: crosshair cursor en klik-listener
   map.off('click', handleMapClick);
   if (mode === 'map') {
-    const isWaterSet = SETS[selectedSet].quizType === 'water';
+    const _initQt = currentQuizType();
     document.getElementById('map-click-hint').textContent =
-      isWaterSet ? '👆 Klik op de kaart waar dit water ligt' : '👆 Klik op de kaart waar deze plaats ligt';
+      _initQt === 'water'   ? '👆 Klik op de kaart waar dit water ligt' :
+      _initQt === 'country' ? '👆 Klik op de kaart waar dit land ligt' :
+                              '👆 Klik op de kaart waar deze plaats ligt';
     document.getElementById('map-wrap').classList.add('map-click-mode');
     map.on('click', handleMapClick);
   } else {
@@ -1782,13 +2052,13 @@ async function startQuiz(mode) {
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = consecutiveCorrect = 0;
+    cumulativeOk = cumulativeErr = 0;
+    updateScoreboard(); // initialiseert ook #phase-label
   } else {
     // Herstel visuele staat van gememoreerde plaatsen/provincies
     activeCities.forEach(c => {
       if (streak[c.name] >= mastery()) {
-        if (c.marker) c.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(c) });
-        if (provinceLayers[c.name]) provinceLayers[c.name].setStyle(PROV_MASTERED);
-        if (waterLayers[c.name]) waterLayers[c.name].setStyle(WATER_MASTERED);
+        applyMasteredStyle(c.name);
       }
     });
     updateHardList();
@@ -1806,9 +2076,17 @@ async function startQuiz(mode) {
   document.getElementById('end-screen').style.display   = 'none';
   document.getElementById('hard-panel').style.display   = 'none';
   document.getElementById('map-wrap').style.display     = 'block';
+  // Verberg NL-provinciegrenzen bij EU/wereld-sets (heeft bounds-veld)
+  if (provinceBorderLayer) {
+    if (SETS[selectedSet].bounds) provinceBorderLayer.remove();
+    else if (!map.hasLayer(provinceBorderLayer)) provinceBorderLayer.addTo(map);
+  }
   requestAnimationFrame(() => {
     map.invalidateSize();
-    if (SETS[selectedSet].fitOnStart)
+    const _set = SETS[selectedSet];
+    if (_set.bounds)
+      map.fitBounds(_set.bounds, { padding: [20, 20], maxZoom: 8 });
+    else if (_set.fitOnStart)
       map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
     else
       map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
@@ -1930,7 +2208,32 @@ async function hardRefresh() {
 // Geef de initiële paginastate een naam zodat popstate correct werkt
 history.replaceState({ screen: 'level-select' }, '');
 
-showStartScreen();
+// Dev deep-link: ?set=73&mode=mc&phase=2 springt direct de quiz in.
+// Alleen bedoeld voor snel testen op dev/preview-builds.
+async function _maybeDeepLink() {
+  const params = new URLSearchParams(location.search);
+  const setParam = params.get('set');
+  if (!setParam) return false;
+  const setNum = parseInt(setParam, 10);
+  if (!SETS[setNum]) return false;
+  selectedSet = setNum;
+
+  const modeParam = params.get('mode');
+  if (!modeParam) {
+    history.replaceState({ screen: 'mode-select', set: setNum }, '');
+    _renderModeSelect(setNum);
+    return true;
+  }
+  if (!['mc', 'text', 'map'].includes(modeParam)) return false;
+
+  const phaseParam = parseInt(params.get('phase') || '0', 10);
+  await startQuiz(modeParam, isNaN(phaseParam) ? 0 : phaseParam);
+  return true;
+}
+
+(async () => {
+  if (!(await _maybeDeepLink())) showStartScreen();
+})();
 </script>
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
   <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
