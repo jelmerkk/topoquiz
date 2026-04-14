@@ -256,6 +256,22 @@ const { chromium } = require('playwright');
 
 ---
 
+## Dev tips
+
+### Deep-link naar set / modus / fase
+
+Voor snel handmatig testen kun je via URL-parameters direct de quiz in springen, zonder door het startscherm en mode-select te klikken:
+
+| URL | Effect |
+|---|---|
+| `?set=73` | Springt naar mode-select van set 7.3 |
+| `?set=73&mode=mc` | Start quiz set 7.3 in meerkeuze-modus, fase 0 |
+| `?set=73&mode=map&phase=2` | Start quiz in klik-op-kaart-modus, fase 2 (derde fase) |
+
+Modi: `mc` (meerkeuze), `text` (typen), `map` (klik op kaart). Ongeldige of ontbrekende parameters vallen stil terug op het gewone startscherm. Werkt op elke build (dev, preview én productie), maar bedoeld voor dev-testen.
+
+---
+
 ## Feedback
 
 Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Google Forms endpoint). Issues worden bijgehouden op [GitHub](https://github.com/jelmerkk/topoquiz/issues).
