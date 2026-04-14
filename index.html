@@ -783,6 +783,12 @@ const PROV_DEFAULT   = { color: '#5a7aaa',  weight: 1.5, opacity: 0.7,  fillColo
 const PROV_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 2.5, opacity: 1,    fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.6  };
 const PROV_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9,  fillColor: C_MASTERED_FILL,  fillOpacity: 0.4  };
 
+// Fuzzy-stijlen — voor gebergtes, historische regio's en kuststroken zonder scherpe grens.
+// Onderbroken rand, paarse tint, lagere opacity zodat het visueel contrasteert met bestuurlijke polygonen.
+const FUZZY_DEFAULT   = { color: '#7a5fa8', weight: 2,   opacity: 0.75, dashArray: '6 5', fillColor: '#a890d0', fillOpacity: 0.12 };
+const FUZZY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,    dashArray: '6 5', fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.35 };
+const FUZZY_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2.5, opacity: 0.9,  dashArray: '6 5', fillColor: C_MASTERED_FILL,  fillOpacity: 0.25 };
+
 // Waterstijlen
 const WATER_DEFAULT   = { color: '#1565C0', weight: 2.5, opacity: 0.5, fillColor: '#42A5F5',        fillOpacity: 0.2 };
 const WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 5,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5 };
@@ -803,7 +809,10 @@ const polygonTypes = {
     featureData: null,
     layers: {},
     quizLayer: null,
-    styles: { default: PROV_DEFAULT, highlight: PROV_HIGHLIGHT, mastered: PROV_MASTERED },
+    styles: {
+      default: PROV_DEFAULT, highlight: PROV_HIGHLIGHT, mastered: PROV_MASTERED,
+      fuzzyDefault: FUZZY_DEFAULT, fuzzyHighlight: FUZZY_HIGHLIGHT, fuzzyMastered: FUZZY_MASTERED,
+    },
     nameKey: 'name',
     afterHighlight(item) {
       const latlng = [item.lat, item.lon];
@@ -875,17 +884,58 @@ function smoothGeoJSON(data) {
 
 // ── Generieke polygon-laagfuncties (vervangen 3× copy-paste per type) ────────
 
+// Genereer een ellipse-polygoon (64 punten) rond (lat,lon) met assen rx,ry in graden.
+// Wordt gebruikt voor ALL_PROVINCES-entries met shape:'fuzzy' — bergketens, historische
+// streken en kuststroken die niet tot op de meter begrensd moeten worden.
+function buildEllipseFeature(entry) {
+  const N = 64;
+  const coords = [];
+  for (let i = 0; i <= N; i++) {
+    const a = (i / N) * 2 * Math.PI;
+    coords.push([entry.lon + entry.rx * Math.cos(a), entry.lat + entry.ry * Math.sin(a)]);
+  }
+  return {
+    type: 'Feature',
+    properties: { name: entry.name, sets: entry.sets, shape: 'fuzzy' },
+    geometry: { type: 'Polygon', coordinates: [coords] },
+  };
+}
+
+// Injecteer ellips-features in de province featureData zodra die klaar is.
+// Idempotent: vervangt een bestaande feature met dezelfde naam, zodat hot-reloads clean blijven.
+function ensureFuzzyEllipseFeatures() {
+  const pt = polygonTypes.province;
+  if (!pt.featureData) return;
+  const fuzzyEntries = ALL_PROVINCES.filter(p => p.shape === 'fuzzy');
+  for (const entry of fuzzyEntries) {
+    const feat = buildEllipseFeature(entry);
+    const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
+    if (idx >= 0) pt.featureData.features[idx] = feat;
+    else pt.featureData.features.push(feat);
+  }
+}
+
+function styleForFeature(t, f, stateKey) {
+  if (f.properties.shape === 'fuzzy') {
+    const k = 'fuzzy' + stateKey[0].toUpperCase() + stateKey.slice(1);
+    return t.styles[k] || t.styles[stateKey];
+  }
+  return t.styles[stateKey];
+}
+
 function buildPolygonLayer(type) {
   const t = polygonTypes[type];
   if (t.quizLayer) { map.removeLayer(t.quizLayer); }
   t.layers = {};
   const activeNames = new Set(activeCities.map(c => c.name));
 
+  if (type === 'province') ensureFuzzyEllipseFeatures();
+
   let geoData = t.featureData;
   if (type === 'water') geoData = smoothGeoJSON(geoData);
 
   t.quizLayer = L.geoJSON(geoData, {
-    style: t.styles.default,
+    style: f => styleForFeature(t, f, 'default'),
     interactive: false,
     filter: f => {
       const name = f.properties[t.nameKey];
@@ -900,6 +950,7 @@ function buildPolygonLayer(type) {
     onEachFeature: (f, layer) => {
       const name = f.properties[t.nameKey];
       if (name) t.layers[name] = layer;
+      layer.feature = f;
     },
   }).addTo(map);
 }
@@ -907,13 +958,14 @@ function buildPolygonLayer(type) {
 function setHighlightPolygon(type, item, mapMode = false) {
   const t = polygonTypes[type];
   Object.entries(t.layers).forEach(([name, layer]) => {
+    const f = layer.feature || { properties: {} };
     if (name === item.name) {
-      layer.setStyle(t.styles.highlight);
+      layer.setStyle(styleForFeature(t, f, 'highlight'));
     } else if (mapMode && t.styles.hidden) {
       // In kaart-klik modus: niet-geraden items verborgen (alleen water heeft hidden-stijl)
-      layer.setStyle(streak[name] >= mastery() ? t.styles.mastered : t.styles.hidden);
+      layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : t.styles.hidden);
     } else {
-      layer.setStyle(streak[name] >= mastery() ? t.styles.mastered : t.styles.default);
+      layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : styleForFeature(t, f, 'default'));
     }
   });
   if (t.afterHighlight) t.afterHighlight.call(t, item);
@@ -923,7 +975,8 @@ function applyMasteredStyle(name) {
   const city = activeCities.find(c => c.name === name);
   if (city?.marker) city.marker.setStyle({ ...MASTERED_STYLE, radius: cityRadius(city) });
   Object.values(polygonTypes).forEach(t => {
-    if (t.layers[name]) t.layers[name].setStyle(t.styles.mastered);
+    const layer = t.layers[name];
+    if (layer) layer.setStyle(styleForFeature(t, layer.feature || { properties: {} }, 'mastered'));
   });
 }
 

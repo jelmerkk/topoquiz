@@ -207,57 +207,16 @@ const regionFeatures = [
   processRegion('andorra.json',   'Andorra',          SETS_73),
 ].filter(Boolean);
 
-// Elzas, Centraal Massief, Pyreneeën — handmatige polygonen (geen eenduidige OSM-administratieve grens)
-const handmatigGebieden = [
-  {
-    name: 'Elzas',
-    sets: SETS_73,
-    // Historische Elzas: Bas-Rhin + Haut-Rhin departmenten samen
-    coords: [[7.5090,47.5060],[7.6200,47.5900],[7.7100,47.7200],[7.8300,48.0000],
-              [7.9800,48.3100],[8.0500,48.5200],[7.9700,48.7800],[7.5200,49.0700],
-              [7.2800,48.8000],[7.0900,48.6500],[6.8700,48.4700],[6.8300,48.2200],
-              [7.0400,47.9500],[7.1800,47.7800],[7.3900,47.5800],[7.5090,47.5060]],
-  },
-  {
-    name: 'Centraal Massief',
-    sets: SETS_73,
-    // Ruw omsluitend polygoon van het Centraal Massief
-    coords: [[2.0500,45.2000],[2.8000,44.3000],[3.9500,44.1000],[4.8500,44.2500],
-              [4.9000,44.7000],[4.5000,45.5000],[3.9000,46.1000],[3.2000,46.3000],
-              [2.6000,46.2000],[2.0500,45.8000],[2.0500,45.2000]],
-  },
-  {
-    name: 'Costa Blanca',
-    sets: SETS_73,
-    // Kuststrook Alicante-provincie: Denia (noord) → Torrevieja (zuid),
-    // landinwaarts ~25km zodat Alicante/Benidorm binnen het polygoon vallen.
-    coords: [[ 0.1200,38.8600],[ 0.0200,38.6400],[-0.1300,38.5400],[-0.2900,38.4000],
-              [-0.4800,38.3500],[-0.6300,38.0800],[-0.7100,37.9700],[-0.8500,37.9400],
-              [-0.9500,38.1500],[-0.9200,38.3500],[-0.7000,38.5500],[-0.4500,38.7000],
-              [-0.2000,38.8000],[ 0.0000,38.8500],[ 0.1200,38.8600]],
-  },
-  {
-    name: 'Pyreneeën',
-    sets: SETS_73,
-    // Bergketen langs FR-ES grens van Atlantische kust tot Middellandse Zee
-    coords: [[-1.7500,43.3500],[-0.8000,42.8000],[0.0000,42.6800],[0.7500,42.6000],
-              [1.5000,42.5000],[2.3000,42.4000],[3.1500,42.5000],[3.3200,42.3500],
-              [3.1500,42.2500],[2.2500,42.2500],[1.4000,42.3500],[0.6500,42.4500],
-              [-0.1000,42.5000],[-0.8500,42.6500],[-1.8000,43.0500],[-1.7500,43.3500]],
-  },
-];
-
-for (const g of handmatigGebieden) {
-  console.log(`  ${g.name}: handmatig polygoon (${g.coords.length} punten)`);
-  regionFeatures.push({
-    type: 'Feature',
-    properties: { name: g.name, sets: g.sets },
-    geometry: { type: 'Polygon', coordinates: [g.coords] },
-  });
-}
+// Elzas, Centraal Massief, Pyreneeën, Costa Blanca — niet meer als handmatig polygoon.
+// Die worden in de app gerenderd als stippel-ellips op basis van ALL_PROVINCES (shape: 'fuzzy').
+// Zie index.html → buildEllipseFeature() + FUZZY_* stijlen.
 
 const gewestenPath = path.join(__dirname, '..', 'gewesten.geojson');
 const gewesten = JSON.parse(fs.readFileSync(gewestenPath, 'utf8'));
+
+// Runtime-ellipsen: zorg dat oude handmatige polygonen worden opgeruimd.
+const FUZZY_RUNTIME_NAMES = ['Elzas', 'Centraal Massief', 'Pyreneeën', 'Costa Blanca'];
+gewesten.features = gewesten.features.filter(f => !FUZZY_RUNTIME_NAMES.includes(f.properties.name));
 
 for (const feat of regionFeatures) {
   const idx = gewesten.features.findIndex(

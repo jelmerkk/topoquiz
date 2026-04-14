@@ -284,15 +284,17 @@ const ALL_PROVINCES = [
   { name: 'Luxemburg',                      lat: 49.70, lon: 6.10, kind: 'gewest', sets: [72] },
   // ── Set 73: Gebieden van Frankrijk, Spanje en Portugal (7.3) ────────────────
   // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
+  // shape: 'fuzzy' + rx/ry (in graden) → gerenderd als stippel-ellips, niet als hardbegrensd polygoon.
+  // Bedoeld voor gebergtes, kuststroken en historische gebieden zonder scherpe bestuurlijke grens.
   { name: 'Bretagne',         lat: 48.20, lon: -2.93, kind: 'gewest', sets: [73] },
   { name: 'Normandië',        lat: 49.00, lon:  0.40, kind: 'gewest', sets: [73] },
-  { name: 'Elzas',            lat: 48.40, lon:  7.50, kind: 'gewest', sets: [73] },
-  { name: 'Centraal Massief', lat: 45.40, lon:  2.80, kind: 'gewest', sets: [73] },
-  { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', sets: [73] },
   { name: 'Corsica',          lat: 42.15, lon:  9.10, kind: 'gewest', sets: [73] },
   { name: 'Mallorca',         lat: 39.70, lon:  3.00, kind: 'gewest', sets: [73] },
   { name: 'Andorra',          lat: 42.55, lon:  1.60, kind: 'gewest', sets: [73] },
-  { name: 'Costa Blanca',     lat: 38.35, lon: -0.45, kind: 'gewest', sets: [73] },
+  { name: 'Elzas',            lat: 48.30, lon:  7.45, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.85, sets: [73] },
+  { name: 'Centraal Massief', lat: 45.20, lon:  3.45, kind: 'gewest', shape: 'fuzzy', rx: 1.50, ry: 1.25, sets: [73] },
+  { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', shape: 'fuzzy', rx: 2.60, ry: 0.55, sets: [73] },
+  { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
