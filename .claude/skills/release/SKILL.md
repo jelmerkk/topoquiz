@@ -72,11 +72,13 @@ Update **beide** plekken met de nieuwe versie. Ze moeten synchroon blijven. Gebr
 ### 4. README bijwerken
 Als de release user-facing functionaliteit toevoegt: beschrijf de feature in `README.md` (bijv. nieuwe set onder "Projectstructuur" of "Een nieuw level toevoegen"). Puur technische fixes hoeven vaak geen README-update — laat het aan de gebruiker voorleggen als je twijfelt.
 
-### 5. `npm test` draaien — BLOCKER
+### 5. Unit tests draaien — BLOCKER
 ```bash
-npm test
+node test.js
 ```
-Moet volledig groen zijn (unit + Playwright). Bij falen: **stop**, rapporteer aan de gebruiker, verwerk geen workarounds. Geen uitzonderingen, ook niet voor "alleen een CSS-fix".
+Moet volledig groen zijn. Bij falen: **stop**, rapporteer aan de gebruiker, verwerk geen workarounds.
+
+**Niet** `npm test` lokaal draaien — die draait ook de Playwright-suite (minuten) en is dan een duplicaat van wat `.github/workflows/e2e.yml` toch al doet zodra je naar `staging` pusht. De pipeline is de waarheid voor end-to-end; lokaal snel je unit-tests checken is genoeg.
 
 ### 6. Commit
 ```bash
