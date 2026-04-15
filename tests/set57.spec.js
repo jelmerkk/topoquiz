@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { waitForPolygonLayer, waitForMapClickReady } = require('./helpers');
 
 async function openWateren(page) {
   await page.goto('/');
@@ -36,6 +37,8 @@ test('set 57 (Wateren) klik-op-kaart: klik ver weg geeft afstandsfeedback', asyn
   await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
+  await waitForPolygonLayer(page, 'water');
+  await waitForMapClickReady(page);
   await page.evaluate(() => map.fire('click', { latlng: L.latLng(50.0, 4.0) }));
   await expect(page.locator('#feedback')).not.toBeEmpty();
   await expect(page.locator('#feedback')).toContainText('km');
@@ -59,6 +62,9 @@ test('set 57 (Wateren) klik-op-kaart: klik op exacte label-locatie geeft correct
   await openWateren(page);
   await page.locator('#map-mode-btn').click();
   await page.waitForSelector('#question-text');
+  // Wacht expliciet tot water-layer gebouwd is én klik-handler aangesloten (#79)
+  await waitForPolygonLayer(page, 'water');
+  await waitForMapClickReady(page);
   await page.evaluate(() => {
     map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
   });
