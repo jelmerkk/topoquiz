@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.0.1">
+<meta name="version" content="2.0.2">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -927,6 +927,7 @@ function buildPolygonLayer(type) {
   const t = polygonTypes[type];
   if (t.quizLayer) { map.removeLayer(t.quizLayer); }
   t.layers = {};
+  t.layersBuilt = false;
   const activeNames = new Set(activeCities.map(c => c.name));
 
   if (type === 'province') ensureFuzzyEllipseFeatures();
@@ -953,6 +954,8 @@ function buildPolygonLayer(type) {
       layer.feature = f;
     },
   }).addTo(map);
+  // Signaal voor Playwright-helpers (#79): tests weten dat layers daadwerkelijk zijn opgebouwd.
+  t.layersBuilt = true;
 }
 
 function setHighlightPolygon(type, item, mapMode = false) {
@@ -991,26 +994,24 @@ function clearPolygonLayers() {
 // Gebundeld in de repo zodat de quiz offline werkt en niet afhankelijk is van een externe URL.
 let provinceBorderLayer = null; // vaste achtergrondlaag met NL-grenzen
 
-polygonTypes.province.dataPromise = fetch('/provincie_2023.geojson')
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(data => {
-    polygonTypes.province.featureData = data;
-    provinceBorderLayer = L.geoJSON(data, { style: PROV_BORDER, interactive: false }).addTo(map);
+// Provincie + Belgische gewesten worden samen geladen: de province.dataPromise
+// resolvet pas als BEIDE binnen zijn, zodat startQuiz() nooit begint met een
+// half gevulde featureData (voorheen bron van set 72 Luxemburg-flake, #79).
+polygonTypes.province.dataPromise = Promise.all([
+  fetch('/provincie_2023.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('/gewesten.geojson').then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(err => {
+    console.warn('Gewestendata kon niet geladen worden:', err);
+    return { type: 'FeatureCollection', features: [] };
+  }),
+])
+  .then(([provData, gewData]) => {
+    // Border-layer toont alleen NL-provincies (gewesten horen daar niet bij).
+    provinceBorderLayer = L.geoJSON(provData, { style: PROV_BORDER, interactive: false }).addTo(map);
+    // Merge gewesten ná de border-layer zodat ze wel beschikbaar zijn voor quizType 'province' (set 72).
+    const merged = { ...provData, features: [...provData.features, ...gewData.features] };
+    polygonTypes.province.featureData = merged;
   })
   .catch(err => { console.error('Provinciedata kon niet geladen worden:', err); });
-
-// Laad gewesten (België) en voeg toe aan provinceFeatureData zodra beide klaar zijn
-fetch('/gewesten.geojson')
-  .then(r => r.ok ? r.json() : Promise.reject(r.status))
-  .then(data => {
-    const pt = polygonTypes.province;
-    if (pt.featureData) {
-      pt.featureData.features.push(...data.features);
-    } else {
-      pt.featureData = data;
-    }
-  })
-  .catch(err => console.warn('Gewestendata kon niet geladen worden:', err));
 
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
@@ -1918,7 +1919,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.0.1';
+const APP_VERSION = 'v2.0.2';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
