@@ -736,6 +736,55 @@ expect('set 74: 60 km → close',   clickResult(60, 74) === 'close');
 expect('set 74: 179 km → close',  clickResult(179, 74) === 'close');
 expect('set 74: 180 km → wrong',  clickResult(180, 74) === 'wrong');
 
+// ── Set 75 — VK en Ierland (issue #44) ───────────────────────
+
+section('Set 75 — VK en Ierland');
+
+const SET75_STEDEN = [
+  'Londen','Birmingham','Manchester','Liverpool','Leeds','Sheffield',
+  'Newcastle','Cardiff','Edinburgh','Glasgow','Aberdeen','Belfast','Dublin',
+];
+const SET75_REGIOS = ['England','Schotland','Wales','Noord-Ierland','Ierland'];
+const SET75_WATEREN = ['Theems','Het Kanaal','Ierse Zee'];
+
+expect('Set 75 bestaat in SETS',        !!SETS[75]);
+expect('Set 75 is groep 7',             SETS[75]?.group === 7);
+expect('Set 75 heeft 3 fases',          SETS[75]?.phases?.length === 3);
+expect('Set 75 fase 1 is province',     SETS[75]?.phases?.[0]?.quizType === 'province');
+expect('Set 75 fase 2 is place',        SETS[75]?.phases?.[1]?.quizType === 'place');
+expect('Set 75 fase 3 is water',        SETS[75]?.phases?.[2]?.quizType === 'water');
+expect('Set 75 heeft bounds',           Array.isArray(SETS[75]?.bounds));
+expect('Set 75 heeft EU-klikdrempels',  SETS[75]?.clickCorrectKm === 60 && SETS[75]?.clickCloseKm === 180);
+
+// Steden (13)
+SET75_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(75));
+  expect(`${naam} in ALL_CITIES (set 75)`, !!s);
+});
+expect('Set 75 heeft 13 steden', ALL_CITIES.filter(c => c.sets?.includes(75)).length === 13);
+
+// Regio's (5 harde polygonen — géén fuzzy, anders dan set 74)
+SET75_REGIOS.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(75));
+  expect(`${naam} in ALL_PROVINCES (set 75)`, !!r);
+  expect(`${naam} is géén fuzzy ellips`, r && r.shape !== 'fuzzy');
+});
+expect('Set 75 heeft 5 regio\'s', ALL_PROVINCES.filter(p => p.sets?.includes(75)).length === 5);
+
+// Wateren (3: Theems nieuw, Het Kanaal gedeeld met set 73, Ierse Zee nieuw)
+SET75_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(75));
+  expect(`${naam} in ALL_WATERS (set 75)`, !!w);
+});
+expect('Het Kanaal ook in set 73', ALL_WATERS.find(w => w.name === 'Het Kanaal')?.sets?.includes(73));
+expect('Set 75 heeft 3 wateren', ALL_WATERS.filter(w => w.sets?.includes(75)).length === 3);
+
+// clickResult met set 75 drempels (60/180, identiek aan set 74)
+expect('set 75: 59 km → correct', clickResult(59, 75) === 'correct');
+expect('set 75: 60 km → close',   clickResult(60, 75) === 'close');
+expect('set 75: 179 km → close',  clickResult(179, 75) === 'close');
+expect('set 75: 180 km → wrong',  clickResult(180, 75) === 'wrong');
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);

@@ -155,8 +155,8 @@ const ALL_CITIES = [
   { name: "Parijs",     lat: 48.86, lon: 2.35,   pop: 2161000, sets: [71, 73], capital: true },
   { name: "Brussel",    lat: 50.85, lon: 4.35,   pop:  185000, sets: [71, 72], capital: true },
   { name: "Luxemburg",  lat: 49.61, lon: 6.13,   pop:  125000, sets: [71, 72], capital: true },
-  { name: "Londen",     lat: 51.51, lon: -0.13,  pop: 9541000, sets: [71], capital: true },
-  { name: "Dublin",     lat: 53.33, lon: -6.25,  pop:  592000, sets: [71], capital: true },
+  { name: "Londen",     lat: 51.51, lon: -0.13,  pop: 9541000, sets: [71, 75], capital: true, aliases: ['London'] },
+  { name: "Dublin",     lat: 53.33, lon: -6.25,  pop:  592000, sets: [71, 75], capital: true },
   { name: "Reykjavík",  lat: 64.13, lon: -21.82, pop:  136000, sets: [71], capital: true },
   { name: "Berlijn",    lat: 52.52, lon: 13.40,  pop: 3677000, sets: [71, 74], capital: true },
   { name: "Kopenhagen", lat: 55.68, lon: 12.57,  pop:  764000, sets: [71], capital: true },
@@ -219,6 +219,18 @@ const ALL_CITIES = [
   { name: "Neurenberg",  lat: 49.45, lon: 11.08,  pop:  515000, sets: [74], aliases: ['Nürnberg', 'Nurnberg', 'Nuernberg', 'Nuremberg'] },
   { name: "Leipzig",     lat: 51.34, lon: 12.37,  pop:  605000, sets: [74] },
   { name: "Dresden",     lat: 51.05, lon: 13.74,  pop:  556000, sets: [74] },
+  // ── Set 75: VK en Ierland (7.5) — Londen + Dublin staan hierboven in set 71 ─
+  { name: "Birmingham",  lat: 52.48, lon: -1.90,  pop: 1149000, sets: [75] },
+  { name: "Manchester",  lat: 53.48, lon: -2.24,  pop:  553000, sets: [75] },
+  { name: "Liverpool",   lat: 53.41, lon: -2.99,  pop:  496000, sets: [75] },
+  { name: "Leeds",       lat: 53.80, lon: -1.55,  pop:  793000, sets: [75] },
+  { name: "Sheffield",   lat: 53.38, lon: -1.47,  pop:  557000, sets: [75] },
+  { name: "Newcastle",   lat: 54.98, lon: -1.61,  pop:  300000, sets: [75], aliases: ['Newcastle upon Tyne'] },
+  { name: "Cardiff",     lat: 51.48, lon: -3.18,  pop:  372000, sets: [75] },
+  { name: "Edinburgh",   lat: 55.95, lon: -3.19,  pop:  526000, sets: [75], aliases: ['Edinburg'] },
+  { name: "Glasgow",     lat: 55.86, lon: -4.25,  pop:  635000, sets: [75] },
+  { name: "Aberdeen",    lat: 57.15, lon: -2.10,  pop:  228000, sets: [75] },
+  { name: "Belfast",     lat: 54.60, lon: -5.93,  pop:  345000, sets: [75] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -273,11 +285,14 @@ const ALL_WATERS = [
   { name: 'Loire',  lat: 47.5, lon:  1.0, sets: [73] },
   { name: 'Rhône',  lat: 44.5, lon:  4.8, sets: [73] },
   { name: 'Taag',   lat: 39.5, lon: -7.5, sets: [73], aliases: ['Tajo', 'Tejo'] },
-  { name: 'Het Kanaal',       lat: 50.3, lon: -1.5, sets: [73], aliases: ['Kanaal', 'Engels Kanaal'] },
+  { name: 'Het Kanaal',       lat: 50.3, lon: -1.5, sets: [73, 75], aliases: ['Kanaal', 'Engels Kanaal'] },
   { name: 'Middellandse Zee', lat: 40.0, lon:  5.0, sets: [73] },
   // ── Set 74: Duitse rivieren (7.4) — Rijn staat hierboven in set 57, nu ook [74] ─
   { name: 'Elbe',   lat: 52.5, lon: 11.5, sets: [74] },
   { name: 'Moezel', lat: 49.7, lon:  7.0, sets: [74], aliases: ['Mosel', 'Moselle'] },
+  // ── Set 75: VK en Ierland (7.5) ─────────────────────────────────────────────
+  { name: 'Theems',    lat: 51.50, lon: -0.50, sets: [75], aliases: ['Thames'] },
+  { name: 'Ierse Zee', lat: 53.70, lon: -5.00, sets: [75], aliases: ['Irish Sea'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -312,6 +327,13 @@ const ALL_PROVINCES = [
   { name: 'Eifel',        lat: 50.30, lon:  6.70, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [74] },
   { name: 'Zwarte Woud',  lat: 48.30, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.35, ry: 0.80, sets: [74], aliases: ['Schwarzwald', 'Black Forest'] },
   { name: 'Harz',         lat: 51.80, lon: 10.60, kind: 'gewest', shape: 'fuzzy', rx: 0.45, ry: 0.22, sets: [74] },
+  // ── Set 75: VK en Ierland (7.5) — harde polygonen uit OSM admin-grenzen ─────
+  // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
+  { name: 'England',       lat: 52.50, lon: -1.50, kind: 'gewest', sets: [75], aliases: ['Engeland'] },
+  { name: 'Schotland',     lat: 56.80, lon: -4.20, kind: 'gewest', sets: [75], aliases: ['Scotland', 'Alba'] },
+  { name: 'Wales',         lat: 52.40, lon: -3.80, kind: 'gewest', sets: [75], aliases: ['Cymru'] },
+  { name: 'Noord-Ierland', lat: 54.70, lon: -6.50, kind: 'gewest', sets: [75], aliases: ['Northern Ireland'] },
+  { name: 'Ierland',       lat: 53.30, lon: -8.00, kind: 'gewest', sets: [75], aliases: ['Ireland', 'Éire'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -386,6 +408,15 @@ const SETS = {
            { id: 'cities',  label: 'Steden',   quizType: 'place'    },
            { id: 'regions', label: "Regio's",  quizType: 'province' },
            { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
+         ] },
+   // Set 7.5: VK en Ierland — 3 fases: regio's, steden, wateren
+   75: { name: '7.5 – Verenigd Koninkrijk en Ierland', group: 7, mastery: 1,
+         bounds: [[49.5, -11.0], [61.0, 2.0]],
+         clickCorrectKm: 60, clickCloseKm: 180,
+         phases: [
+           { id: 'regions', label: "Regio's", quizType: 'province' },
+           { id: 'cities',  label: 'Steden',  quizType: 'place'    },
+           { id: 'waters',  label: 'Wateren', quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },

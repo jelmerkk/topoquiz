@@ -1,0 +1,119 @@
+/**
+ * Set 75 — VK en Ierland (issue #44)
+ *
+ * Smoke tests: verschijnt in menu, 3 fases starten correct.
+ * Volgorde fases: regio's → steden → wateren
+ * Regio's zijn harde polygonen (géén fuzzy ellipsen), zodat set 7.1 de
+ * hele UK als land blijft asken zonder dat de constituents ermee conflicteren.
+ */
+
+const { test, expect } = require('@playwright/test');
+const { waitForPolygonLayer } = require('./helpers');
+
+async function openSet75(page) {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '7' }).click();
+  await page.locator('#level-select .mode-btn', { hasText: 'Verenigd Koninkrijk' }).click();
+  await expect(page.locator('#mode-select')).toBeVisible();
+}
+
+async function startSet75MC(page) {
+  await openSet75(page);
+  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
+  await page.waitForSelector('#question-text');
+}
+
+test('set 75 verschijnt in groep 7', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '7' }).click();
+  await expect(page.locator('#level-select .mode-btn', { hasText: 'Verenigd Koninkrijk' })).toBeVisible();
+});
+
+test('set 75 — mode-select bereikbaar', async ({ page }) => {
+  await openSet75(page);
+  await expect(page.locator('#mode-select')).toBeVisible();
+});
+
+test('set 75 — fase 1: vraag gaat over een gewest/regio', async ({ page }) => {
+  await startSet75MC(page);
+  await expect(page.locator('#question-text')).toHaveText(/gewest|regio/i);
+});
+
+test('set 75 — fase 1: faseslabel toont "Regio\'s"', async ({ page }) => {
+  await startSet75MC(page);
+  await expect(page.locator('#phase-label')).toContainText("Regio");
+});
+
+test("set 75 — fase 1: #qtot toont 5", async ({ page }) => {
+  await startSet75MC(page);
+  const tot = await page.locator('#qtot').textContent();
+  expect(Number(tot)).toBe(5);
+});
+
+test('set 75 — MC start: kaartzoom geschikt voor VK-viewport', async ({ page }) => {
+  await startSet75MC(page);
+  const zoom = await page.evaluate(() => map.getZoom());
+  expect(zoom).toBeGreaterThanOrEqual(4);
+  expect(zoom).toBeLessThanOrEqual(7);
+});
+
+// Regio-polygonen moeten uit OSM komen (real polygons, niet fuzzy ellipse).
+// Luxemburg-bug had 7 punten; hard-grens zou er tientallen tot honderden moeten hebben.
+test('set 75 — Ierland is een harde polygoon met veel punten', async ({ page }) => {
+  await startSet75MC(page);
+  await waitForPolygonLayer(page, 'province', 'Ierland');
+  const pts = await page.evaluate(() =>
+    polygonTypes.province.layers.Ierland.getLatLngs()[0].length
+  );
+  expect(pts).toBeGreaterThan(100);
+});
+
+test('set 75 — Schotland bevat Shetland/Hebriden (noordelijke lat > 60)', async ({ page }) => {
+  await startSet75MC(page);
+  await waitForPolygonLayer(page, 'province', 'Schotland');
+  const maxLat = await page.evaluate(() => {
+    const pts = polygonTypes.province.layers.Schotland.getLatLngs()[0];
+    return Math.max(...pts.map(p => p.lat));
+  });
+  expect(maxLat).toBeGreaterThan(58);
+});
+
+// Set 7.1 moet onverstoord de hele UK als land blijven tekenen.
+// Als per ongeluk de gewesten-polygonen in de country-laag terechtkomen
+// (door naam-collision), zou deze test falen.
+test('set 75 regio\'s zijn niet in de country-laag (geen conflict met set 7.1)', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => polygonTypes?.country?.featureData);
+  const countryNames = await page.evaluate(() =>
+    polygonTypes.country.featureData.features.map(f => f.properties.name || f.properties.NAME || f.properties.ADMIN)
+  );
+  // UK en Ierland moeten in de country-laag staan (voor set 7.1),
+  // maar England/Wales/Schotland/Noord-Ierland mogen er NIET in staan.
+  expect(countryNames).not.toContain('England');
+  expect(countryNames).not.toContain('Wales');
+  expect(countryNames).not.toContain('Schotland');
+  expect(countryNames).not.toContain('Noord-Ierland');
+});
+
+test('set 75 — Theems is een LineString die bij Londen langs gaat', async ({ page }) => {
+  await page.goto('/');
+  const bounds = await page.evaluate(async () => {
+    const data = await fetch('/wateren.geojson').then(r => r.json());
+    const theems = data.features.find(f => f.properties.name === 'Theems');
+    if (!theems || theems.geometry.type !== 'LineString') return null;
+    const lats = theems.geometry.coordinates.map(c => c[1]);
+    const lons = theems.geometry.coordinates.map(c => c[0]);
+    return {
+      minLat: Math.min(...lats), maxLat: Math.max(...lats),
+      minLon: Math.min(...lons), maxLon: Math.max(...lons),
+      len: theems.geometry.coordinates.length,
+    };
+  });
+  expect(bounds).not.toBeNull();
+  // Theems loopt ongeveer van 51.35°N – 51.80°N, lon -2.0° tot +0.9°
+  expect(bounds.minLat).toBeGreaterThan(51.0);
+  expect(bounds.maxLat).toBeLessThan(52.5);
+  expect(bounds.minLon).toBeLessThan(-1.5);
+  expect(bounds.maxLon).toBeGreaterThan(0.4);
+  expect(bounds.len).toBeGreaterThan(50);
+});

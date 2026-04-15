@@ -60,6 +60,7 @@ Gebruik altijd een **nieuw** fetch-script per taak (bijv. `fetch-loire.js`) of b
 | Kleine rivier (NL, 1–2 segmenten) | `way["name"="<Name>"]["waterway"="river"](bbox);out geom qt;` | Alleen OK als de rivier nauwelijks zijkanalen heeft en je weet dat het hele traject uit enkele ways bestaat |
 | Rivier (FR, verplicht lidwoord) | `relation["name"="La Seine"]["waterway"="river"]...` / `...["name"="Le Rhône"]...` | OSM gebruikt lokale naam mét lidwoord |
 | Admin-grens (gewest, regio, land) | `relation["name"="<Name>"]["admin_level"="<N>"]["boundary"="administrative"];out geom qt;` | admin_level: 2=land, 4=provincie/staat, 6=arrondissement |
+| Admin-grens met bilingual of Engels-vrij name-tag | `relation["wikidata"="Q<id>"]["boundary"="administrative"];out geom qt;` | Wikidata-code is taalonafhankelijk; gebruik bij regio's waar `name` een "X / Y"-combi is (Scotland = "Alba / Scotland"), zodat name-match 0 elementen oplevert. Zie set 7.5 UK. |
 | Zee / waterlichaam met grens | `relation["name"="<Name>"];out geom qt;` | Multipolygon met de randen van dat specifieke waterlichaam |
 
 **Default = relatie voor rivieren.** De way-bbox-query is snel maar heeft een fatale valkuil: bij grote rivieren met parallelle kanalen/zijtakken die dezelfde naam delen (Loire heeft 166 `side_stream` vs 118 `main_stream` leden) levert het een bundel van parallelle lijnen op. `chain()` plakt die dan allemaal aan elkaar en je krijgt een *dubbele* of *zigzag* lijn over het volledige traject — zichtbaar pas bij de debug-screenshot, niet bij punt-telling. De relatie-query met `role=main_stream` filter (al geïmplementeerd in `processRiver()`) produceert één schone hoofdstroom.
@@ -83,8 +84,14 @@ node data/fetch-<naam>.js
 
 - Bij **rate limit**: het script wacht automatisch op een slot. Laat het draaien.
 - Bij **429 Too Many Requests**: sleep verhogen of queries splitsen over meerdere runs.
-- Bij **0 elementen**: meestal een naamfout. Check of OSM-naam matcht (zie taalvalkuilen in [project_osm_pipeline.md](../../../memory/project_osm_pipeline.md)).
-- Bij **HTML response i.p.v. JSON**: server overbelast; opnieuw proberen met langere wachttijd.
+- Bij **0 elementen**: meestal een naamfout. Check of OSM-naam matcht (zie taalvalkuilen in [project_osm_pipeline.md](../../../memory/project_osm_pipeline.md)). Bij bilinguale gebieden (Wales, Scotland, NI, …) stap over op `["wikidata"="Q<id>"]`.
+- Bij **HTML / XML response i.p.v. JSON**: de publieke `overpass-api.de`-host is overbelast (gebeurt vaak tijdens grote admin-queries). Schakel dan over op de kumi.systems-mirror — stabiel maar zónder slot-endpoint en vereist een identificeerbare `User-Agent`. Zie pattern in `data/fetch-set74.js` / `data/fetch-set75.js`:
+  ```js
+  const OVERPASS_HOST = 'overpass.kumi.systems';
+  headers: { …, 'User-Agent': 'topoquiz-data-fetch/1.0 (https://www.topoquiz.com)' }
+  async function waitForSlot() { return; }  // kumi heeft geen /api/status
+  await sleep(3000);                          // pauze tussen queries
+  ```
 
 ### 4. Verwerk de JSON
 
@@ -185,6 +192,8 @@ Wat je checkt per view:
 | Corsica | `"Corse"` |
 | Balearen | `"Illes Balears"` — bevat Mallorca + Menorca + Ibiza samen; mogelijk apart Mallorca-eiland nodig |
 | Bergsche Maas, Nederrijn | bare NL-naam, OSM matcht deze exact |
+| Wales, Scotland, Northern Ireland, Ierland | **Niet op `name` matchen** — OSM bevat bilinguale `name`-tags ("Cymru / Wales", "Alba / Scotland", "Éire"). Gebruik `["wikidata"="Q25/Q22/Q26/Q27"]`. England werkt wel op name (Q21). |
+| Theems | OSM-naam = `"River Thames"` (met "River" prefix) |
 
 ## Hard no's
 
