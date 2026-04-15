@@ -114,29 +114,42 @@ function processRiver(file, nlName, sets, eps = 0.003, maxGap = 0.05) {
   };
 }
 
-// ── Polygoon uit relatie verwerken ─────────────────────────────────
-// Voor UK-constituents + Ierland: admin-relations met outer ways.
-// De chain() maxGap staat op 2.0 om grote kusteilanden (Shetland, Hebriden,
-// Orkney) in de outer-ring mee te nemen — kleinere waarde knipt delen weg.
+// ── Natural Earth polygonen verwerken ─────────────────────────────
+// UK-constituents (Engeland/Schotland/Wales/Noord-Ierland) + Ierland komen uit
+// Natural Earth 1:50m admin_0_map_units. Land-only, inclusief kustlijn-islanden.
+// Waarom niet OSM admin_level=4: daar zitten maritieme zones in waardoor
+// Schotland één grote ring vormt die vasteland + Shetland omsluit.
 
-function processRegion(file, nlName, sets, eps = 0.005, maxGap = 2.0) {
-  const raw = JSON.parse(fs.readFileSync(path.join(__dirname, 'overpass', file), 'utf8'));
-  const relation = raw.elements.find(e => e.type === 'relation');
-  if (!relation) { console.log(`⚠️  Geen relatie in ${file}`); return null; }
+function simplifyRing(ring, eps) {
+  const simp = rdp(ring, eps).map(([lon, lat]) => [+lon.toFixed(4), +lat.toFixed(4)]);
+  if (dist(simp[0], simp[simp.length-1]) > 0.001) simp.push(simp[0]);
+  return simp;
+}
 
-  const outerWays = relation.members.filter(m => m.type === 'way' && m.geometry && m.role !== 'inner');
-  const outerRing = chain(outerWays, maxGap);
-  const simplified = rdp(outerRing, eps).map(([lon, lat]) => [+lon.toFixed(4), +lat.toFixed(4)]);
+function processNERegion(neFeature, nlName, sets, eps = 0.005) {
+  const g = neFeature.geometry;
+  const rawRings = g.type === 'MultiPolygon'
+    ? g.coordinates.map(poly => poly[0])
+    : [g.coordinates[0]];
 
-  if (dist(simplified[0], simplified[simplified.length-1]) > 0.001) {
-    simplified.push(simplified[0]);
+  const simplifiedRings = rawRings
+    .map(r => simplifyRing(r, eps))
+    .filter(r => r.length >= 4);
+
+  const totalPts = simplifiedRings.reduce((s, r) => s + r.length, 0);
+  console.log(`  ${nlName}: ${rawRings.length} ring(en) → ${totalPts} punten`);
+
+  if (simplifiedRings.length === 1) {
+    return {
+      type: 'Feature',
+      properties: { name: nlName, sets },
+      geometry: { type: 'Polygon', coordinates: [simplifiedRings[0]] },
+    };
   }
-
-  console.log(`  ${nlName}: ${outerWays.length} ways → ${simplified.length} punten`);
   return {
     type: 'Feature',
     properties: { name: nlName, sets },
-    geometry: { type: 'Polygon', coordinates: [simplified] },
+    geometry: { type: 'MultiPolygon', coordinates: simplifiedRings.map(r => [r]) },
   };
 }
 
@@ -144,15 +157,22 @@ function processRegion(file, nlName, sets, eps = 0.005, maxGap = 2.0) {
 
 const SETS_75 = [75];
 
-// Regio's → gewesten.geojson
-console.log('\nRegio\'s:');
-const regionFeatures = [
-  processRegion('england.json',          'England',        SETS_75),
-  processRegion('scotland.json',         'Schotland',      SETS_75),
-  processRegion('wales.json',            'Wales',          SETS_75),
-  processRegion('northern-ireland.json', 'Noord-Ierland',  SETS_75),
-  processRegion('ireland.json',          'Ierland',        SETS_75),
-].filter(Boolean);
+// Regio's → gewesten.geojson (uit Natural Earth)
+console.log('\nRegio\'s (Natural Earth):');
+const neRaw = JSON.parse(fs.readFileSync(path.join(__dirname, 'overpass', 'ne-uk-map-units.json'), 'utf8'));
+const findNE = name => neRaw.features.find(f => f.properties.NAME === name);
+const NE_MAPPING = [
+  ['England',    'Engeland'],
+  ['Scotland',   'Schotland'],
+  ['Wales',      'Wales'],
+  ['N. Ireland', 'Noord-Ierland'],
+  ['Ireland',    'Ierland'],
+];
+const regionFeatures = NE_MAPPING.map(([neName, nlName]) => {
+  const neF = findNE(neName);
+  if (!neF) { console.log(`⚠️  ${neName} ontbreekt in NE-data`); return null; }
+  return processNERegion(neF, nlName, SETS_75);
+}).filter(Boolean);
 
 const gewestenPath = path.join(__dirname, '..', 'gewesten.geojson');
 const gewesten = JSON.parse(fs.readFileSync(gewestenPath, 'utf8'));

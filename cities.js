@@ -329,11 +329,11 @@ const ALL_PROVINCES = [
   { name: 'Harz',         lat: 51.80, lon: 10.60, kind: 'gewest', shape: 'fuzzy', rx: 0.45, ry: 0.22, sets: [74] },
   // ── Set 75: VK en Ierland (7.5) — harde polygonen uit OSM admin-grenzen ─────
   // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
-  { name: 'England',       lat: 52.50, lon: -1.50, kind: 'gewest', sets: [75], aliases: ['Engeland'] },
-  { name: 'Schotland',     lat: 56.80, lon: -4.20, kind: 'gewest', sets: [75], aliases: ['Scotland', 'Alba'] },
-  { name: 'Wales',         lat: 52.40, lon: -3.80, kind: 'gewest', sets: [75], aliases: ['Cymru'] },
-  { name: 'Noord-Ierland', lat: 54.70, lon: -6.50, kind: 'gewest', sets: [75], aliases: ['Northern Ireland'] },
-  { name: 'Ierland',       lat: 53.30, lon: -8.00, kind: 'gewest', sets: [75], aliases: ['Ireland', 'Éire'] },
+  { name: 'Engeland',      lat: 52.50, lon: -1.50, kind: 'regio', sets: [75], aliases: ['England'] },
+  { name: 'Schotland',     lat: 56.80, lon: -4.20, kind: 'regio', sets: [75], aliases: ['Scotland', 'Alba'] },
+  { name: 'Wales',         lat: 52.40, lon: -3.80, kind: 'regio', sets: [75], aliases: ['Cymru'] },
+  { name: 'Noord-Ierland', lat: 54.70, lon: -6.50, kind: 'regio', sets: [75], aliases: ['Northern Ireland'] },
+  { name: 'Ierland',       lat: 53.30, lon: -8.00, kind: 'regio', sets: [75], aliases: ['Ireland', 'Éire'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },

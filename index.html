@@ -1406,7 +1406,11 @@ function renderQuestion() {
     document.getElementById('question-text').textContent = currentCity.name;
   } else if (isProvince || isWater || isCountry) {
     const QUESTION_TEXT = {
-      province: item => item.kind === 'gewest' ? 'Welk gewest is dit?' : 'Welke provincie is dit?',
+      province: item => {
+        if (item.kind === 'regio')  return 'Welke regio is dit?';
+        if (item.kind === 'gewest') return 'Welk gewest is dit?';
+        return 'Welke provincie is dit?';
+      },
       water:    ()   => 'Welk water is dit?',
       country:  ()   => 'Welk land is dit?',
     };

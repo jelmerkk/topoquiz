@@ -34,9 +34,9 @@ test('set 75 — mode-select bereikbaar', async ({ page }) => {
   await expect(page.locator('#mode-select')).toBeVisible();
 });
 
-test('set 75 — fase 1: vraag gaat over een gewest/regio', async ({ page }) => {
+test('set 75 — fase 1: vraag is "Welke regio is dit?"', async ({ page }) => {
   await startSet75MC(page);
-  await expect(page.locator('#question-text')).toHaveText(/gewest|regio/i);
+  await expect(page.locator('#question-text')).toHaveText('Welke regio is dit?');
 });
 
 test('set 75 — fase 1: faseslabel toont "Regio\'s"', async ({ page }) => {
@@ -57,25 +57,58 @@ test('set 75 — MC start: kaartzoom geschikt voor VK-viewport', async ({ page }
   expect(zoom).toBeLessThanOrEqual(7);
 });
 
+// Helper: flatten arbitrary-depth Leaflet latlng nesting (Polygon or MultiPolygon).
+function flattenLatLngs(x) {
+  if (Array.isArray(x)) return x.flatMap(flattenLatLngs);
+  return [x];
+}
+
 // Regio-polygonen moeten uit OSM komen (real polygons, niet fuzzy ellipse).
 // Luxemburg-bug had 7 punten; hard-grens zou er tientallen tot honderden moeten hebben.
 test('set 75 — Ierland is een harde polygoon met veel punten', async ({ page }) => {
   await startSet75MC(page);
   await waitForPolygonLayer(page, 'province', 'Ierland');
-  const pts = await page.evaluate(() =>
-    polygonTypes.province.layers.Ierland.getLatLngs()[0].length
-  );
+  const pts = await page.evaluate(() => {
+    const flat = (x) => Array.isArray(x) ? x.flatMap(flat) : [x];
+    return flat(polygonTypes.province.layers.Ierland.getLatLngs()).length;
+  });
   expect(pts).toBeGreaterThan(100);
 });
 
-test('set 75 — Schotland bevat Shetland/Hebriden (noordelijke lat > 60)', async ({ page }) => {
+// Schotland is een MultiPolygon: vasteland + Shetland + Orkney + Hebriden.
+// De Shetland-ring bevat lat > 60 (Lerwick ≈ 60.15°N).
+test('set 75 — Schotland bevat Shetland (noordelijke lat > 60)', async ({ page }) => {
   await startSet75MC(page);
   await waitForPolygonLayer(page, 'province', 'Schotland');
-  const maxLat = await page.evaluate(() => {
-    const pts = polygonTypes.province.layers.Schotland.getLatLngs()[0];
-    return Math.max(...pts.map(p => p.lat));
+  const { maxLat, ringCount } = await page.evaluate(() => {
+    const layer = polygonTypes.province.layers.Schotland;
+    const geom = layer.feature.geometry;
+    const ringCount = geom.type === 'MultiPolygon' ? geom.coordinates.length : 1;
+    const flat = (x) => Array.isArray(x) ? x.flatMap(flat) : [x];
+    const pts = flat(layer.getLatLngs());
+    return { maxLat: Math.max(...pts.map(p => p.lat)), ringCount };
   });
-  expect(maxLat).toBeGreaterThan(58);
+  expect(ringCount).toBeGreaterThanOrEqual(2);
+  expect(maxLat).toBeGreaterThan(60);
+});
+
+// Schotland MultiPolygon mag geen kunstmatige "brug"-lijnen hebben tussen
+// eilanden en vasteland. Check: er is geen ring die zowel een Shetland-punt
+// (lat > 60) als een vasteland-punt (lat < 57) bevat.
+test('set 75 — Schotland heeft geen artefact-brug tussen eilanden en vasteland', async ({ page }) => {
+  await startSet75MC(page);
+  await waitForPolygonLayer(page, 'province', 'Schotland');
+  const hasBridge = await page.evaluate(() => {
+    const geom = polygonTypes.province.layers.Schotland.feature.geometry;
+    const rings = geom.type === 'MultiPolygon'
+      ? geom.coordinates.map(poly => poly[0])
+      : [geom.coordinates[0]];
+    return rings.some(ring => {
+      const lats = ring.map(c => c[1]);
+      return Math.max(...lats) > 59.5 && Math.min(...lats) < 57;
+    });
+  });
+  expect(hasBridge).toBe(false);
 });
 
 // Set 7.1 moet onverstoord de hele UK als land blijven tekenen.
@@ -88,7 +121,8 @@ test('set 75 regio\'s zijn niet in de country-laag (geen conflict met set 7.1)',
     polygonTypes.country.featureData.features.map(f => f.properties.name || f.properties.NAME || f.properties.ADMIN)
   );
   // UK en Ierland moeten in de country-laag staan (voor set 7.1),
-  // maar England/Wales/Schotland/Noord-Ierland mogen er NIET in staan.
+  // maar Engeland/Wales/Schotland/Noord-Ierland mogen er NIET in staan.
+  expect(countryNames).not.toContain('Engeland');
   expect(countryNames).not.toContain('England');
   expect(countryNames).not.toContain('Wales');
   expect(countryNames).not.toContain('Schotland');

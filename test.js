@@ -744,7 +744,7 @@ const SET75_STEDEN = [
   'Londen','Birmingham','Manchester','Liverpool','Leeds','Sheffield',
   'Newcastle','Cardiff','Edinburgh','Glasgow','Aberdeen','Belfast','Dublin',
 ];
-const SET75_REGIOS = ['England','Schotland','Wales','Noord-Ierland','Ierland'];
+const SET75_REGIOS = ['Engeland','Schotland','Wales','Noord-Ierland','Ierland'];
 const SET75_WATEREN = ['Theems','Het Kanaal','Ierse Zee'];
 
 expect('Set 75 bestaat in SETS',        !!SETS[75]);

@@ -1,6 +1,12 @@
 #!/usr/bin/env node
-// Haalt Overpass-data op voor set 75: UK-constituents + Ierland + Theems.
-// Regio-polygonen komen in gewesten.geojson, Theems in wateren.geojson.
+// Haalt Overpass-data op voor set 75: alleen Theems.
+//
+// UK-constituents + Ierland komen uit Natural Earth (zie fetch-set75-ne.js):
+// de OSM admin_level=4 relaties bevatten maritieme zones tot 12 nmi offshore
+// waardoor Schotland's ring van vasteland naar Shetland loopt — een artefact
+// dat niet met filteren op-achteraf op te lossen is omdat de relatie zelf
+// coastline-ways niet als members heeft.
+//
 // Ierse Zee wordt handmatig als polygoon in process-set75.js gedefinieerd
 // (OSM-relatie "Irish Sea" bestaat wel maar is een minimale multipolygon
 // zonder bruikbare rand — zelfde afweging als Het Kanaal en Middellandse Zee).
@@ -46,36 +52,7 @@ function hasValidData(file) {
   } catch { return false; }
 }
 
-// Voor de UK-constituents gebruiken we wikidata-codes i.p.v. namen: OSM heeft
-// bij Scotland/Wales/NI bilinguale `name`-tags ("Cymru / Wales") waardoor een
-// name-match op "Wales" 0 elementen oplevert. Wikidata is stabiel en taalvrij.
-//   England = Q21, Scotland = Q22, Wales = Q25, Northern Ireland = Q26, Ierland = Q27
 const QUERIES = [
-  {
-    name: 'england',
-    out: 'england.json',
-    q: 'relation["wikidata"="Q21"]["boundary"="administrative"];out geom qt;',
-  },
-  {
-    name: 'scotland',
-    out: 'scotland.json',
-    q: 'relation["wikidata"="Q22"]["boundary"="administrative"];out geom qt;',
-  },
-  {
-    name: 'wales',
-    out: 'wales.json',
-    q: 'relation["wikidata"="Q25"]["boundary"="administrative"];out geom qt;',
-  },
-  {
-    name: 'northern-ireland',
-    out: 'northern-ireland.json',
-    q: 'relation["wikidata"="Q26"]["boundary"="administrative"];out geom qt;',
-  },
-  {
-    name: 'ireland',
-    out: 'ireland.json',
-    q: 'relation["wikidata"="Q27"]["boundary"="administrative"];out geom qt;',
-  },
   // Theems — OSM heeft "River Thames" als relatie met main_stream role.
   {
     name: 'thames',
