@@ -158,7 +158,7 @@ const ALL_CITIES = [
   { name: "Londen",     lat: 51.51, lon: -0.13,  pop: 9541000, sets: [71], capital: true },
   { name: "Dublin",     lat: 53.33, lon: -6.25,  pop:  592000, sets: [71], capital: true },
   { name: "Reykjavík",  lat: 64.13, lon: -21.82, pop:  136000, sets: [71], capital: true },
-  { name: "Berlijn",    lat: 52.52, lon: 13.40,  pop: 3677000, sets: [71], capital: true },
+  { name: "Berlijn",    lat: 52.52, lon: 13.40,  pop: 3677000, sets: [71, 74], capital: true },
   { name: "Kopenhagen", lat: 55.68, lon: 12.57,  pop:  764000, sets: [71], capital: true },
   { name: "Oslo",       lat: 59.91, lon: 10.75,  pop:  693000, sets: [71], capital: true },
   { name: "Stockholm",  lat: 59.33, lon: 18.07,  pop:  975000, sets: [71], capital: true },
@@ -201,6 +201,24 @@ const ALL_CITIES = [
   { name: "Gibraltar",    lat: 36.14, lon: -5.35,  pop:   33000, sets: [73] },
   { name: "Málaga",       lat: 36.72, lon: -4.42,  pop:  579000, sets: [73], aliases: ['Malaga'] },
   { name: "Monaco",       lat: 43.73, lon:  7.42,  pop:   39000, sets: [73] },
+  // ── Set 74: Duitsland (7.4) — Berlijn staat hierboven in set 71, aangevuld met [74] ─
+  { name: "Hamburg",     lat: 53.55, lon:  9.99,  pop: 1906000, sets: [74] },
+  { name: "Bremen",      lat: 53.08, lon:  8.80,  pop:  567000, sets: [74] },
+  { name: "Hannover",    lat: 52.37, lon:  9.73,  pop:  536000, sets: [74] },
+  { name: "Magdeburg",   lat: 52.12, lon: 11.63,  pop:  237000, sets: [74] },
+  { name: "Dortmund",    lat: 51.51, lon:  7.47,  pop:  587000, sets: [74] },
+  { name: "Essen",       lat: 51.46, lon:  7.01,  pop:  582000, sets: [74] },
+  { name: "Düsseldorf",  lat: 51.23, lon:  6.78,  pop:  619000, sets: [74], aliases: ['Dusseldorf', 'Duesseldorf'] },
+  { name: "Keulen",      lat: 50.94, lon:  6.96,  pop: 1085000, sets: [74], aliases: ['Köln', 'Koeln', 'Koln', 'Cologne'] },
+  { name: "Bonn",        lat: 50.74, lon:  7.10,  pop:  331000, sets: [74] },
+  { name: "Aken",        lat: 50.78, lon:  6.08,  pop:  249000, sets: [74], aliases: ['Aachen'] },
+  { name: "Duisburg",    lat: 51.43, lon:  6.76,  pop:  498000, sets: [74] },
+  { name: "Frankfurt",   lat: 50.11, lon:  8.68,  pop:  759000, sets: [74], aliases: ['Frankfurt am Main'] },
+  { name: "Stuttgart",   lat: 48.78, lon:  9.18,  pop:  626000, sets: [74] },
+  { name: "München",     lat: 48.14, lon: 11.58,  pop: 1488000, sets: [74], aliases: ['Munchen', 'Muenchen', 'Munich'] },
+  { name: "Neurenberg",  lat: 49.45, lon: 11.08,  pop:  515000, sets: [74], aliases: ['Nürnberg', 'Nurnberg', 'Nuernberg', 'Nuremberg'] },
+  { name: "Leipzig",     lat: 51.34, lon: 12.37,  pop:  605000, sets: [74] },
+  { name: "Dresden",     lat: 51.05, lon: 13.74,  pop:  556000, sets: [74] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -235,7 +253,7 @@ const ALL_WATERS = [
   { name: 'Waddenzee',            lat: 53.20, lon: 5.50,  sets: [57] },
   { name: 'Oosterschelde',        lat: 51.62, lon: 3.90,  sets: [57] },
   { name: 'Westerschelde',        lat: 51.40, lon: 3.80,  sets: [57] },
-  { name: 'Rijn',                 lat: 51.67, lon: 6.42,  sets: [57] },
+  { name: 'Rijn',                 lat: 51.67, lon: 6.42,  sets: [57, 74], aliases: ['Rhein'] },
   { name: 'IJssel',               lat: 52.30, lon: 6.10,  sets: [57] },
   { name: 'Neder-Rijn',           lat: 51.95, lon: 5.55,  sets: [57], aliases: ['Neder Rijn'] },
   { name: 'Lek',                  lat: 51.90, lon: 4.80,  sets: [57] },
@@ -257,6 +275,9 @@ const ALL_WATERS = [
   { name: 'Taag',   lat: 39.5, lon: -7.5, sets: [73], aliases: ['Tajo', 'Tejo'] },
   { name: 'Het Kanaal',       lat: 50.3, lon: -1.5, sets: [73], aliases: ['Kanaal', 'Engels Kanaal'] },
   { name: 'Middellandse Zee', lat: 40.0, lon:  5.0, sets: [73] },
+  // ── Set 74: Duitse rivieren (7.4) — Rijn staat hierboven in set 57, nu ook [74] ─
+  { name: 'Elbe',   lat: 52.5, lon: 11.5, sets: [74] },
+  { name: 'Moezel', lat: 49.7, lon:  7.0, sets: [74], aliases: ['Mosel', 'Moselle'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -282,6 +303,15 @@ const ALL_PROVINCES = [
   { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', shape: 'fuzzy', rx: 2.60, ry: 0.55, sets: [73] },
   { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
   { name: 'Alpen',            lat: 45.00, lon:  6.90, kind: 'gewest', shape: 'fuzzy', rx: 0.90, ry: 1.40, sets: [73] },
+  // ── Set 74: Duitsland (7.4) ───────────────────────────────────────────────
+  // Alle Duitse regio's zijn fuzzy ellipsen — kinderen leren ze als globale streken,
+  // niet als bestuurlijke grenzen. Beieren is bewust fuzzy; zie backlog-issue #81.
+  { name: 'Ruhrgebied',   lat: 51.47, lon:  7.30, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.22, sets: [74] },
+  { name: 'Beieren',      lat: 48.90, lon: 11.50, kind: 'gewest', shape: 'fuzzy', rx: 1.95, ry: 1.45, sets: [74], aliases: ['Bavaria'] },
+  { name: 'Sauerland',    lat: 51.25, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.40, sets: [74] },
+  { name: 'Eifel',        lat: 50.30, lon:  6.70, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [74] },
+  { name: 'Zwarte Woud',  lat: 48.30, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.35, ry: 0.80, sets: [74], aliases: ['Schwarzwald', 'Black Forest'] },
+  { name: 'Harz',         lat: 51.80, lon: 10.60, kind: 'gewest', shape: 'fuzzy', rx: 0.45, ry: 0.22, sets: [74] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -347,6 +377,15 @@ const SETS = {
            { id: 'cities',   label: 'Steden',   quizType: 'place'    },
            { id: 'regions',  label: 'Gebieden', quizType: 'province' },
            { id: 'rivers',   label: 'Rivieren', quizType: 'water'    },
+         ] },
+   // Set 7.4: Duitsland — 3 fases: steden, regio's, rivieren
+   74: { name: '7.4 – Duitsland', group: 7, mastery: 1,
+         bounds: [[46.5, 5.0], [55.5, 15.5]],
+         clickCorrectKm: 60, clickCloseKm: 180,
+         phases: [
+           { id: 'cities',  label: 'Steden',   quizType: 'place'    },
+           { id: 'regions', label: "Regio's",  quizType: 'province' },
+           { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
