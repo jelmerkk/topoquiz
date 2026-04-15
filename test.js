@@ -686,6 +686,56 @@ expect('Set 72 heeft 14 steden', ALL_CITIES.filter(c => c.sets?.includes(72)).le
   expect(`${naam} in ALL_WATERS (set 72)`, !!w72);
 });
 
+// ── Set 74 — Duitsland (issue #43) ───────────────────────────
+
+section('Set 74 — Duitsland');
+
+const SET74_STEDEN = [
+  'Berlijn','Hamburg','Bremen','Hannover','Magdeburg','Dortmund','Essen',
+  'Düsseldorf','Keulen','Bonn','Aken','Duisburg','Frankfurt','Stuttgart',
+  'München','Neurenberg','Leipzig','Dresden',
+];
+const SET74_REGIOS = ['Ruhrgebied','Beieren','Sauerland','Eifel','Zwarte Woud','Harz'];
+const SET74_RIVIEREN = ['Rijn','Elbe','Moezel'];
+
+expect('Set 74 bestaat in SETS',        !!SETS[74]);
+expect('Set 74 is groep 7',             SETS[74]?.group === 7);
+expect('Set 74 heeft 3 fases',          SETS[74]?.phases?.length === 3);
+expect('Set 74 fase 1 is place',        SETS[74]?.phases?.[0]?.quizType === 'place');
+expect('Set 74 fase 2 is province',     SETS[74]?.phases?.[1]?.quizType === 'province');
+expect('Set 74 fase 3 is water',        SETS[74]?.phases?.[2]?.quizType === 'water');
+expect('Set 74 heeft bounds',           Array.isArray(SETS[74]?.bounds));
+expect('Set 74 heeft EU-klikdrempels',  SETS[74]?.clickCorrectKm === 60 && SETS[74]?.clickCloseKm === 180);
+
+// Steden (18: Berlijn uit set 71 aangevuld met [74] + 17 nieuwe)
+SET74_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(74));
+  expect(`${naam} in ALL_CITIES (set 74)`, !!s);
+});
+expect('Set 74 heeft 18 steden', ALL_CITIES.filter(c => c.sets?.includes(74)).length === 18);
+
+// Regio's (6 fuzzy ellipsen)
+SET74_REGIOS.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(74));
+  expect(`${naam} in ALL_PROVINCES (set 74)`, !!r);
+  expect(`${naam} is fuzzy`, r?.shape === 'fuzzy');
+});
+expect('Set 74 heeft 6 regio\'s', ALL_PROVINCES.filter(p => p.sets?.includes(74)).length === 6);
+
+// Rivieren (3: Rijn gedeeld met set 57, Elbe + Moezel nieuw)
+SET74_RIVIEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(74));
+  expect(`${naam} in ALL_WATERS (set 74)`, !!w);
+});
+expect('Rijn ook in set 57', ALL_WATERS.find(w => w.name === 'Rijn')?.sets?.includes(57));
+expect('Set 74 heeft 3 rivieren', ALL_WATERS.filter(w => w.sets?.includes(74)).length === 3);
+
+// clickResult met set 74 drempels
+expect('set 74: 59 km → correct', clickResult(59, 74) === 'correct');
+expect('set 74: 60 km → close',   clickResult(60, 74) === 'close');
+expect('set 74: 179 km → close',  clickResult(179, 74) === 'close');
+expect('set 74: 180 km → wrong',  clickResult(180, 74) === 'wrong');
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
