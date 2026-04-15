@@ -71,6 +71,28 @@ test('set 74 — Rijn is een LineString die tot in Duitsland loopt', async ({ pa
   expect(bounds.len).toBeGreaterThan(100);
 });
 
+// Regressie: bij een correct antwoord in klik-op-kaart voor quizType 'province'
+// (gewest/regio) werd eerder een groene stip op de centroïde toegevoegd aan
+// revealedLayer. Dat is verwarrend omdat het polygoon al als mastered kleurt.
+test("set 74 — fase 2 klik-op-kaart: correct regio voegt geen stip toe aan revealedLayer", async ({ page }) => {
+  await openSet74(page);
+  // Spring direct naar fase 2 (regio's) via de startPhase-parameter van startQuiz().
+  await page.evaluate(() => { selectedSet = 74; startQuiz('map', 1); });
+  await page.waitForSelector('#question-text');
+  await waitForPolygonLayer(page, 'province');
+  await page.waitForFunction(() => {
+    const listeners = map._events?.click;
+    return Array.isArray(listeners) && listeners.length > 0;
+  });
+  // Klik op de centroïde van de actieve regio (binnen fuzzy ellipse = 0 km = correct)
+  await page.evaluate(() => {
+    map.fire('click', { latlng: L.latLng(currentCity.lat, currentCity.lon) });
+  });
+  await expect(page.locator('#feedback')).toHaveClass(/fb-ok/);
+  const revealedCount = await page.evaluate(() => revealedLayer.getLayers().length);
+  expect(revealedCount).toBe(0);
+});
+
 test('set 74 — Elbe en Moezel zitten in wateren.geojson als LineString', async ({ page }) => {
   await page.goto('/');
   const rivers = await page.evaluate(async () => {
