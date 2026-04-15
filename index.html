@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.0.2">
+<meta name="version" content="2.0.3">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1603,8 +1603,10 @@ function handleMapClick(e) {
   const km = Math.round(distKm);
   if (result === 'correct') {
     recordCorrect(city, fb);
-    // Groene stip op de label-locatie (blijft zichtbaar bij volgende vragen, alleen bij plaatsen)
-    if (!isWater) {
+    // Groene stip op de label-locatie (blijft zichtbaar bij volgende vragen).
+    // Alleen voor plaatsen: bij landen/wateren kleurt het polygoon zelf al
+    // als mastered — een extra stip er bovenop lijkt op een losse stad.
+    if (!isWater && !isCountry) {
       L.circleMarker([city.lat, city.lon], {
         radius: 6, color: '#fff', weight: 2,
         fillColor: '#58CC02', fillOpacity: 0.9, interactive: false,
@@ -1919,7 +1921,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.0.2';
+const APP_VERSION = 'v2.0.3';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
