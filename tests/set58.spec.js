@@ -55,6 +55,22 @@ test('set 58 — MC start: kaartzoom geschikt voor Europa-viewport', async ({ pa
   expect(zoom).toBeLessThanOrEqual(7);
 });
 
+// Regressietest: polygonen moeten daadwerkelijk op de kaart verschijnen.
+// Voorheen ontbraken sets-properties in landen-europa.geojson waardoor
+// buildPolygonLayer alles filterde voor gefaseerde sets.
+test('set 58 — fase 1: land-polygoon is zichtbaar op de kaart', async ({ page }) => {
+  await startSet58MC(page);
+  // Wacht tot country layers gebouwd zijn
+  await page.waitForFunction(
+    () => typeof polygonTypes !== 'undefined' &&
+          polygonTypes.country?.layersBuilt &&
+          Object.keys(polygonTypes.country.layers).length > 0,
+    { timeout: 10000 }
+  );
+  const layerCount = await page.evaluate(() => Object.keys(polygonTypes.country.layers).length);
+  expect(layerCount).toBeGreaterThanOrEqual(1);
+});
+
 test('set 58 — Slovenië is een polygoon in landen-europa.geojson', async ({ page }) => {
   await page.goto('/');
   const found = await page.evaluate(async () => {
