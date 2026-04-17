@@ -785,6 +785,65 @@ expect('set 75: 60 km → close',   clickResult(60, 75) === 'close');
 expect('set 75: 179 km → close',  clickResult(179, 75) === 'close');
 expect('set 75: 180 km → wrong',  clickResult(180, 75) === 'wrong');
 
+// ── Set 76 — Midden-Europa en Italië (issue #45) ────────────
+
+section('Set 76 — Midden-Europa en Italië');
+
+const SET76_STEDEN = [
+  // Zwitserland
+  'Bern','Zürich','Genève','Basel',
+  // Liechtenstein (microstaat als punt)
+  'Liechtenstein',
+  // Oostenrijk
+  'Wenen','Salzburg','Innsbruck','Graz','Klagenfurt',
+  // Tsjechië
+  'Praag','Brno',
+  // Hongarije
+  'Boedapest',
+  // Italië
+  'Rome','Milaan','Napels','Venetië','Genua','Turijn','Florence',
+  // Microstaten
+  'San Marino','Malta',
+];
+const SET76_GEBIEDEN = ['Alpen','Apennijnen','Sicilië','Sardinië'];
+const SET76_WATEREN = ['Donau','Po','Meer van Genève','Balaton','Adriatische Zee'];
+
+expect('Set 76 bestaat in SETS',        !!SETS[76]);
+expect('Set 76 is groep 7',             SETS[76]?.group === 7);
+expect('Set 76 heeft 3 fases',          SETS[76]?.phases?.length === 3);
+expect('Set 76 fase 1 is place',        SETS[76]?.phases?.[0]?.quizType === 'place');
+expect('Set 76 fase 2 is province',     SETS[76]?.phases?.[1]?.quizType === 'province');
+expect('Set 76 fase 3 is water',        SETS[76]?.phases?.[2]?.quizType === 'water');
+expect('Set 76 heeft bounds',           Array.isArray(SETS[76]?.bounds));
+expect('Set 76 heeft EU-klikdrempels',  SETS[76]?.clickCorrectKm === 60 && SETS[76]?.clickCloseKm === 180);
+
+// Steden (22: 5 bestaand uit set 71 + 17 nieuw)
+SET76_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(76));
+  expect(`${naam} in ALL_CITIES (set 76)`, !!s);
+});
+expect('Set 76 heeft 22 steden', ALL_CITIES.filter(c => c.sets?.includes(76)).length === 22);
+
+// Gebieden (4: Alpen, Apennijnen, Sicilië, Sardinië)
+SET76_GEBIEDEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(76));
+  expect(`${naam} in ALL_PROVINCES (set 76)`, !!r);
+});
+expect('Set 76 heeft 4 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(76)).length === 4);
+
+// Wateren (5: Donau, Po, Meer van Genève, Balaton, Adriatische Zee)
+SET76_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(76));
+  expect(`${naam} in ALL_WATERS (set 76)`, !!w);
+});
+expect('Set 76 heeft 5 wateren', ALL_WATERS.filter(w => w.sets?.includes(76)).length === 5);
+
+// clickResult met set 76 drempels (60/180)
+expect('set 76: 59 km → correct', clickResult(59, 76) === 'correct');
+expect('set 76: 60 km → close',   clickResult(60, 76) === 'close');
+expect('set 76: 179 km → close',  clickResult(179, 76) === 'close');
+expect('set 76: 180 km → wrong',  clickResult(180, 76) === 'wrong');
+
 // ── Set 58 — Onze buren (Geobas 5, hoofdstuk 8) ─────────────
 
 section('Set 58 — Onze buren');

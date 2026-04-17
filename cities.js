@@ -162,12 +162,12 @@ const ALL_CITIES = [
   { name: "Kopenhagen", lat: 55.68, lon: 12.57,  pop:  764000, sets: [58, 71], capital: true },
   { name: "Oslo",       lat: 59.91, lon: 10.75,  pop:  693000, sets: [71], capital: true },
   { name: "Stockholm",  lat: 59.33, lon: 18.07,  pop:  975000, sets: [71], capital: true },
-  { name: "Wenen",      lat: 48.21, lon: 16.37,  pop: 1931000, sets: [71], capital: true },
-  { name: "Bern",       lat: 46.95, lon: 7.44,   pop:  134000, sets: [71], capital: true },
-  { name: "Rome",       lat: 41.90, lon: 12.50,  pop: 2873000, sets: [71], capital: true },
+  { name: "Wenen",      lat: 48.21, lon: 16.37,  pop: 1931000, sets: [71, 76], capital: true },
+  { name: "Bern",       lat: 46.95, lon: 7.44,   pop:  134000, sets: [71, 76], capital: true },
+  { name: "Rome",       lat: 41.90, lon: 12.50,  pop: 2873000, sets: [71, 76], capital: true },
   { name: "Warschau",   lat: 52.23, lon: 21.01,  pop: 1794000, sets: [71], capital: true },
-  { name: "Praag",      lat: 50.08, lon: 14.44,  pop: 1357000, sets: [71], capital: true },
-  { name: "Boedapest",  lat: 47.50, lon: 19.05,  pop: 1752000, sets: [71], capital: true },
+  { name: "Praag",      lat: 50.08, lon: 14.44,  pop: 1357000, sets: [71, 76], capital: true },
+  { name: "Boedapest",  lat: 47.50, lon: 19.05,  pop: 1752000, sets: [71, 76], capital: true },
   // ── Set 72: Belgische steden (7.2 België en Luxemburg) ───────────────────────
   { name: "Antwerpen", lat: 51.22, lon: 4.40,   pop:  530000, sets: [72] },
   { name: "Gent",      lat: 51.05, lon: 3.72,   pop:  263000, sets: [72] },
@@ -231,6 +231,30 @@ const ALL_CITIES = [
   { name: "Glasgow",     lat: 55.86, lon: -4.25,  pop:  635000, sets: [75] },
   { name: "Aberdeen",    lat: 57.15, lon: -2.10,  pop:  228000, sets: [75] },
   { name: "Belfast",     lat: 54.60, lon: -5.93,  pop:  345000, sets: [75] },
+  // ── Set 76: Midden-Europa en Italië (7.6) — Bern/Wenen/Rome/Praag/Boedapest staan hierboven ─
+  // Zwitserland
+  { name: "Zürich",      lat: 47.37, lon:  8.54,  pop:  421000, sets: [76], aliases: ['Zurich'] },
+  { name: "Genève",      lat: 46.20, lon:  6.14,  pop:  203000, sets: [76], aliases: ['Geneve', 'Geneva'] },
+  { name: "Basel",       lat: 47.56, lon:  7.59,  pop:  178000, sets: [76], aliases: ['Bazel'] },
+  // Microstaat
+  { name: "Liechtenstein", lat: 47.14, lon: 9.52, pop:   39000, sets: [76] },
+  // Oostenrijk
+  { name: "Salzburg",    lat: 47.80, lon: 13.04,  pop:  155000, sets: [76] },
+  { name: "Innsbruck",   lat: 47.26, lon: 11.39,  pop:  132000, sets: [76] },
+  { name: "Graz",        lat: 47.07, lon: 15.44,  pop:  292000, sets: [76] },
+  { name: "Klagenfurt",  lat: 46.62, lon: 14.31,  pop:  101000, sets: [76] },
+  // Tsjechië
+  { name: "Brno",        lat: 49.19, lon: 16.61,  pop:  381000, sets: [76] },
+  // Italië
+  { name: "Milaan",      lat: 45.46, lon:  9.19,  pop: 1397000, sets: [76], aliases: ['Milano', 'Milan'] },
+  { name: "Napels",      lat: 40.85, lon: 14.27,  pop:  955000, sets: [76], aliases: ['Napoli', 'Naples'] },
+  { name: "Venetië",     lat: 45.44, lon: 12.32,  pop:  261000, sets: [76], aliases: ['Venezia', 'Venice'] },
+  { name: "Genua",       lat: 44.41, lon:  8.93,  pop:  566000, sets: [76], aliases: ['Genova', 'Genoa'] },
+  { name: "Turijn",      lat: 45.07, lon:  7.69,  pop:  847000, sets: [76], aliases: ['Torino', 'Turin'] },
+  { name: "Florence",    lat: 43.77, lon: 11.25,  pop:  367000, sets: [76], aliases: ['Firenze'] },
+  // Microstaten
+  { name: "San Marino",  lat: 43.94, lon: 12.45,  pop:   34000, sets: [76] },
+  { name: "Malta",       lat: 35.90, lon: 14.51,  pop:  213000, sets: [76], aliases: ['Valletta'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -295,6 +319,12 @@ const ALL_WATERS = [
   // ── Set 75: VK en Ierland (7.5) ─────────────────────────────────────────────
   { name: 'Theems',    lat: 51.50, lon: -0.50, sets: [75], aliases: ['Thames'] },
   { name: 'Ierse Zee', lat: 53.70, lon: -5.00, sets: [75], aliases: ['Irish Sea'] },
+  // ── Set 76: Wateren van Midden-Europa en Italië (7.6) ──────────────────────
+  { name: 'Donau',            lat: 47.50, lon: 16.50, sets: [76], aliases: ['Donau', 'Danube', 'Dunaj'] },
+  { name: 'Po',               lat: 45.00, lon: 10.50, sets: [76] },
+  { name: 'Meer van Genève',  lat: 46.45, lon:  6.50, sets: [76], aliases: ['Lac Léman', 'Genfersee', 'Lac de Genève'] },
+  { name: 'Balaton',          lat: 46.85, lon: 17.75, sets: [76], aliases: ['Balatonmeer'] },
+  { name: 'Adriatische Zee',  lat: 42.50, lon: 15.00, sets: [76], aliases: ['Adriatic Sea', 'Mare Adriatico'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -336,6 +366,14 @@ const ALL_PROVINCES = [
   { name: 'Wales',         lat: 52.40, lon: -3.80, kind: 'regio', sets: [75], aliases: ['Cymru'] },
   { name: 'Noord-Ierland', lat: 54.70, lon: -6.50, kind: 'regio', sets: [75], aliases: ['Northern Ireland'] },
   { name: 'Ierland',       lat: 53.30, lon: -8.00, kind: 'regio', sets: [75], aliases: ['Ireland', 'Éire'] },
+  // ── Set 76: Midden-Europa en Italië (7.6) ────────────────────────────────────
+  // Alpen: bredere ellips dan set 73 (daar alleen westelijke Alpen bij Frankrijk).
+  // Centrum over Zwitserland/Oostenrijk, boog van Mont Blanc tot Slovenië.
+  { name: 'Alpen',       lat: 47.00, lon: 11.00, kind: 'gewest', shape: 'fuzzy', rx: 5.00, ry: 1.20, sets: [76], aliases: ['Alps'] },
+  { name: 'Apennijnen',  lat: 42.50, lon: 12.50, kind: 'gewest', shape: 'fuzzy', rx: 1.50, ry: 4.00, sets: [76], aliases: ['Apennines', 'Appennini'] },
+  // Sicilië en Sardinië: harde polygonen uit Natural Earth (gewesten.geojson)
+  { name: 'Sicilië',     lat: 37.60, lon: 14.00, kind: 'gewest', sets: [76], aliases: ['Sicilia', 'Sicily'] },
+  { name: 'Sardinië',    lat: 40.00, lon:  9.10, kind: 'gewest', sets: [76], aliases: ['Sardegna', 'Sardinia'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -427,6 +465,15 @@ const SETS = {
            { id: 'regions', label: "Regio's", quizType: 'province' },
            { id: 'cities',  label: 'Steden',  quizType: 'place'    },
            { id: 'waters',  label: 'Wateren', quizType: 'water'    },
+         ] },
+   // Set 7.6: Midden-Europa en Italië — 3 fases: steden, gebieden, wateren
+   76: { name: '7.6 – Midden-Europa en Italië', group: 7, mastery: 1,
+         bounds: [[36, 5], [52, 22]],
+         clickCorrectKm: 60, clickCloseKm: 180,
+         phases: [
+           { id: 'cities',   label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',  label: 'Gebieden',  quizType: 'province' },
+           { id: 'waters',   label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
