@@ -843,7 +843,7 @@ const polygonTypes = {
       const layer = this.layers[item.name];
       if (layer && gameMode !== 'map') {
         layer.bringToFront();
-        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 5, animate: true });
       }
     },
   },
