@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.2.0">
+<meta name="version" content="2.3.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -843,7 +843,7 @@ const polygonTypes = {
       const layer = this.layers[item.name];
       if (layer && gameMode !== 'map') {
         layer.bringToFront();
-        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 7, animate: true });
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 5, animate: true });
       }
     },
   },
@@ -1928,7 +1928,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.2.0';
+const APP_VERSION = 'v2.3.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
