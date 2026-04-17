@@ -785,6 +785,47 @@ expect('set 75: 60 km → close',   clickResult(60, 75) === 'close');
 expect('set 75: 179 km → close',  clickResult(179, 75) === 'close');
 expect('set 75: 180 km → wrong',  clickResult(180, 75) === 'wrong');
 
+// ── Set 58 — Onze buren (Geobas 5, hoofdstuk 8) ─────────────
+
+section('Set 58 — Onze buren');
+
+const SET58_LANDEN = [
+  'België','Luxemburg','Duitsland','Frankrijk','Verenigd Koninkrijk',
+  'Ierland','Denemarken','Noorwegen','Zweden','Polen','Tsjechië',
+  'Oostenrijk','Zwitserland','Slovenië','Italië','Spanje',
+];
+const SET58_HOOFDSTEDEN = [
+  'Londen','Brussel','Parijs','Berlijn','Kopenhagen',
+];
+
+expect('Set 58 bestaat in SETS',        !!SETS[58]);
+expect('Set 58 is groep 5',             SETS[58]?.group === 5);
+expect('Set 58 heeft 2 fases',          SETS[58]?.phases?.length === 2);
+expect('Set 58 fase 1 is country',      SETS[58]?.phases?.[0]?.quizType === 'country');
+expect('Set 58 fase 2 is place',        SETS[58]?.phases?.[1]?.quizType === 'place');
+expect('Set 58 heeft bounds',           Array.isArray(SETS[58]?.bounds));
+expect('Set 58 heeft EU-klikdrempels',  SETS[58]?.clickCorrectKm === 100 && SETS[58]?.clickCloseKm === 300);
+
+// Landen (16: 15 bestaand + Slovenië nieuw)
+SET58_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(58));
+  expect(`${naam} in ALL_COUNTRIES (set 58)`, !!c);
+});
+expect('Set 58 heeft 16 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(58)).length === 16);
+
+// Hoofdsteden (5 buitenlandse hoofdsteden)
+SET58_HOOFDSTEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(58));
+  expect(`${naam} in ALL_CITIES (set 58)`, !!s);
+});
+expect('Set 58 heeft 5 hoofdsteden', ALL_CITIES.filter(c => c.sets?.includes(58)).length === 5);
+
+// clickResult met set 58 drempels (100/300)
+expect('set 58: 99 km → correct', clickResult(99, 58) === 'correct');
+expect('set 58: 100 km → close',  clickResult(100, 58) === 'close');
+expect('set 58: 299 km → close',  clickResult(299, 58) === 'close');
+expect('set 58: 300 km → wrong',  clickResult(300, 58) === 'wrong');
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
