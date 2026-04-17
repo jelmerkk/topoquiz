@@ -370,7 +370,7 @@ const ALL_PROVINCES = [
   // Alpen: bredere ellips dan set 73 (daar alleen westelijke Alpen bij Frankrijk).
   // Centrum over Zwitserland/Oostenrijk, boog van Mont Blanc tot Slovenië.
   { name: 'Alpen',       lat: 47.00, lon: 11.00, kind: 'gewest', shape: 'fuzzy', rx: 5.00, ry: 1.20, sets: [76], aliases: ['Alps'] },
-  { name: 'Apennijnen',  lat: 42.50, lon: 12.50, kind: 'gewest', shape: 'fuzzy', rx: 1.50, ry: 4.00, sets: [76], aliases: ['Apennines', 'Appennini'] },
+  { name: 'Apennijnen',  lat: 42.50, lon: 12.50, kind: 'gewest', shape: 'fuzzy', rx: 0.80, ry: 2.80, sets: [76], aliases: ['Apennines', 'Appennini'] },
   // Sicilië en Sardinië: harde polygonen uit Natural Earth (gewesten.geojson)
   { name: 'Sicilië',     lat: 37.60, lon: 14.00, kind: 'gewest', sets: [76], aliases: ['Sicilia', 'Sicily'] },
   { name: 'Sardinië',    lat: 40.00, lon:  9.10, kind: 'gewest', sets: [76], aliases: ['Sardegna', 'Sardinia'] },
