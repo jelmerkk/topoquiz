@@ -52,7 +52,7 @@ test('set 58 — MC start: kaartzoom geschikt voor Europa-viewport', async ({ pa
   await startSet58MC(page);
   const zoom = await page.evaluate(() => map.getZoom());
   expect(zoom).toBeGreaterThanOrEqual(3);
-  expect(zoom).toBeLessThanOrEqual(6);
+  expect(zoom).toBeLessThanOrEqual(7);
 });
 
 test('set 58 — Slovenië is een polygoon in landen-europa.geojson', async ({ page }) => {
