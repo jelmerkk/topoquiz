@@ -12,7 +12,7 @@ const { test, expect } = require('@playwright/test');
 async function openSet77(page) {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '7' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: 'Oost-Europa' }).click();
+  await page.locator('#level-select .mode-btn', { hasText: '7.7' }).click();
   await expect(page.locator('#mode-select')).toBeVisible();
 }
 
@@ -25,7 +25,7 @@ async function startSet77MC(page) {
 test('set 77 verschijnt in groep 7', async ({ page }) => {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Oost-Europa' })).toBeVisible();
+  await expect(page.locator('#level-select .mode-btn', { hasText: '7.7' })).toBeVisible();
 });
 
 test('set 77 — mode-select bereikbaar', async ({ page }) => {

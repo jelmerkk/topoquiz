@@ -149,7 +149,7 @@ const ALL_CITIES = [
   { name: "Schiedam",            lat: 51.92, lon: 4.40, pop:   84000, sets: [66] },
   { name: "Gorinchem",           lat: 51.84, lon: 4.97, pop:   36000, sets: [66] },
   // ── Set 71: Europese hoofdsteden (7.1 Landen van Europa) ─────────────────────
-  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [71], capital: true },
+  { name: "Helsinki", lat: 60.17, lon: 24.94, pop:  655000, sets: [71, 78], capital: true },
   { name: "Lissabon",   lat: 38.72, lon: -9.14,  pop: 2956000, sets: [71, 73], capital: true },
   { name: "Madrid",     lat: 40.42, lon: -3.70,  pop: 3348000, sets: [71, 73], capital: true },
   { name: "Parijs",     lat: 48.86, lon: 2.35,   pop: 2161000, sets: [58, 71, 73], capital: true },
@@ -159,9 +159,9 @@ const ALL_CITIES = [
   { name: "Dublin",     lat: 53.33, lon: -6.25,  pop:  592000, sets: [71, 75], capital: true },
   { name: "Reykjavík",  lat: 64.13, lon: -21.82, pop:  136000, sets: [71], capital: true },
   { name: "Berlijn",    lat: 52.52, lon: 13.40,  pop: 3677000, sets: [58, 71, 74], capital: true },
-  { name: "Kopenhagen", lat: 55.68, lon: 12.57,  pop:  764000, sets: [58, 71], capital: true },
-  { name: "Oslo",       lat: 59.91, lon: 10.75,  pop:  693000, sets: [71], capital: true },
-  { name: "Stockholm",  lat: 59.33, lon: 18.07,  pop:  975000, sets: [71], capital: true },
+  { name: "Kopenhagen", lat: 55.68, lon: 12.57,  pop:  764000, sets: [58, 71, 78], capital: true },
+  { name: "Oslo",       lat: 59.91, lon: 10.75,  pop:  693000, sets: [71, 78], capital: true },
+  { name: "Stockholm",  lat: 59.33, lon: 18.07,  pop:  975000, sets: [71, 78], capital: true },
   { name: "Wenen",      lat: 48.21, lon: 16.37,  pop: 1931000, sets: [71, 76], capital: true },
   { name: "Bern",       lat: 46.95, lon: 7.44,   pop:  134000, sets: [71, 76], capital: true },
   { name: "Rome",       lat: 41.90, lon: 12.50,  pop: 2873000, sets: [71, 76], capital: true },
@@ -264,19 +264,53 @@ const ALL_CITIES = [
   // Wit-Rusland
   { name: "Minsk",           lat: 53.90, lon: 27.57, pop: 2010000, sets: [77], capital: true },
   // Roemenië
-  { name: "Boekarest",       lat: 44.43, lon: 26.10, pop: 1716000, sets: [77], capital: true, aliases: ['București', 'Bucuresti', 'Bucharest'] },
+  { name: "Boekarest",       lat: 44.43, lon: 26.10, pop: 1716000, sets: [77, 79], capital: true, aliases: ['București', 'Bucuresti', 'Bucharest'] },
   // Bulgarije
-  { name: "Sofia",           lat: 42.70, lon: 23.32, pop: 1242000, sets: [77], capital: true, aliases: ['София'] },
+  { name: "Sofia",           lat: 42.70, lon: 23.32, pop: 1242000, sets: [77, 79], capital: true, aliases: ['София'] },
   // Rusland
   { name: "Moskou",          lat: 55.76, lon: 37.62, pop:12506000, sets: [77], capital: true, aliases: ['Moscow', 'Moskwa'] },
   { name: "Sint-Petersburg", lat: 59.94, lon: 30.31, pop: 5377000, sets: [77], aliases: ['St Petersburg', 'Petersburg', 'Sankt-Peterburg', 'Sint Petersburg'] },
+  // ── Set 78: Noord-Europa (7.8) — Oslo, Stockholm, Helsinki, Kopenhagen hergebruikt uit set 71 ─
+  // Noorwegen
+  { name: "Bergen",     lat: 60.39, lon:  5.33, pop:  287000, sets: [78], aliases: ['Bergen (Noorwegen)'] },
+  { name: "Trondheim",  lat: 63.43, lon: 10.40, pop:  211000, sets: [78] },
+  { name: "Narvik",     lat: 68.44, lon: 17.43, pop:   14000, sets: [78] },
+  { name: "Hammerfest", lat: 70.66, lon: 23.68, pop:   10000, sets: [78] },
+  // Zweden
+  { name: "Göteborg",   lat: 57.71, lon: 11.97, pop:  587000, sets: [78], aliases: ['Goteborg', 'Gothenburg'] },
+  { name: "Malmö",      lat: 55.60, lon: 13.00, pop:  351000, sets: [78], aliases: ['Malmo'] },
+  { name: "Kiruna",     lat: 67.86, lon: 20.23, pop:   17000, sets: [78] },
+  // ── Set 79: Zuidoost-Europa (7.9) — Boekarest en Sofia hergebruikt uit set 77 ─
+  // Slovenië
+  { name: "Ljubljana",   lat: 46.06, lon: 14.51, pop:  295000, sets: [79], capital: true },
+  // Kroatië
+  { name: "Zagreb",      lat: 45.81, lon: 15.98, pop:  790000, sets: [79], capital: true },
+  { name: "Split",       lat: 43.51, lon: 16.44, pop:  161000, sets: [79] },
+  // Bosnië-Hercegovina
+  { name: "Sarajevo",    lat: 43.85, lon: 18.36, pop:  275000, sets: [79], capital: true },
+  // Servië
+  { name: "Belgrado",    lat: 44.79, lon: 20.45, pop: 1378000, sets: [79], capital: true, aliases: ['Belgrade', 'Beograd'] },
+  // Montenegro
+  { name: "Podgorica",   lat: 42.44, lon: 19.26, pop:  150000, sets: [79], capital: true },
+  // Albanië
+  { name: "Tirana",      lat: 41.33, lon: 19.82, pop:  557000, sets: [79], capital: true, aliases: ['Tiranë'] },
+  // Noord-Macedonië
+  { name: "Skopje",      lat: 41.99, lon: 21.43, pop:  544000, sets: [79], capital: true, aliases: ['Скопје'] },
+  // Griekenland
+  { name: "Athene",      lat: 37.98, lon: 23.73, pop:  664000, sets: [79], capital: true, aliases: ['Athens', 'Athína', 'Athina'] },
+  { name: "Thessaloniki",lat: 40.64, lon: 22.94, pop:  325000, sets: [79], aliases: ['Saloniki', 'Thessalonica'] },
+  // Slowakije
+  { name: "Bratislava",  lat: 48.15, lon: 17.11, pop:  437000, sets: [79], capital: true },
+  // Turkije
+  { name: "Istanbul",    lat: 41.01, lon: 28.98, pop:15519000, sets: [79], aliases: ['İstanbul', 'Constantinopel'] },
+  { name: "Ankara",      lat: 39.93, lon: 32.85, pop: 5747000, sets: [79], capital: true },
 ];
 
 // Landen voor sets met quizType 'country'.
 // lat/lon = centroïd (voor pan-to en als fallback klik-punt).
 const ALL_COUNTRIES = [
   // ── Set 71: Landen van Europa (7.1) ───────────────────────────
-  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [71] },
+  { name: 'Finland',  lat: 64.00, lon: 26.00, sets: [71, 78] },
   { name: 'Portugal',            lat: 39.6,  lon: -8.3,  sets: [71] },
   { name: 'Spanje',              lat: 40.4,  lon: -3.7,  sets: [58, 71] },
   { name: 'Frankrijk',           lat: 46.7,  lon:  2.6,  sets: [58, 71] },
@@ -287,9 +321,9 @@ const ALL_COUNTRIES = [
   { name: 'Ierland',             lat: 53.1,  lon: -7.8,  sets: [58, 71] },
   { name: 'IJsland',             lat: 64.8,  lon: -18.7, sets: [71] },
   { name: 'Duitsland',           lat: 51.0,  lon:  9.7,  sets: [58, 71] },
-  { name: 'Denemarken',          lat: 56.0,  lon:  9.0,  sets: [58, 71] },
-  { name: 'Noorwegen',           lat: 61.4,  lon:  9.7,  sets: [58, 71] },
-  { name: 'Zweden',              lat: 65.9,  lon: 19.0,  sets: [58, 71] },
+  { name: 'Denemarken',          lat: 56.0,  lon:  9.0,  sets: [58, 71, 78] },
+  { name: 'Noorwegen',           lat: 61.4,  lon:  9.7,  sets: [58, 71, 78] },
+  { name: 'Zweden',              lat: 65.9,  lon: 19.0,  sets: [58, 71, 78] },
   { name: 'Oostenrijk',          lat: 47.5,  lon: 14.1,  sets: [58, 71] },
   { name: 'Zwitserland',         lat: 46.7,  lon:  7.5,  sets: [58, 71] },
   { name: 'Italië',              lat: 44.7,  lon: 11.1,  sets: [58, 71] },
@@ -297,20 +331,32 @@ const ALL_COUNTRIES = [
   { name: 'Tsjechië',            lat: 49.9,  lon: 15.4,  sets: [58, 71, 77] },
   { name: 'Hongarije',           lat: 47.1,  lon: 19.4,  sets: [71, 77] },
   // ── Set 58: Onze buren — extra land (niet in set 71) ────────
-  { name: 'Slovenië',            lat: 46.1,  lon: 14.8,  sets: [58] },
+  { name: 'Slovenië',            lat: 46.1,  lon: 14.8,  sets: [58, 79] },
   // ── Set 77: Landen van Oost-Europa (7.7) ────────────────────
   // lat/lon = centroïd voor pan-to en labelpositie. Rusland-centroïd bewust
   // op het Europese deel (Moskou-regio) zodat het label binnen de bounds valt.
-  { name: 'Slowakije',           lat: 48.67, lon: 19.70, sets: [77], aliases: ['Slovakia'] },
+  { name: 'Slowakije',           lat: 48.67, lon: 19.70, sets: [77, 79], aliases: ['Slovakia'] },
   { name: 'Oekraïne',            lat: 49.00, lon: 31.50, sets: [77], aliases: ['Oekraine', 'Ukraine', 'Україна'] },
   { name: 'Moldavië',            lat: 47.20, lon: 28.50, sets: [77], aliases: ['Moldavie', 'Moldova'] },
-  { name: 'Roemenië',            lat: 45.90, lon: 24.90, sets: [77], aliases: ['Roemenie', 'Romania', 'România'] },
-  { name: 'Bulgarije',           lat: 42.70, lon: 25.50, sets: [77], aliases: ['Bulgaria', 'България'] },
+  { name: 'Roemenië',            lat: 45.90, lon: 24.90, sets: [77, 79], aliases: ['Roemenie', 'Romania', 'România'] },
+  { name: 'Bulgarije',           lat: 42.70, lon: 25.50, sets: [77, 79], aliases: ['Bulgaria', 'България'] },
   { name: 'Wit-Rusland',         lat: 53.70, lon: 27.90, sets: [77], aliases: ['Wit Rusland', 'Belarus', 'Беларусь'] },
   { name: 'Rusland',             lat: 55.00, lon: 45.00, sets: [77], aliases: ['Russia', 'Россия'] },
   { name: 'Estland',             lat: 58.67, lon: 25.54, sets: [77], aliases: ['Estonia', 'Eesti'] },
   { name: 'Letland',             lat: 56.90, lon: 24.60, sets: [77], aliases: ['Latvia', 'Latvija'] },
   { name: 'Litouwen',            lat: 55.30, lon: 23.90, sets: [77], aliases: ['Lithuania', 'Lietuva'] },
+  // ── Set 79: Zuidoost-Europa (7.9) — Slovenië, Roemenië, Bulgarije en Slowakije hergebruikt ─
+  { name: 'Kroatië',             lat: 45.10, lon: 15.20, sets: [79], aliases: ['Kroatie', 'Croatia', 'Hrvatska'] },
+  { name: 'Bosnië-Hercegovina',  lat: 44.00, lon: 17.80, sets: [79], aliases: ['Bosnie-Hercegovina', 'Bosnia', 'Bosnië', 'Bosnia and Herzegovina', 'Bosna i Hercegovina'] },
+  { name: 'Servië',              lat: 44.00, lon: 20.80, sets: [79], aliases: ['Servie', 'Serbia', 'Srbija'] },
+  { name: 'Montenegro',          lat: 42.70, lon: 19.30, sets: [79], aliases: ['Crna Gora'] },
+  { name: 'Albanië',             lat: 41.00, lon: 20.10, sets: [79], aliases: ['Albanie', 'Albania', 'Shqipëria'] },
+  { name: 'Noord-Macedonië',     lat: 41.60, lon: 21.75, sets: [79], aliases: ['Noord Macedonie', 'North Macedonia', 'Macedonië', 'Macedonia', 'Severna Makedonija'] },
+  { name: 'Griekenland',         lat: 39.00, lon: 22.50, sets: [79], aliases: ['Greece', 'Ελλάδα', 'Ellada'] },
+  // Turkije-centroïd bewust op het Europese deel (Trakië) zodat label binnen de
+  // set-bounds [[34,13],[49,45]] valt. De polygoon omvat wel Anatolië tot 45°E.
+  { name: 'Turkije',             lat: 39.00, lon: 35.00, sets: [79], aliases: ['Turkey', 'Türkiye', 'Turkiye'] },
+  { name: 'Cyprus',              lat: 35.10, lon: 33.40, sets: [79], aliases: ['Kύπρος', 'Kypros', 'Kıbrıs'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -357,8 +403,16 @@ const ALL_WATERS = [
   { name: 'Oder',             lat: 52.50, lon: 14.50, sets: [77], aliases: ['Odra'] },
   { name: 'Weichsel',         lat: 52.30, lon: 19.50, sets: [77], aliases: ['Wisła', 'Wisla', 'Vistula'] },
   { name: 'Dnjepr',           lat: 50.00, lon: 31.00, sets: [77], aliases: ['Dnipro', 'Dniepr', 'Dnieper', 'Dnepr'] },
-  { name: 'Oostzee',          lat: 58.00, lon: 20.00, sets: [77], aliases: ['Baltische Zee', 'Baltic Sea'] },
-  { name: 'Zwarte Zee',       lat: 43.40, lon: 34.00, sets: [77], aliases: ['Black Sea', 'Karadeniz'] },
+  { name: 'Oostzee',          lat: 58.00, lon: 20.00, sets: [77, 78], aliases: ['Baltische Zee', 'Baltic Sea'] },
+  { name: 'Zwarte Zee',       lat: 43.40, lon: 34.00, sets: [77, 79], aliases: ['Black Sea', 'Karadeniz'] },
+  // ── Set 78: Wateren van Noord-Europa (7.8) ────────────────────────────────
+  { name: 'Sont',               lat: 55.80, lon: 12.70, sets: [78], aliases: ['Øresund', 'Oresund'] },
+  { name: 'Botnische Golf',     lat: 62.00, lon: 20.00, sets: [78], aliases: ['Gulf of Bothnia', 'Pohjanlahti'] },
+  { name: 'Finse Golf',         lat: 59.70, lon: 25.00, sets: [78], aliases: ['Gulf of Finland', 'Suomenlahti'] },
+  { name: 'Barentszzee',        lat: 71.50, lon: 37.00, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
+  { name: 'Atlantische Oceaan', lat: 62.00, lon:  0.00, sets: [78], aliases: ['Atlantic Ocean', 'Atlantic'] },
+  // ── Set 79: Wateren van Zuidoost-Europa (7.9) ─────────────────────────────
+  { name: 'Bosporus',           lat: 41.12, lon: 29.07, sets: [79], aliases: ['Bosphorus', 'İstanbul Boğazı'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -419,6 +473,13 @@ const ALL_PROVINCES = [
   { name: 'Karpaten', lat: 47.50, lon: 24.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 2.00, sets: [77], aliases: ['Carpathians', 'Carpați', 'Karpaty'] },
   { name: 'Balkan',   lat: 42.75, lon: 25.00, kind: 'gewest', shape: 'fuzzy', rx: 2.50, ry: 0.35, sets: [77], aliases: ['Stara Planina', 'Balkangebergte'] },
   { name: 'Kaukasus', lat: 42.80, lon: 44.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 0.55, sets: [77], aliases: ['Caucasus', 'Kavkaz'] },
+  // ── Set 78: Noord-Europa (7.8) — fuzzy gebieden ─────────────────────────────
+  // Lapland: noordelijk Scandinavië, boven de poolcirkel — ruim gebied over NO/SE/FI.
+  // Jutland: Deens schiereiland, N-Z lang smal — centrum rond Viborg.
+  { name: 'Lapland', lat: 68.00, lon: 22.00, kind: 'gewest', shape: 'fuzzy', rx: 6.00, ry: 2.20, sets: [78], aliases: ['Lappi', 'Sápmi'] },
+  { name: 'Jutland', lat: 56.30, lon:  9.30, kind: 'gewest', shape: 'fuzzy', rx: 0.80, ry: 1.80, sets: [78], aliases: ['Jylland'] },
+  // ── Set 79: Zuidoost-Europa (7.9) — Kreta als harde polygoon uit Natural Earth ─
+  { name: 'Kreta', lat: 35.20, lon: 24.80, kind: 'gewest', sets: [79], aliases: ['Crete', 'Kriti', 'Κρήτη'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -531,6 +592,28 @@ const SETS = {
            { id: 'cities',    label: 'Steden',    quizType: 'place'    },
            { id: 'mountains', label: 'Gebergten', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',   quizType: 'water'    },
+         ] },
+   // Set 7.8: Noord-Europa — Scandinavië en de Baltische regio.
+   // Bounds omvatten Noord-Noorwegen (Hammerfest ~71°N) en Denemarken (~54°N),
+   // en van IJslandzee/Groenlandzee (-5°E) tot Barentszzee (40°E).
+   78: { name: '7.8 – Noord-Europa', group: 7, mastery: 1,
+         bounds: [[54, -5], [72, 40]],
+         clickCorrectKm: 100, clickCloseKm: 300,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // Set 7.9: Zuidoost-Europa — Balkan + Turkije + Griekenland + Cyprus.
+   79: { name: '7.9 – Zuidoost-Europa', group: 7, mastery: 1,
+         bounds: [[34, 13], [49, 45]],
+         clickCorrectKm: 100, clickCloseKm: 300,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
