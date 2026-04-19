@@ -176,6 +176,11 @@ Alle waterlichamen staan in `wateren.geojson` als GeoJSON `FeatureCollection`. E
 |------|--------------|
 | `LineString` | Rijn, Waal, Neder-Rijn, Lek, IJssel, Maas, Bergse Maas, Oude Maas, Nieuwe Waterweg, Noordzeekanaal, Amsterdam-Rijnkanaal |
 | `Polygon` | Noordzee, Waddenzee, Oosterschelde, Westerschelde, Eems |
+| `fuzzy` (ellips) | Alle nieuwe zeeën en oceanen (Middellandse Zee, Oostzee, Atlantische Oceaan, …) |
+
+### Zeeën/oceanen: gebruik fuzzy, niet hard polygoon
+
+Een harde zee-polygoon met echte kustlijn vergt per kust OSM-ways chainen, RDP, inlet-overbruggingen en visuele verificatie — de Noordzee (#37, #38) kostte meerdere iteraties en blijft dichtbij land imperfect. Voor alle **nieuwe** zeeën/oceanen gebruiken we daarom een `shape: 'fuzzy'` ellips, zo geplaatst en gemaatvoerd dat de ellips **niet tegen land aanligt** (ruime marge t.o.v. de kust). De Noordzee/Waddenzee/etc. blijven hard polygoon (al gedaan), maar we investeren daar niet meer in tenzij er een concrete blokkerende fout is.
 
 ### Klik-op-de-kaart modus (wateren)
 
