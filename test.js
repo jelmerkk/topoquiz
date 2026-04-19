@@ -831,6 +831,15 @@ SET76_GEBIEDEN.forEach(naam => {
 });
 expect('Set 76 heeft 4 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(76)).length === 4);
 
+// Apennijnen-ellipse moet op de spine van Italië liggen (niet in de Tyrrheense Zee
+// aan de westkust). Centrum minstens lon 13.0; westrand (lon - rx) >= 12.2 zodat
+// de ellipse binnen de laarzen-breedte blijft en niet over de zeekust steekt.
+const apennijnen = ALL_PROVINCES.find(p => p.name === 'Apennijnen' && p.sets?.includes(76));
+expect('Apennijnen centrum lon >= 13.0 (op de spine, niet Tyrrheens)', apennijnen && apennijnen.lon >= 13.0);
+expect('Apennijnen westrand lon >= 12.2', apennijnen && (apennijnen.lon - apennijnen.rx) >= 12.2);
+// Bovenkant mag niet in de Po-vlakte (noordgrens lat 44.5)
+expect('Apennijnen noordrand lat <= 44.6', apennijnen && (apennijnen.lat + apennijnen.ry) <= 44.6);
+
 // Wateren (5: Donau, Po, Meer van Genève, Balaton, Adriatische Zee)
 SET76_WATEREN.forEach(naam => {
   const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(76));
