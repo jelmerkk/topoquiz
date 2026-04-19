@@ -304,6 +304,26 @@ const ALL_CITIES = [
   // Turkije
   { name: "Istanbul",    lat: 41.01, lon: 28.98, pop:15519000, sets: [79], aliases: ['İstanbul', 'Constantinopel'] },
   { name: "Ankara",      lat: 39.93, lon: 32.85, pop: 5747000, sets: [79], capital: true },
+  // ── Set 81: Zuid-Amerika (8.1) — 19 steden, 11 hoofdsteden ──────────────
+  { name: 'Bogotá',         lat:   4.71, lon: -74.07, pop: 8000000, sets: [81], capital: true, aliases: ['Bogota'] },
+  { name: 'Medellín',       lat:   6.25, lon: -75.57, pop: 2600000, sets: [81], aliases: ['Medellin'] },
+  { name: 'Caracas',        lat:  10.48, lon: -66.88, pop: 2900000, sets: [81], capital: true },
+  { name: 'Paramaribo',     lat:   5.87, lon: -55.17, pop:  240000, sets: [81], capital: true },
+  { name: 'Quito',          lat:  -0.23, lon: -78.52, pop: 2000000, sets: [81], capital: true },
+  { name: 'Guayaquil',      lat:  -2.19, lon: -79.88, pop: 2700000, sets: [81] },
+  { name: 'Lima',           lat: -12.05, lon: -77.04, pop:10000000, sets: [81], capital: true },
+  { name: 'Cuzco',          lat: -13.53, lon: -71.97, pop:  430000, sets: [81], aliases: ['Cusco'] },
+  { name: 'La Paz',         lat: -16.50, lon: -68.15, pop:  900000, sets: [81], capital: true },
+  { name: 'Brasília',       lat: -15.79, lon: -47.88, pop: 3000000, sets: [81], capital: true, aliases: ['Brasilia'] },
+  { name: 'São Paulo',      lat: -23.55, lon: -46.63, pop:12300000, sets: [81], aliases: ['Sao Paulo'] },
+  { name: 'Rio de Janeiro', lat: -22.91, lon: -43.17, pop: 6700000, sets: [81] },
+  { name: 'Manaus',         lat:  -3.12, lon: -60.02, pop: 2100000, sets: [81] },
+  { name: 'Salvador',       lat: -12.97, lon: -38.51, pop: 2900000, sets: [81] },
+  { name: 'Asunción',       lat: -25.28, lon: -57.63, pop:  525000, sets: [81], capital: true, aliases: ['Asuncion'] },
+  { name: 'Santiago',       lat: -33.45, lon: -70.67, pop: 6200000, sets: [81], capital: true, aliases: ['Santiago de Chile'] },
+  { name: 'Córdoba',        lat: -31.42, lon: -64.19, pop: 1400000, sets: [81], aliases: ['Cordoba'] },
+  { name: 'Buenos Aires',   lat: -34.61, lon: -58.38, pop:15200000, sets: [81], capital: true },
+  { name: 'Montevideo',     lat: -34.90, lon: -56.19, pop: 1400000, sets: [81], capital: true },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -357,6 +377,18 @@ const ALL_COUNTRIES = [
   // set-bounds [[34,13],[49,45]] valt. De polygoon omvat wel Anatolië tot 45°E.
   { name: 'Turkije',             lat: 39.00, lon: 35.00, sets: [79], aliases: ['Turkey', 'Türkiye', 'Turkiye'] },
   { name: 'Cyprus',              lat: 35.10, lon: 33.40, sets: [79], aliases: ['Kύπρος', 'Kypros', 'Kıbrıs'] },
+  // ── Set 81: Zuid-Amerika (8.1) — Natural Earth polygonen in landen-zuidamerika.geojson ─
+  { name: 'Colombia',   lat:   4.0, lon: -73.0, sets: [81] },
+  { name: 'Venezuela',  lat:   7.5, lon: -66.0, sets: [81] },
+  { name: 'Suriname',   lat:   4.0, lon: -56.0, sets: [81] },
+  { name: 'Ecuador',    lat:  -1.5, lon: -78.5, sets: [81] },
+  { name: 'Peru',       lat: -10.0, lon: -76.0, sets: [81] },
+  { name: 'Bolivia',    lat: -17.0, lon: -65.0, sets: [81] },
+  { name: 'Brazilië',   lat: -10.0, lon: -55.0, sets: [81], aliases: ['Brazilie', 'Brasil', 'Brazil'] },
+  { name: 'Paraguay',   lat: -23.0, lon: -58.0, sets: [81] },
+  { name: 'Chili',      lat: -35.0, lon: -71.0, sets: [81], aliases: ['Chile'] },
+  { name: 'Argentinië', lat: -35.0, lon: -65.0, sets: [81], aliases: ['Argentinie', 'Argentina'] },
+  { name: 'Uruguay',    lat: -33.0, lon: -55.5, sets: [81] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -413,6 +445,9 @@ const ALL_WATERS = [
   { name: 'Atlantische Oceaan', lat: 62.00, lon:  0.00, sets: [78], aliases: ['Atlantic Ocean', 'Atlantic'] },
   // ── Set 79: Wateren van Zuidoost-Europa (7.9) ─────────────────────────────
   { name: 'Bosporus',           lat: 41.12, lon: 29.07, sets: [79], aliases: ['Bosphorus', 'İstanbul Boğazı'] },
+  // ── Set 81: Wateren van Zuid-Amerika (8.1) ────────────────────────────────
+  // Amazone: LineString uit OSM relation Q3783 (main_stream) → wateren.geojson
+  { name: 'Amazone',            lat: -3.00, lon: -60.00, sets: [81], aliases: ['Amazon', 'Rio Amazonas', 'Amazonas'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -481,6 +516,12 @@ const ALL_PROVINCES = [
   { name: 'Jutland', lat: 56.30, lon:  9.30, kind: 'gewest', shape: 'fuzzy', rx: 0.80, ry: 1.80, sets: [78], aliases: ['Jylland'] },
   // ── Set 79: Zuidoost-Europa (7.9) — Kreta als harde polygoon uit Natural Earth ─
   { name: 'Kreta', lat: 35.20, lon: 24.80, kind: 'gewest', sets: [79], aliases: ['Crete', 'Kriti', 'Κρήτη'] },
+  // ── Set 81: Zuid-Amerika (8.1) — fuzzy ellipsen ─────────────────────────────
+  // Andes: lange N-Z bergrug door 7 landen (VE → AR/CL). Ellips is per definitie
+  // een compromis — ry dekt ~8°N tot ~54°S, rx smal (2°) omdat de keten zelf smal is.
+  // Vuurland: eilandengroep rond Ushuaia; ruime ellips omdat meerdere eilanden + Straat van Magallanes.
+  { name: 'Andes',    lat: -22.00, lon: -68.50, kind: 'gewest', shape: 'fuzzy', rx: 2.20, ry: 27.00, sets: [81], aliases: ['Andesgebergte', 'Los Andes'] },
+  { name: 'Vuurland', lat: -54.00, lon: -68.50, kind: 'gewest', shape: 'fuzzy', rx: 2.20, ry: 1.50, sets: [81], aliases: ['Tierra del Fuego'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -610,6 +651,19 @@ const SETS = {
    79: { name: '7.9 – Zuidoost-Europa', group: 7, mastery: 1,
          bounds: [[34, 13], [49, 45]],
          clickCorrectKm: 100, clickCloseKm: 300,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // Set 8.1: Zuid-Amerika — 11 landen, 19 steden, 2 gebieden (Andes + Vuurland), 1 rivier (Amazone).
+   // Continentale schaal → ruimere klikdrempels dan EU-sets (150/400 i.p.v. 100/300).
+   // Bounds ruim om het hele continent (incl. Caribische kust Venezuela/Colombia
+   // en Kaap Hoorn) prominent in beeld te laten komen op mobiel én desktop.
+   81: { name: '8.1 – Zuid-Amerika', group: 8, mastery: 1,
+         bounds: [[-58, -85], [15, -32]],
+         clickCorrectKm: 150, clickCloseKm: 400,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },

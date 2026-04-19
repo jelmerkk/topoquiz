@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.7.4">
+<meta name="version" content="2.8.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1025,10 +1025,17 @@ polygonTypes.province.dataPromise = Promise.all([
 
 map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
 
-// Landsgrenzen — voor quizType 'country' (laden per set via landen-europa.geojson)
-polygonTypes.country.dataPromise = fetch('/landen-europa.geojson')
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(data => { polygonTypes.country.featureData = data; })
+// Landsgrenzen — voor quizType 'country'. Bestanden per continent worden
+// samengevoegd tot één FeatureCollection; sets staan in properties.sets zodat
+// buildPolygonLayer per set kan filteren.
+polygonTypes.country.dataPromise = Promise.all([
+  fetch('/landen-europa.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('/landen-zuidamerika.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+])
+  .then(([eu, za]) => {
+    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features] };
+    polygonTypes.country.featureData = merged;
+  })
   .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
 
 
@@ -1380,9 +1387,23 @@ function dist(a, b) {
   return dlat * dlat + dlon * dlon;
 }
 
+// Globale pool per quizType — gebruikt als fallback wanneer een phase
+// (bijv. 1 water of 2 regio's in set 81) te weinig items heeft voor MC.
+function distractorPool() {
+  const qt = currentQuizType();
+  if (qt === 'province') return ALL_PROVINCES;
+  if (qt === 'water')    return ALL_WATERS;
+  if (qt === 'country')  return ALL_COUNTRIES;
+  return ALL_CITIES;
+}
+
 function nearbyDistractors(city, n) {
-  const sorted = activeCities.filter(c => c !== city)
-                             .sort((a, b) => dist(a, city) - dist(b, city));
+  let pool = activeCities.filter(c => c !== city);
+  if (pool.length < n) {
+    const extra = distractorPool().filter(c => c !== city && !pool.includes(c));
+    pool = pool.concat(extra);
+  }
+  const sorted = pool.sort((a, b) => dist(a, city) - dist(b, city));
   const candidates = sorted.slice(0, Math.min(8, sorted.length));
   return shuffle(candidates).slice(0, n);
 }
@@ -1937,7 +1958,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.7.4';
+const APP_VERSION = 'v2.8.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
