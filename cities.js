@@ -165,7 +165,7 @@ const ALL_CITIES = [
   { name: "Wenen",      lat: 48.21, lon: 16.37,  pop: 1931000, sets: [71, 76], capital: true },
   { name: "Bern",       lat: 46.95, lon: 7.44,   pop:  134000, sets: [71, 76], capital: true },
   { name: "Rome",       lat: 41.90, lon: 12.50,  pop: 2873000, sets: [71, 76], capital: true },
-  { name: "Warschau",   lat: 52.23, lon: 21.01,  pop: 1794000, sets: [71], capital: true },
+  { name: "Warschau",   lat: 52.23, lon: 21.01,  pop: 1794000, sets: [71, 77], capital: true },
   { name: "Praag",      lat: 50.08, lon: 14.44,  pop: 1357000, sets: [71, 76], capital: true },
   { name: "Boedapest",  lat: 47.50, lon: 19.05,  pop: 1752000, sets: [71, 76], capital: true },
   // ── Set 72: Belgische steden (7.2 België en Luxemburg) ───────────────────────
@@ -255,6 +255,21 @@ const ALL_CITIES = [
   // Microstaten
   { name: "San Marino",  lat: 43.94, lon: 12.45,  pop:   34000, sets: [76] },
   { name: "Malta",       lat: 35.90, lon: 14.51,  pop:  213000, sets: [76], aliases: ['Valletta'] },
+  // ── Set 77: Oost-Europa (7.7) — Warschau staat hierboven in set 71, aangevuld met [77] ─
+  // Polen
+  { name: "Krakau",          lat: 50.06, lon: 19.94, pop:  779000, sets: [77], aliases: ['Kraków', 'Krakow', 'Cracow'] },
+  // Oekraïne
+  { name: "Kiev",            lat: 50.45, lon: 30.52, pop: 2884000, sets: [77], capital: true, aliases: ['Kyiv', 'Kyïv'] },
+  { name: "Odessa",          lat: 46.48, lon: 30.72, pop: 1017000, sets: [77], aliases: ['Odesa'] },
+  // Wit-Rusland
+  { name: "Minsk",           lat: 53.90, lon: 27.57, pop: 2010000, sets: [77], capital: true },
+  // Roemenië
+  { name: "Boekarest",       lat: 44.43, lon: 26.10, pop: 1716000, sets: [77], capital: true, aliases: ['București', 'Bucuresti', 'Bucharest'] },
+  // Bulgarije
+  { name: "Sofia",           lat: 42.70, lon: 23.32, pop: 1242000, sets: [77], capital: true, aliases: ['София'] },
+  // Rusland
+  { name: "Moskou",          lat: 55.76, lon: 37.62, pop:12506000, sets: [77], capital: true, aliases: ['Moscow', 'Moskwa'] },
+  { name: "Sint-Petersburg", lat: 59.94, lon: 30.31, pop: 5377000, sets: [77], aliases: ['St Petersburg', 'Petersburg', 'Sankt-Peterburg', 'Sint Petersburg'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -278,11 +293,24 @@ const ALL_COUNTRIES = [
   { name: 'Oostenrijk',          lat: 47.5,  lon: 14.1,  sets: [58, 71] },
   { name: 'Zwitserland',         lat: 46.7,  lon:  7.5,  sets: [58, 71] },
   { name: 'Italië',              lat: 44.7,  lon: 11.1,  sets: [58, 71] },
-  { name: 'Polen',               lat: 52.0,  lon: 19.5,  sets: [58, 71] },
-  { name: 'Tsjechië',            lat: 49.9,  lon: 15.4,  sets: [58, 71] },
-  { name: 'Hongarije',           lat: 47.1,  lon: 19.4,  sets: [71] },
+  { name: 'Polen',               lat: 52.0,  lon: 19.5,  sets: [58, 71, 77] },
+  { name: 'Tsjechië',            lat: 49.9,  lon: 15.4,  sets: [58, 71, 77] },
+  { name: 'Hongarije',           lat: 47.1,  lon: 19.4,  sets: [71, 77] },
   // ── Set 58: Onze buren — extra land (niet in set 71) ────────
   { name: 'Slovenië',            lat: 46.1,  lon: 14.8,  sets: [58] },
+  // ── Set 77: Landen van Oost-Europa (7.7) ────────────────────
+  // lat/lon = centroïd voor pan-to en labelpositie. Rusland-centroïd bewust
+  // op het Europese deel (Moskou-regio) zodat het label binnen de bounds valt.
+  { name: 'Slowakije',           lat: 48.67, lon: 19.70, sets: [77], aliases: ['Slovakia'] },
+  { name: 'Oekraïne',            lat: 49.00, lon: 31.50, sets: [77], aliases: ['Oekraine', 'Ukraine', 'Україна'] },
+  { name: 'Moldavië',            lat: 47.20, lon: 28.50, sets: [77], aliases: ['Moldavie', 'Moldova'] },
+  { name: 'Roemenië',            lat: 45.90, lon: 24.90, sets: [77], aliases: ['Roemenie', 'Romania', 'România'] },
+  { name: 'Bulgarije',           lat: 42.70, lon: 25.50, sets: [77], aliases: ['Bulgaria', 'България'] },
+  { name: 'Wit-Rusland',         lat: 53.70, lon: 27.90, sets: [77], aliases: ['Wit Rusland', 'Belarus', 'Беларусь'] },
+  { name: 'Rusland',             lat: 55.00, lon: 45.00, sets: [77], aliases: ['Russia', 'Россия'] },
+  { name: 'Estland',             lat: 58.67, lon: 25.54, sets: [77], aliases: ['Estonia', 'Eesti'] },
+  { name: 'Letland',             lat: 56.90, lon: 24.60, sets: [77], aliases: ['Latvia', 'Latvija'] },
+  { name: 'Litouwen',            lat: 55.30, lon: 23.90, sets: [77], aliases: ['Lithuania', 'Lietuva'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -320,11 +348,17 @@ const ALL_WATERS = [
   { name: 'Theems',    lat: 51.50, lon: -0.50, sets: [75], aliases: ['Thames'] },
   { name: 'Ierse Zee', lat: 53.70, lon: -5.00, sets: [75], aliases: ['Irish Sea'] },
   // ── Set 76: Wateren van Midden-Europa en Italië (7.6) ──────────────────────
-  { name: 'Donau',            lat: 47.50, lon: 16.50, sets: [76], aliases: ['Donau', 'Danube', 'Dunaj'] },
+  { name: 'Donau',            lat: 47.50, lon: 16.50, sets: [76, 77], aliases: ['Donau', 'Danube', 'Dunaj'] },
   { name: 'Po',               lat: 45.00, lon: 10.50, sets: [76] },
   { name: 'Meer van Genève',  lat: 46.45, lon:  6.50, sets: [76], aliases: ['Lac Léman', 'Genfersee', 'Lac de Genève'] },
   { name: 'Balaton',          lat: 46.85, lon: 17.75, sets: [76], aliases: ['Balatonmeer'] },
   { name: 'Adriatische Zee',  lat: 42.50, lon: 15.00, sets: [76], aliases: ['Adriatic Sea', 'Mare Adriatico'] },
+  // ── Set 77: Wateren van Oost-Europa (7.7) — Donau staat hierboven in set 76, aangevuld met [77] ─
+  { name: 'Oder',             lat: 52.50, lon: 14.50, sets: [77], aliases: ['Odra'] },
+  { name: 'Weichsel',         lat: 52.30, lon: 19.50, sets: [77], aliases: ['Wisła', 'Wisla', 'Vistula'] },
+  { name: 'Dnjepr',           lat: 50.00, lon: 31.00, sets: [77], aliases: ['Dnipro', 'Dniepr', 'Dnieper', 'Dnepr'] },
+  { name: 'Oostzee',          lat: 58.00, lon: 20.00, sets: [77], aliases: ['Baltische Zee', 'Baltic Sea'] },
+  { name: 'Zwarte Zee',       lat: 43.40, lon: 34.00, sets: [77], aliases: ['Black Sea', 'Karadeniz'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -370,10 +404,21 @@ const ALL_PROVINCES = [
   // Alpen: bredere ellips dan set 73 (daar alleen westelijke Alpen bij Frankrijk).
   // Centrum over Zwitserland/Oostenrijk, boog van Mont Blanc tot Slovenië.
   { name: 'Alpen',       lat: 47.00, lon: 11.00, kind: 'gewest', shape: 'fuzzy', rx: 5.00, ry: 1.20, sets: [76], aliases: ['Alps'] },
-  { name: 'Apennijnen',  lat: 42.50, lon: 12.50, kind: 'gewest', shape: 'fuzzy', rx: 0.80, ry: 2.80, sets: [76], aliases: ['Apennines', 'Appennini'] },
+  // Apennijnen lopen diagonaal NW→SE van Emilia (44,11) tot Calabrië (39,16).
+  // rot=25° (CCW, CCW met cos(lat)-compensatie in buildEllipseFeature) kantelt de
+  // lange as evenwijdig aan de bergrug; center zit midden op de laars.
+  { name: 'Apennijnen',  lat: 42.00, lon: 13.50, kind: 'gewest', shape: 'fuzzy', rx: 0.70, ry: 2.80, rot: 25, sets: [76], aliases: ['Apennines', 'Appennini'] },
   // Sicilië en Sardinië: harde polygonen uit Natural Earth (gewesten.geojson)
   { name: 'Sicilië',     lat: 37.60, lon: 14.00, kind: 'gewest', sets: [76], aliases: ['Sicilia', 'Sicily'] },
   { name: 'Sardinië',    lat: 40.00, lon:  9.10, kind: 'gewest', sets: [76], aliases: ['Sardegna', 'Sardinia'] },
+  // ── Set 77: Oost-Europa (7.7) — gebergten als fuzzy ellipsen ─────────────────
+  // Karpaten: boog door Slowakije, zuid-Polen, west-Oekraïne tot de Transsylvanische Alpen.
+  //   Ellips kan geen boog volgen — compromis: wijde ry zodat hij de hele boog dekt.
+  // Balkan (Stara Planina): oost-west door centraal Bulgarije, smal en langgerekt.
+  // Kaukasus: WNW-OZO tussen Zwarte Zee en Kaspische Zee, grens Rusland/Georgië.
+  { name: 'Karpaten', lat: 47.50, lon: 24.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 2.00, sets: [77], aliases: ['Carpathians', 'Carpați', 'Karpaty'] },
+  { name: 'Balkan',   lat: 42.75, lon: 25.00, kind: 'gewest', shape: 'fuzzy', rx: 2.50, ry: 0.35, sets: [77], aliases: ['Stara Planina', 'Balkangebergte'] },
+  { name: 'Kaukasus', lat: 42.80, lon: 44.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 0.55, sets: [77], aliases: ['Caucasus', 'Kavkaz'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -474,6 +519,18 @@ const SETS = {
            { id: 'cities',   label: 'Steden',   quizType: 'place'    },
            { id: 'regions',  label: 'Gebieden',  quizType: 'province' },
            { id: 'waters',   label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // Set 7.7: Oost-Europa — 4 fases: landen, steden, gebergten, wateren.
+   // Grotere klikdrempels (100/300) omdat de schaal van Oost-Europa veel groter
+   // is dan Italië/Midden-Europa (vgl. 5.8 Onze buren, ook 100/300).
+   77: { name: '7.7 – Oost-Europa', group: 7, mastery: 1,
+         bounds: [[40, 14], [67, 50]],
+         clickCorrectKm: 100, clickCloseKm: 300,
+         phases: [
+           { id: 'countries', label: 'Landen',    quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',    quizType: 'place'    },
+           { id: 'mountains', label: 'Gebergten', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',   quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },

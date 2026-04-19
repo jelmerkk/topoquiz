@@ -831,6 +831,13 @@ SET76_GEBIEDEN.forEach(naam => {
 });
 expect('Set 76 heeft 4 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(76)).length === 4);
 
+// Apennijnen-ellipse volgt de NW-SE-diagonaal van de bergrug. Centrum op de spine,
+// rot > 0 (lange as gekanteld), en beide uiteinden in de juiste hoeken van de laars.
+const apennijnen = ALL_PROVINCES.find(p => p.name === 'Apennijnen' && p.sets?.includes(76));
+expect('Apennijnen centrum lon tussen 13.0 en 14.0', apennijnen && apennijnen.lon >= 13.0 && apennijnen.lon <= 14.0);
+expect('Apennijnen centrum lat tussen 41.5 en 42.5', apennijnen && apennijnen.lat >= 41.5 && apennijnen.lat <= 42.5);
+expect('Apennijnen heeft rotatie > 15° (NW-SE gekanteld)', apennijnen && apennijnen.rot >= 15);
+
 // Wateren (5: Donau, Po, Meer van Genève, Balaton, Adriatische Zee)
 SET76_WATEREN.forEach(naam => {
   const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(76));
@@ -884,6 +891,71 @@ expect('set 58: 99 km → correct', clickResult(99, 58) === 'correct');
 expect('set 58: 100 km → close',  clickResult(100, 58) === 'close');
 expect('set 58: 299 km → close',  clickResult(299, 58) === 'close');
 expect('set 58: 300 km → wrong',  clickResult(300, 58) === 'wrong');
+
+// ── Set 77 — Oost-Europa (issue #46) ────────────────────────
+
+section('Set 77 — Oost-Europa');
+
+const SET77_LANDEN = [
+  // Nieuwe landen voor 7.7
+  'Slowakije','Oekraïne','Moldavië','Roemenië','Bulgarije',
+  'Wit-Rusland','Rusland','Estland','Letland','Litouwen',
+  // Herhaald uit 7.1
+  'Polen','Tsjechië','Hongarije',
+];
+const SET77_STEDEN = [
+  // Herhaald uit 7.1
+  'Warschau',
+  // Nieuw voor 7.7
+  'Krakau','Boekarest','Sofia','Kiev','Odessa','Minsk','Moskou','Sint-Petersburg',
+];
+const SET77_GEBERGTEN = ['Karpaten','Balkan','Kaukasus'];
+const SET77_WATEREN = ['Donau','Oder','Weichsel','Dnjepr','Oostzee','Zwarte Zee'];
+
+expect('Set 77 bestaat in SETS',        !!SETS[77]);
+expect('Set 77 is groep 7',             SETS[77]?.group === 7);
+expect('Set 77 heeft 4 fases',          SETS[77]?.phases?.length === 4);
+expect('Set 77 fase 1 is country',      SETS[77]?.phases?.[0]?.quizType === 'country');
+expect('Set 77 fase 2 is place',        SETS[77]?.phases?.[1]?.quizType === 'place');
+expect('Set 77 fase 3 is province',     SETS[77]?.phases?.[2]?.quizType === 'province');
+expect('Set 77 fase 4 is water',        SETS[77]?.phases?.[3]?.quizType === 'water');
+expect('Set 77 heeft bounds',           Array.isArray(SETS[77]?.bounds));
+expect('Set 77 heeft EU-klikdrempels',  SETS[77]?.clickCorrectKm === 100 && SETS[77]?.clickCloseKm === 300);
+
+// Landen (13: 10 nieuw + 3 herhaald uit 7.1)
+SET77_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(77));
+  expect(`${naam} in ALL_COUNTRIES (set 77)`, !!c);
+});
+expect('Set 77 heeft 13 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(77)).length === 13);
+
+// Steden (9: 1 herhaald + 8 nieuw)
+SET77_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(77));
+  expect(`${naam} in ALL_CITIES (set 77)`, !!s);
+});
+expect('Set 77 heeft 9 steden', ALL_CITIES.filter(c => c.sets?.includes(77)).length === 9);
+
+// Gebergten (3: Karpaten, Balkan, Kaukasus — fuzzy ellipsen)
+SET77_GEBERGTEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(77));
+  expect(`${naam} in ALL_PROVINCES (set 77)`, !!r);
+  expect(`${naam} is fuzzy`, r?.shape === 'fuzzy');
+});
+expect('Set 77 heeft 3 gebergten', ALL_PROVINCES.filter(p => p.sets?.includes(77)).length === 3);
+
+// Wateren (6: Donau herhaald + 5 nieuw)
+SET77_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(77));
+  expect(`${naam} in ALL_WATERS (set 77)`, !!w);
+});
+expect('Set 77 heeft 6 wateren', ALL_WATERS.filter(w => w.sets?.includes(77)).length === 6);
+
+// clickResult met set 77 drempels (100/300 — grote afstanden voor Oost-Europa)
+expect('set 77: 99 km → correct', clickResult(99, 77) === 'correct');
+expect('set 77: 100 km → close',  clickResult(100, 77) === 'close');
+expect('set 77: 299 km → close',  clickResult(299, 77) === 'close');
+expect('set 77: 300 km → wrong',  clickResult(300, 77) === 'wrong');
 
 // ── Samenvatting ──────────────────────────────────────────────
 
