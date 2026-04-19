@@ -439,10 +439,11 @@ const ALL_PROVINCES = [
   { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
   { name: 'Alpen',            lat: 45.00, lon:  6.90, kind: 'gewest', shape: 'fuzzy', rx: 0.90, ry: 1.40, sets: [73] },
   // ── Set 74: Duitsland (7.4) ───────────────────────────────────────────────
-  // Alle Duitse regio's zijn fuzzy ellipsen — kinderen leren ze als globale streken,
-  // niet als bestuurlijke grenzen. Beieren is bewust fuzzy; zie backlog-issue #81.
+  // Duitse regio's zijn overwegend fuzzy ellipsen — kinderen leren ze als globale
+  // streken, niet als bestuurlijke grenzen. Uitzondering: Beieren (Bundesland met
+  // exacte admin-grens; polygoon uit OSM — zie #81).
   { name: 'Ruhrgebied',   lat: 51.47, lon:  7.30, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.22, sets: [74] },
-  { name: 'Beieren',      lat: 48.90, lon: 11.50, kind: 'gewest', shape: 'fuzzy', rx: 1.95, ry: 1.45, sets: [74], aliases: ['Bavaria'] },
+  { name: 'Beieren',      lat: 48.90, lon: 11.50, kind: 'gewest', sets: [74], aliases: ['Bavaria'] },
   { name: 'Sauerland',    lat: 51.25, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.40, sets: [74] },
   { name: 'Eifel',        lat: 50.30, lon:  6.70, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [74] },
   { name: 'Zwarte Woud',  lat: 48.30, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.35, ry: 0.80, sets: [74], aliases: ['Schwarzwald', 'Black Forest'] },

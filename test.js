@@ -721,13 +721,25 @@ SET74_STEDEN.forEach(naam => {
 });
 expect('Set 74 heeft 18 steden', ALL_CITIES.filter(c => c.sets?.includes(74)).length === 18);
 
-// Regio's (6 fuzzy ellipsen)
+// Regio's (6 totaal: 5 fuzzy ellipsen + Beieren als harde polygoon uit OSM, #81)
 SET74_REGIOS.forEach(naam => {
   const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(74));
   expect(`${naam} in ALL_PROVINCES (set 74)`, !!r);
-  expect(`${naam} is fuzzy`, r?.shape === 'fuzzy');
+  if (naam === 'Beieren') {
+    expect(`${naam} is hard polygoon (niet fuzzy)`, r?.shape !== 'fuzzy');
+  } else {
+    expect(`${naam} is fuzzy`, r?.shape === 'fuzzy');
+  }
 });
 expect('Set 74 heeft 6 regio\'s', ALL_PROVINCES.filter(p => p.sets?.includes(74)).length === 6);
+expect('Beieren polygoon staat in gewesten.geojson', (() => {
+  try {
+    const fs = require('fs');
+    const gj = JSON.parse(fs.readFileSync('gewesten.geojson','utf8'));
+    const f = gj.features.find(x => x.properties.name === 'Beieren');
+    return f && f.geometry.type === 'Polygon' && f.geometry.coordinates[0].length > 100;
+  } catch { return false; }
+})());
 
 // Rivieren (3: Rijn gedeeld met set 57, Elbe + Moezel nieuw)
 SET74_RIVIEREN.forEach(naam => {
