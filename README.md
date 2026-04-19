@@ -30,7 +30,7 @@ Kies de juiste array op basis van het elementtype:
 | `ALL_CITIES` | Steden, hoofdsteden | Stip op kaart |
 | `ALL_PROVINCES` | Nederlandse provincies | Polygoon (`provincie_2023.geojson`) |
 | `ALL_WATERS` | Wateren (rivieren, zeeën) | Lijn/polygoon (`wateren.geojson`) |
-| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`) |
+| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson` + `landen-zuidamerika.geojson`) |
 
 Velden per item:
 ```js
@@ -125,7 +125,7 @@ Elke stad krijgt een stip op de kaart. Provinciehoofdsteden (`capital: true`) kr
 Provincievlakken worden gekleurd vanuit het lokale bestand `provincie_2023.geojson` (gebundeld in de repo, bron: cartomap.github.io). De vlakken worden vergeleken op `statnaam`; zorg dat `ALL_PROVINCES[].name` exact overeenkomt. Dit type gebruikt `ALL_PROVINCES` als `activeCities` in plaats van `ALL_CITIES`.
 
 ### `country`
-Landspolygonen worden gekleurd vanuit `landen-europa.geojson` (vereenvoudigd Natural Earth-formaat). Elk feature heeft een `name`-property die overeenkomt met `ALL_COUNTRIES[].name`. Meerkeuze- en typemodus werken identiek aan `province`; klik-op-de-kaart gebruikt `distanceToCountry()` (0 km als klik binnen het polygoon valt).
+Landspolygonen worden gekleurd vanuit `landen-europa.geojson` + `landen-zuidamerika.geojson` (vereenvoudigd Natural Earth-formaat). Bestanden worden bij het opstarten samengevoegd tot één `FeatureCollection`. Elk feature heeft een `name`-property die overeenkomt met `ALL_COUNTRIES[].name`. Meerkeuze- en typemodus werken identiek aan `province`; klik-op-de-kaart gebruikt `distanceToCountry()` (0 km als klik binnen het polygoon valt).
 
 ### `water`
 Waterlijnen en -polygonen vanuit `wateren.geojson`. Ondersteunt `LineString` (rivieren, kanalen) en `Polygon` (zeeën, meren). Set-specifieke wateren hebben een `sets`-veld; wateren zonder `sets` worden alleen in set 57 geladen.

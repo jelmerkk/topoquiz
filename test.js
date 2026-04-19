@@ -1080,6 +1080,156 @@ SET79_WATEREN.forEach(naam => {
 });
 expect('Set 79 heeft 2 wateren', ALL_WATERS.filter(w => w.sets?.includes(79)).length === 2);
 
+// ── Set 81 — Zuid-Amerika (8.1) ───────────────────────────────
+
+section('Set 81 — Zuid-Amerika');
+
+const SET81_LANDEN = [
+  'Colombia','Venezuela','Suriname','Ecuador','Peru','Bolivia',
+  'Brazilië','Paraguay','Chili','Argentinië','Uruguay',
+];
+const SET81_STEDEN = [
+  'Bogotá','Medellín','Caracas','Paramaribo','Quito','Guayaquil',
+  'Lima','Cuzco','La Paz','Brasília','São Paulo','Rio de Janeiro',
+  'Manaus','Salvador','Asunción','Santiago','Córdoba','Buenos Aires','Montevideo',
+];
+const SET81_GEBIEDEN = ['Andes','Vuurland'];
+const SET81_WATEREN  = ['Amazone'];
+
+expect('Set 81 bestaat in SETS',        !!SETS[81]);
+expect('Set 81 is groep 8',             SETS[81]?.group === 8);
+expect('Set 81 heeft 4 fases',          SETS[81]?.phases?.length === 4);
+expect('Set 81 fase 1 is country',      SETS[81]?.phases?.[0]?.quizType === 'country');
+expect('Set 81 fase 2 is place',        SETS[81]?.phases?.[1]?.quizType === 'place');
+expect('Set 81 fase 3 is province',     SETS[81]?.phases?.[2]?.quizType === 'province');
+expect('Set 81 fase 4 is water',        SETS[81]?.phases?.[3]?.quizType === 'water');
+expect('Set 81 heeft bounds',           Array.isArray(SETS[81]?.bounds));
+expect('Set 81 heeft continentale klikdrempels',
+  SETS[81]?.clickCorrectKm >= 100 && SETS[81]?.clickCloseKm >= 300);
+
+SET81_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(81));
+  expect(`${naam} in ALL_COUNTRIES (set 81)`, !!c);
+});
+expect('Set 81 heeft 11 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(81)).length === 11);
+
+SET81_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(81));
+  expect(`${naam} in ALL_CITIES (set 81)`, !!s);
+});
+expect('Set 81 heeft 19 steden', ALL_CITIES.filter(c => c.sets?.includes(81)).length === 19);
+
+SET81_GEBIEDEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(81));
+  expect(`${naam} in ALL_PROVINCES (set 81)`, !!r);
+  expect(`${naam} is fuzzy (set 81)`, r?.shape === 'fuzzy');
+});
+expect('Set 81 heeft 2 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(81)).length === 2);
+
+SET81_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(81));
+  expect(`${naam} in ALL_WATERS (set 81)`, !!w);
+});
+expect('Set 81 heeft 1 water', ALL_WATERS.filter(w => w.sets?.includes(81)).length === 1);
+
+// Landen-polygonen in landen-zuidamerika.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-zuidamerika.geojson'), 'utf8'));
+  SET81_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-zuidamerika.geojson`, !!f);
+    expect(`${naam} sets bevat 81`, f?.properties.sets?.includes(81));
+  });
+}
+
+// Amazone als LineString in wateren.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  const f = gj.features.find(x => x.properties.name === 'Amazone');
+  expect('Amazone in wateren.geojson', !!f);
+  expect('Amazone is LineString', f?.geometry.type === 'LineString');
+  expect('Amazone sets bevat 81', f?.properties.sets?.includes(81));
+}
+
+// ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
+//
+// Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
+// toch 3 distractors kunnen tonen. Strategie: als activeCities te klein is,
+// pad dan met dichtstbijzijnde items uit de globale pool van dezelfde quizType.
+
+section('nearbyDistractors — MC fallback');
+
+function distSq(a, b) {
+  const dlat = a.lat - b.lat, dlon = a.lon - b.lon;
+  return dlat * dlat + dlon * dlon;
+}
+
+// Spiegel van index.html-implementatie.
+function makeNearbyDistractors(activeCities, globalPool) {
+  return function(city, n) {
+    let pool = activeCities.filter(c => c !== city);
+    if (pool.length < n && globalPool) {
+      const extra = globalPool.filter(c => c !== city && !pool.includes(c));
+      pool = pool.concat(extra);
+    }
+    const sorted = pool.sort((a, b) => distSq(a, city) - distSq(b, city));
+    const candidates = sorted.slice(0, Math.min(8, sorted.length));
+    // geen shuffle in test — deterministisch
+    return candidates.slice(0, n);
+  };
+}
+
+{
+  const target = { name: 'Amazone', lat: -3, lon: -60 };
+  const activeOne = [target]; // alleen Amazone actief
+  const global = [
+    target,
+    { name: 'Orinoco', lat: 8,  lon: -63 },
+    { name: 'Rijn',    lat: 51, lon: 6   },
+    { name: 'Donau',   lat: 45, lon: 20  },
+    { name: 'Nijl',    lat: 25, lon: 32  },
+  ];
+  const fn = makeNearbyDistractors(activeOne, global);
+  const got = fn(target, 3);
+  expect('fallback levert 3 distractors bij 1 actief item', got.length === 3);
+  expect('target staat niet in distractors', !got.some(c => c.name === 'Amazone'));
+  expect('dichtstbij (Orinoco) eerst', got[0]?.name === 'Orinoco');
+}
+
+{
+  const target = { name: 'Andes', lat: -20, lon: -70 };
+  const activeTwo = [target, { name: 'Vuurland', lat: -54, lon: -68 }];
+  const global = [
+    ...activeTwo,
+    { name: 'Alpen',    lat: 46, lon: 10 },
+    { name: 'Pyreneeën', lat: 42, lon: 1 },
+  ];
+  const fn = makeNearbyDistractors(activeTwo, global);
+  const got = fn(target, 3);
+  expect('fallback levert 3 distractors bij 2 actieve items', got.length === 3);
+  expect('Vuurland in distractors (actieve buur)', got.some(c => c.name === 'Vuurland'));
+}
+
+{
+  // Bij voldoende active items: geen fallback — global pool wordt genegeerd.
+  const target = { name: 'A', lat: 0, lon: 0 };
+  const active = [
+    target,
+    { name: 'B', lat: 0, lon: 1 },
+    { name: 'C', lat: 0, lon: 2 },
+    { name: 'D', lat: 0, lon: 3 },
+    { name: 'E', lat: 0, lon: 4 },
+  ];
+  const fn = makeNearbyDistractors(active, [{ name: 'Z', lat: 0, lon: 0.5 }]);
+  const got = fn(target, 3);
+  expect('geen fallback wanneer active genoeg items heeft',
+    !got.some(c => c.name === 'Z'));
+}
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
