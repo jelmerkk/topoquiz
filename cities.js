@@ -520,8 +520,8 @@ const ALL_PROVINCES = [
   // Andes: lange N-Z bergrug door 7 landen (VE → AR/CL). Ellips is per definitie
   // een compromis — ry dekt ~8°N tot ~54°S, rx smal (2°) omdat de keten zelf smal is.
   // Vuurland: eilandengroep rond Ushuaia; ruime ellips omdat meerdere eilanden + Straat van Magallanes.
-  { name: 'Andes',    lat: -22.00, lon: -68.50, kind: 'gewest', shape: 'fuzzy', rx: 2.20, ry: 27.00, sets: [81], aliases: ['Andesgebergte', 'Los Andes'] },
-  { name: 'Vuurland', lat: -54.00, lon: -68.50, kind: 'gewest', shape: 'fuzzy', rx: 2.20, ry: 1.50, sets: [81], aliases: ['Tierra del Fuego'] },
+  { name: 'Andes',    lat: -22.00, lon: -68.50, kind: 'gebied', shape: 'fuzzy', rx: 2.20, ry: 27.00, sets: [81], aliases: ['Andesgebergte', 'Los Andes'] },
+  { name: 'Vuurland', lat: -54.00, lon: -68.50, kind: 'gebied', shape: 'fuzzy', rx: 2.20, ry: 1.50, sets: [81], aliases: ['Tierra del Fuego'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -663,7 +663,10 @@ const SETS = {
    // en Kaap Hoorn) prominent in beeld te laten komen op mobiel én desktop.
    81: { name: '8.1 – Zuid-Amerika', group: 8, mastery: 1,
          bounds: [[-58, -85], [15, -32]],
-         clickCorrectKm: 150, clickCloseKm: 400,
+         // Continent-zoom: span ~73° lat × 53° lon. Europese sets bij 29° span
+         // gebruiken 100/300; schaal proportioneel + marge voor cities die
+         // nauwelijks een pixel zijn.
+         clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
