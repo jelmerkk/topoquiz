@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.5.1">
+<meta name="version" content="2.5.2">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -890,9 +890,18 @@ function smoothGeoJSON(data) {
 function buildEllipseFeature(entry) {
   const N = 64;
   const coords = [];
+  const rot = ((entry.rot || 0) * Math.PI) / 180;
+  const cosR = Math.cos(rot), sinR = Math.sin(rot);
+  // Mercator rekt lengtegraden uit op basis van breedtegraad. Zonder cos(lat)-
+  // compensatie zou een geroteerde ellips visueel schuin-getrokken zijn.
+  const lonScale = rot === 0 ? 1 : 1 / Math.cos((entry.lat * Math.PI) / 180);
   for (let i = 0; i <= N; i++) {
     const a = (i / N) * 2 * Math.PI;
-    coords.push([entry.lon + entry.rx * Math.cos(a), entry.lat + entry.ry * Math.sin(a)]);
+    const vx = entry.rx * Math.cos(a);
+    const vy = entry.ry * Math.sin(a);
+    const dx = vx * cosR - vy * sinR;
+    const dy = vx * sinR + vy * cosR;
+    coords.push([entry.lon + dx * lonScale, entry.lat + dy]);
   }
   return {
     type: 'Feature',
@@ -1928,7 +1937,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.5.1';
+const APP_VERSION = 'v2.5.2';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 

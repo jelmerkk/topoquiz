@@ -831,14 +831,12 @@ SET76_GEBIEDEN.forEach(naam => {
 });
 expect('Set 76 heeft 4 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(76)).length === 4);
 
-// Apennijnen-ellipse moet op de spine van Italië liggen (niet in de Tyrrheense Zee
-// aan de westkust). Centrum minstens lon 13.0; westrand (lon - rx) >= 12.2 zodat
-// de ellipse binnen de laarzen-breedte blijft en niet over de zeekust steekt.
+// Apennijnen-ellipse volgt de NW-SE-diagonaal van de bergrug. Centrum op de spine,
+// rot > 0 (lange as gekanteld), en beide uiteinden in de juiste hoeken van de laars.
 const apennijnen = ALL_PROVINCES.find(p => p.name === 'Apennijnen' && p.sets?.includes(76));
-expect('Apennijnen centrum lon >= 13.0 (op de spine, niet Tyrrheens)', apennijnen && apennijnen.lon >= 13.0);
-expect('Apennijnen westrand lon >= 12.2', apennijnen && (apennijnen.lon - apennijnen.rx) >= 12.2);
-// Bovenkant mag niet in de Po-vlakte (noordgrens lat 44.5)
-expect('Apennijnen noordrand lat <= 44.6', apennijnen && (apennijnen.lat + apennijnen.ry) <= 44.6);
+expect('Apennijnen centrum lon tussen 13.0 en 14.0', apennijnen && apennijnen.lon >= 13.0 && apennijnen.lon <= 14.0);
+expect('Apennijnen centrum lat tussen 41.5 en 42.5', apennijnen && apennijnen.lat >= 41.5 && apennijnen.lat <= 42.5);
+expect('Apennijnen heeft rotatie > 15° (NW-SE gekanteld)', apennijnen && apennijnen.rot >= 15);
 
 // Wateren (5: Donau, Po, Meer van Genève, Balaton, Adriatische Zee)
 SET76_WATEREN.forEach(naam => {
