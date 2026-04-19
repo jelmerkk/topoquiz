@@ -324,6 +324,22 @@ const ALL_CITIES = [
   { name: 'Córdoba',        lat: -31.42, lon: -64.19, pop: 1400000, sets: [81], aliases: ['Cordoba'] },
   { name: 'Buenos Aires',   lat: -34.61, lon: -58.38, pop:15200000, sets: [81], capital: true },
   { name: 'Montevideo',     lat: -34.90, lon: -56.19, pop: 1400000, sets: [81], capital: true },
+  // ── Set 82: Afrika (8.2) — 15 steden, 13 hoofdsteden ────────────────────
+  { name: 'Casablanca',     lat:  33.57, lon:  -7.59, pop: 3360000, sets: [82] },
+  { name: 'Algiers',        lat:  36.75, lon:   3.06, pop: 2900000, sets: [82], capital: true, aliases: ['Alger', 'الجزائر'] },
+  { name: 'Tunis',          lat:  36.81, lon:  10.18, pop: 2400000, sets: [82], capital: true },
+  { name: 'Cairo',          lat:  30.05, lon:  31.25, pop:21000000, sets: [82], capital: true, aliases: ['Kaïro', 'Kairo', 'Al-Qāhirah', 'القاهرة'] },
+  { name: 'Alexandrië',     lat:  31.20, lon:  29.92, pop: 5200000, sets: [82], aliases: ['Alexandrie', 'Alexandria', 'Al-Iskandariyyah', 'الإسكندرية'] },
+  { name: 'Khartoem',       lat:  15.59, lon:  32.53, pop: 5300000, sets: [82], capital: true, aliases: ['Khartoum', 'Al-Khurṭūm', 'الخرطوم'] },
+  { name: 'Addis Abeba',    lat:   9.03, lon:  38.74, pop: 3600000, sets: [82], capital: true, aliases: ['Addis Ababa', 'አዲስ አበባ'] },
+  { name: 'Nairobi',        lat:  -1.29, lon:  36.82, pop: 4700000, sets: [82], capital: true },
+  { name: 'Dar es Salaam',  lat:  -6.80, lon:  39.28, pop: 6700000, sets: [82], aliases: ['Dar-es-Salaam'] },
+  { name: 'Lagos',          lat:   6.52, lon:   3.38, pop:15400000, sets: [82] },
+  { name: 'Accra',          lat:   5.60, lon:  -0.19, pop: 2500000, sets: [82], capital: true },
+  { name: 'Dakar',          lat:  14.72, lon: -17.47, pop: 3100000, sets: [82], capital: true },
+  { name: 'Kinshasa',       lat:  -4.32, lon:  15.31, pop:15000000, sets: [82], capital: true },
+  { name: 'Johannesburg',   lat: -26.20, lon:  28.05, pop: 6200000, sets: [82] },
+  { name: 'Kaapstad',       lat: -33.93, lon:  18.42, pop: 4700000, sets: [82], capital: true, aliases: ['Cape Town', 'Kaapstadt'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -389,6 +405,20 @@ const ALL_COUNTRIES = [
   { name: 'Chili',      lat: -35.0, lon: -71.0, sets: [81], aliases: ['Chile'] },
   { name: 'Argentinië', lat: -35.0, lon: -65.0, sets: [81], aliases: ['Argentinie', 'Argentina'] },
   { name: 'Uruguay',    lat: -33.0, lon: -55.5, sets: [81] },
+  // ── Set 82: Afrika (8.2) — Natural Earth polygonen in landen-afrika.geojson ─
+  { name: 'Marokko',     lat:  32.0, lon:  -6.5, sets: [82], aliases: ['Morocco', 'Al-Maġrib', 'المغرب'] },
+  { name: 'Algerije',    lat:  28.0, lon:   2.5, sets: [82], aliases: ['Algeria', 'Al-Jazāʾir', 'الجزائر'] },
+  { name: 'Tunesië',     lat:  34.0, lon:   9.5, sets: [82], aliases: ['Tunesie', 'Tunisia', 'Tūnis', 'تونس'] },
+  { name: 'Egypte',      lat:  27.0, lon:  30.0, sets: [82], aliases: ['Egypt', 'Miṣr', 'مصر'] },
+  { name: 'Sudan',       lat:  15.5, lon:  30.0, sets: [82], aliases: ['Soedan', 'السودان'] },
+  { name: 'Ethiopië',    lat:   9.0, lon:  40.0, sets: [82], aliases: ['Ethiopie', 'Ethiopia', 'ኢትዮጵያ'] },
+  { name: 'Kenia',       lat:   0.0, lon:  37.8, sets: [82], aliases: ['Kenya'] },
+  { name: 'Tanzania',    lat:  -6.5, lon:  34.5, sets: [82] },
+  { name: 'Nigeria',     lat:  10.0, lon:   8.0, sets: [82] },
+  { name: 'Ghana',       lat:   7.9, lon:  -1.0, sets: [82] },
+  { name: 'Senegal',     lat:  14.5, lon: -14.5, sets: [82], aliases: ['Sénégal'] },
+  { name: 'DR Congo',    lat:  -2.5, lon:  23.5, sets: [82], aliases: ['Democratische Republiek Congo', 'Congo-Kinshasa', 'Zaïre'] },
+  { name: 'Zuid-Afrika', lat: -29.0, lon:  25.0, sets: [82], aliases: ['Zuid Afrika', 'South Africa', 'RSA'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -448,6 +478,17 @@ const ALL_WATERS = [
   // ── Set 81: Wateren van Zuid-Amerika (8.1) ────────────────────────────────
   // Amazone: LineString uit OSM relation Q3783 (main_stream) → wateren.geojson
   { name: 'Amazone',            lat: -3.00, lon: -60.00, sets: [81], aliases: ['Amazon', 'Rio Amazonas', 'Amazonas'] },
+  // ── Set 82: Wateren van Afrika (8.2) ──────────────────────────────────────
+  // Nijl/Congo/Niger: LineStrings uit OSM (main_stream). Victoriameer: Polygon.
+  // Suezkanaal: LineString. Rode Zee + Straat van Gibraltar: fuzzy ellipsen
+  // (policy — geen nieuwe harde zee-polygonen, cf. memory feedback).
+  { name: 'Nijl',                 lat:  25.00, lon:  32.00, sets: [82], aliases: ['Nile', 'النيل'] },
+  { name: 'Congo',                lat:  -2.00, lon:  17.00, sets: [82], aliases: ['Congo-rivier', 'Fleuve Congo'] },
+  { name: 'Niger',                lat:  13.00, lon:   3.00, sets: [82], aliases: ['Niger-rivier'] },
+  { name: 'Victoriameer',         lat:  -1.00, lon:  33.00, sets: [82], aliases: ['Lake Victoria', 'Nalubaale'] },
+  { name: 'Suezkanaal',           lat:  30.60, lon:  32.35, sets: [82], aliases: ['Suez Canal', 'Qanāt as-Suways', 'قناة السويس'] },
+  { name: 'Rode Zee',             lat:  20.00, lon:  38.00, sets: [82], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
+  { name: 'Straat van Gibraltar', lat:  35.95, lon:  -5.60, sets: [82], aliases: ['Strait of Gibraltar', 'Estrecho de Gibraltar'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -522,6 +563,13 @@ const ALL_PROVINCES = [
   // Vuurland: eilandengroep rond Ushuaia; ruime ellips omdat meerdere eilanden + Straat van Magallanes.
   { name: 'Andes',    lat: -22.00, lon: -68.50, kind: 'gebied', shape: 'fuzzy', rx: 2.20, ry: 27.00, sets: [81], aliases: ['Andesgebergte', 'Los Andes'] },
   { name: 'Vuurland', lat: -54.00, lon: -68.50, kind: 'gebied', shape: 'fuzzy', rx: 2.20, ry: 1.50, sets: [81], aliases: ['Tierra del Fuego'] },
+  // ── Set 82: Afrika (8.2) — fuzzy gebieden ─────────────────────────────────
+  // Sahara: enorme woestijn N-Afrika, 15°N..30°N, -15°W..35°E. rx groot, ry matig.
+  // Atlasgebergte: N-W Afrika, Marokko→Tunesië, langgerekt.
+  // Canarische Eilanden: archipel ~28°N, ~-15°W (ruime ellips dekt alle 7 eilanden).
+  { name: 'Sahara',              lat:  23.00, lon:  10.00, kind: 'gebied', shape: 'fuzzy', rx: 25.00, ry: 7.50, sets: [82], aliases: ['Sahara-woestijn', 'Sahara Desert'] },
+  { name: 'Atlasgebergte',       lat:  32.50, lon:  -3.00, kind: 'gebied', shape: 'fuzzy', rx:  6.00, ry: 1.20, sets: [82], aliases: ['Atlas', 'Atlas Mountains'] },
+  { name: 'Canarische Eilanden', lat:  28.30, lon: -15.80, kind: 'gebied', shape: 'fuzzy', rx:  2.60, ry: 1.10, sets: [82], aliases: ['Canarische eilanden', 'Canarias', 'Canary Islands'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -666,6 +714,18 @@ const SETS = {
          // Continent-zoom: span ~73° lat × 53° lon. Europese sets bij 29° span
          // gebruiken 100/300; schaal proportioneel + marge voor cities die
          // nauwelijks een pixel zijn.
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 82: Afrika (8.2) — continent, 13 landen, 15 steden, 3 gebieden, 7 wateren ─
+   // Bounds sluiten Kaap Verdische Eilanden, Somalië, Kaap de Goede Hoop en de
+   // Middellandse Zee in. Klikdrempels 250/700 conform 8.1 (vergelijkbare continent-zoom).
+   82: { name: '8.2 – Afrika', group: 8, mastery: 1,
+         bounds: [[-36, -20], [38, 55]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
