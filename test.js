@@ -1156,6 +1156,85 @@ expect('Set 81 heeft 1 water', ALL_WATERS.filter(w => w.sets?.includes(81)).leng
   expect('Amazone sets bevat 81', f?.properties.sets?.includes(81));
 }
 
+// ── Set 82 — Afrika (8.2) ─────────────────────────────────────
+
+section('Set 82 — Afrika');
+
+const SET82_LANDEN = [
+  'Marokko','Algerije','Tunesië','Egypte','Sudan','Ethiopië',
+  'Kenia','Tanzania','Nigeria','Ghana','Senegal','DR Congo','Zuid-Afrika',
+];
+const SET82_STEDEN = [
+  'Casablanca','Algiers','Tunis','Cairo','Alexandrië','Khartoem',
+  'Addis Abeba','Nairobi','Dar es Salaam','Lagos','Accra','Dakar',
+  'Kinshasa','Johannesburg','Kaapstad',
+];
+const SET82_GEBIEDEN = ['Sahara','Atlasgebergte','Canarische Eilanden'];
+const SET82_WATEREN  = ['Nijl','Congo','Niger','Victoriameer','Rode Zee','Suezkanaal','Straat van Gibraltar'];
+
+expect('Set 82 bestaat in SETS',        !!SETS[82]);
+expect('Set 82 is groep 8',             SETS[82]?.group === 8);
+expect('Set 82 heeft 4 fases',          SETS[82]?.phases?.length === 4);
+expect('Set 82 fase 1 is country',      SETS[82]?.phases?.[0]?.quizType === 'country');
+expect('Set 82 fase 2 is place',        SETS[82]?.phases?.[1]?.quizType === 'place');
+expect('Set 82 fase 3 is province',     SETS[82]?.phases?.[2]?.quizType === 'province');
+expect('Set 82 fase 4 is water',        SETS[82]?.phases?.[3]?.quizType === 'water');
+expect('Set 82 heeft bounds',           Array.isArray(SETS[82]?.bounds));
+expect('Set 82 heeft continentale klikdrempels (≥250/700)',
+  SETS[82]?.clickCorrectKm >= 250 && SETS[82]?.clickCloseKm >= 700);
+
+SET82_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(82));
+  expect(`${naam} in ALL_COUNTRIES (set 82)`, !!c);
+});
+expect('Set 82 heeft 13 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(82)).length === 13);
+
+SET82_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(82));
+  expect(`${naam} in ALL_CITIES (set 82)`, !!s);
+});
+expect('Set 82 heeft 15 steden', ALL_CITIES.filter(c => c.sets?.includes(82)).length === 15);
+
+SET82_GEBIEDEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(82));
+  expect(`${naam} in ALL_PROVINCES (set 82)`, !!r);
+  expect(`${naam} is fuzzy (set 82)`, r?.shape === 'fuzzy');
+  expect(`${naam} kind === 'gebied' (set 82)`, r?.kind === 'gebied');
+});
+expect('Set 82 heeft 3 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(82)).length === 3);
+
+SET82_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(82));
+  expect(`${naam} in ALL_WATERS (set 82)`, !!w);
+});
+expect('Set 82 heeft 7 wateren', ALL_WATERS.filter(w => w.sets?.includes(82)).length === 7);
+
+// Landen-polygonen in landen-afrika.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-afrika.geojson'), 'utf8'));
+  SET82_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-afrika.geojson`, !!f);
+    expect(`${naam} sets bevat 82`, f?.properties.sets?.includes(82));
+  });
+}
+
+// Rivieren + Victoriameer + Suezkanaal in wateren.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  ['Nijl','Congo','Niger','Suezkanaal'].forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(82));
+    expect(`${naam} LineString in wateren.geojson (set 82)`, f?.geometry.type === 'LineString');
+  });
+  const vm = gj.features.find(x => x.properties.name === 'Victoriameer' && x.properties.sets?.includes(82));
+  expect('Victoriameer Polygon in wateren.geojson (set 82)',
+    vm?.geometry.type === 'Polygon' || vm?.geometry.type === 'MultiPolygon');
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
