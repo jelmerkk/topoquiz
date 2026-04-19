@@ -1104,8 +1104,8 @@ expect('Set 81 fase 2 is place',        SETS[81]?.phases?.[1]?.quizType === 'pla
 expect('Set 81 fase 3 is province',     SETS[81]?.phases?.[2]?.quizType === 'province');
 expect('Set 81 fase 4 is water',        SETS[81]?.phases?.[3]?.quizType === 'water');
 expect('Set 81 heeft bounds',           Array.isArray(SETS[81]?.bounds));
-expect('Set 81 heeft continentale klikdrempels',
-  SETS[81]?.clickCorrectKm >= 100 && SETS[81]?.clickCloseKm >= 300);
+expect('Set 81 heeft continentale klikdrempels (≥250/700 voor continent-zoom)',
+  SETS[81]?.clickCorrectKm >= 250 && SETS[81]?.clickCloseKm >= 700);
 
 SET81_LANDEN.forEach(naam => {
   const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(81));
@@ -1123,6 +1123,7 @@ SET81_GEBIEDEN.forEach(naam => {
   const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(81));
   expect(`${naam} in ALL_PROVINCES (set 81)`, !!r);
   expect(`${naam} is fuzzy (set 81)`, r?.shape === 'fuzzy');
+  expect(`${naam} kind === 'gebied' (niet 'gewest')`, r?.kind === 'gebied');
 });
 expect('Set 81 heeft 2 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(81)).length === 2);
 
