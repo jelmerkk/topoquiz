@@ -9,3 +9,4 @@ debug/
 !.dev.vars.example
 .env*
 !.env.example
+data/natural-earth/
