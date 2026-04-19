@@ -93,9 +93,16 @@ const nonPositivePop = ALL_CITIES.filter(c => c.pop <= 0);
 expect('Alle populatiewaarden zijn positief', nonPositivePop.length === 0,
   nonPositivePop.map(c => c.name).join(', '));
 
-const names = ALL_CITIES.map(c => c.name);
-const duplicates = names.filter((n, i) => names.indexOf(n) !== i);
-expect('Geen dubbele stadsnamen', duplicates.length === 0, duplicates.join(', '));
+// Binnen één set mogen stadsnamen niet dubbel voorkomen; tussen sets wel
+// (bijv. 'Bergen' = Mons/BE in set 72 vs Bergen/NO in set 78).
+const perSetDupes = [];
+for (const setNum of Object.keys(SETS)) {
+  const citiesInSet = ALL_CITIES.filter(c => c.sets?.includes(Number(setNum)));
+  const names = citiesInSet.map(c => c.name);
+  const dupes = names.filter((n, i) => names.indexOf(n) !== i);
+  if (dupes.length) perSetDupes.push(`set ${setNum}: ${dupes.join(',')}`);
+}
+expect('Geen dubbele stadsnamen binnen een set', perSetDupes.length === 0, perSetDupes.join(' | '));
 
 const invalidSetRefs = ALL_CITIES.flatMap(c =>
   c.sets.filter(s => !validSetNums.has(s)).map(s => `${c.name} → set ${s}`)
@@ -956,6 +963,110 @@ expect('set 77: 99 km → correct', clickResult(99, 77) === 'correct');
 expect('set 77: 100 km → close',  clickResult(100, 77) === 'close');
 expect('set 77: 299 km → close',  clickResult(299, 77) === 'close');
 expect('set 77: 300 km → wrong',  clickResult(300, 77) === 'wrong');
+
+// ── Set 78 — Noord-Europa (issue #47) ────────────────────────
+
+section('Set 78 — Noord-Europa');
+
+const SET78_LANDEN = ['Noorwegen','Zweden','Finland','Denemarken'];
+const SET78_STEDEN = [
+  // Hergebruik uit 7.1
+  'Oslo','Stockholm','Helsinki','Kopenhagen',
+  // Nieuw voor 7.8
+  'Bergen','Trondheim','Narvik','Hammerfest','Göteborg','Malmö','Kiruna',
+];
+const SET78_GEBIEDEN = ['Lapland','Jutland'];
+const SET78_WATEREN = ['Sont','Botnische Golf','Finse Golf','Barentszzee','Atlantische Oceaan','Oostzee'];
+
+expect('Set 78 bestaat in SETS',        !!SETS[78]);
+expect('Set 78 is groep 7',             SETS[78]?.group === 7);
+expect('Set 78 heeft 4 fases',          SETS[78]?.phases?.length === 4);
+expect('Set 78 fase 1 is country',      SETS[78]?.phases?.[0]?.quizType === 'country');
+expect('Set 78 fase 2 is place',        SETS[78]?.phases?.[1]?.quizType === 'place');
+expect('Set 78 fase 3 is province',     SETS[78]?.phases?.[2]?.quizType === 'province');
+expect('Set 78 fase 4 is water',        SETS[78]?.phases?.[3]?.quizType === 'water');
+expect('Set 78 heeft bounds',           Array.isArray(SETS[78]?.bounds));
+expect('Set 78 heeft EU-klikdrempels',  SETS[78]?.clickCorrectKm === 100 && SETS[78]?.clickCloseKm === 300);
+
+SET78_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(78));
+  expect(`${naam} in ALL_COUNTRIES (set 78)`, !!c);
+});
+expect('Set 78 heeft 4 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(78)).length === 4);
+
+SET78_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(78));
+  expect(`${naam} in ALL_CITIES (set 78)`, !!s);
+});
+expect('Set 78 heeft 11 steden', ALL_CITIES.filter(c => c.sets?.includes(78)).length === 11);
+
+SET78_GEBIEDEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(78));
+  expect(`${naam} in ALL_PROVINCES (set 78)`, !!r);
+  expect(`${naam} is fuzzy`, r?.shape === 'fuzzy');
+});
+expect('Set 78 heeft 2 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(78)).length === 2);
+
+SET78_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(78));
+  expect(`${naam} in ALL_WATERS (set 78)`, !!w);
+});
+expect('Set 78 heeft 6 wateren', ALL_WATERS.filter(w => w.sets?.includes(78)).length === 6);
+
+// ── Set 79 — Zuidoost-Europa (issue #48) ─────────────────────
+
+section('Set 79 — Zuidoost-Europa');
+
+const SET79_LANDEN = [
+  // Hergebruik
+  'Slovenië','Roemenië','Bulgarije','Slowakije',
+  // Nieuw voor 7.9
+  'Kroatië','Bosnië-Hercegovina','Servië','Montenegro','Albanië',
+  'Noord-Macedonië','Griekenland','Turkije','Cyprus',
+];
+const SET79_STEDEN = [
+  // Hergebruik uit 7.7
+  'Boekarest','Sofia',
+  // Nieuw voor 7.9
+  'Ljubljana','Zagreb','Split','Sarajevo','Belgrado','Podgorica','Tirana',
+  'Skopje','Athene','Thessaloniki','Bratislava','Istanbul','Ankara',
+];
+const SET79_GEBIEDEN = ['Kreta'];
+const SET79_WATEREN = ['Zwarte Zee','Bosporus'];
+
+expect('Set 79 bestaat in SETS',        !!SETS[79]);
+expect('Set 79 is groep 7',             SETS[79]?.group === 7);
+expect('Set 79 heeft 4 fases',          SETS[79]?.phases?.length === 4);
+expect('Set 79 fase 1 is country',      SETS[79]?.phases?.[0]?.quizType === 'country');
+expect('Set 79 fase 2 is place',        SETS[79]?.phases?.[1]?.quizType === 'place');
+expect('Set 79 fase 3 is province',     SETS[79]?.phases?.[2]?.quizType === 'province');
+expect('Set 79 fase 4 is water',        SETS[79]?.phases?.[3]?.quizType === 'water');
+expect('Set 79 heeft bounds',           Array.isArray(SETS[79]?.bounds));
+expect('Set 79 heeft EU-klikdrempels',  SETS[79]?.clickCorrectKm === 100 && SETS[79]?.clickCloseKm === 300);
+
+SET79_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(79));
+  expect(`${naam} in ALL_COUNTRIES (set 79)`, !!c);
+});
+expect('Set 79 heeft 13 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(79)).length === 13);
+
+SET79_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(79));
+  expect(`${naam} in ALL_CITIES (set 79)`, !!s);
+});
+expect('Set 79 heeft 15 steden', ALL_CITIES.filter(c => c.sets?.includes(79)).length === 15);
+
+SET79_GEBIEDEN.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(79));
+  expect(`${naam} in ALL_PROVINCES (set 79)`, !!r);
+});
+expect('Set 79 heeft 1 gebied (Kreta)', ALL_PROVINCES.filter(p => p.sets?.includes(79)).length === 1);
+
+SET79_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(79));
+  expect(`${naam} in ALL_WATERS (set 79)`, !!w);
+});
+expect('Set 79 heeft 2 wateren', ALL_WATERS.filter(w => w.sets?.includes(79)).length === 2);
 
 // ── Samenvatting ──────────────────────────────────────────────
 
