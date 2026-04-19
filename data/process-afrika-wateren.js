@@ -105,6 +105,26 @@ function processRiver(file, name, eps, orientFn) {
   return { type: 'LineString', coordinates: simp };
 }
 
+// Chain meerdere rivier-relaties tot één LineString (bijv. Witte Nijl + Nijl-proper).
+function processMultiRiver(files, name, eps, orientFn) {
+  const allWays = [];
+  for (const file of files) {
+    const raw = JSON.parse(fs.readFileSync(path.join(SRC_DIR, file), 'utf8'));
+    const rel = raw.elements.find(e => e.type === 'relation');
+    const ways = rel.members.filter(m =>
+      m.type === 'way' && m.geometry && m.role === 'main_stream');
+    allWays.push(...ways);
+  }
+  // maxGap 4.0° — Witte Nijl heeft fragmenten in Sudd-moeras (gaps tot ~3°
+  // tussen main_stream-ways) plus ~0.8° gap bij Khartoem naar Nijl-proper.
+  // Schematische weergave voor schooldoel, dus brede brugging is prima.
+  const chained = chain(allWays, 4.0);
+  const simp = roundCoords(rdp(chained, eps));
+  if (orientFn && orientFn(simp) === false) simp.reverse();
+  console.log(`  ${name.padEnd(14)} ways=${allWays.length} chain=${chained.length} rdp(${eps})=${simp.length}`);
+  return { type: 'LineString', coordinates: simp };
+}
+
 function processCanal(file, name, eps) {
   const raw = JSON.parse(fs.readFileSync(path.join(SRC_DIR, file), 'utf8'));
   const rel = raw.elements.find(e => e.type === 'relation');
@@ -138,8 +158,11 @@ function processLake(file, name, eps) {
 }
 
 const features = [
-  // Nijl stroomt N → brontoe bij ~3°S, delta bij ~31°N. Eind-lat > start-lat.
-  { name: 'Nijl',  geom: processRiver('nijl.json',         'Nijl',  0.02,
+  // Nijl = Witte Nijl (Lake Victoria uitstroom, Jinja ~0.4°N) + Nijl-proper
+  // (Khartoem ~15.6°N → delta ~31°N). Samen ~31° span, past bij school-atlas.
+  // Blauwe Nijl is educatief maar wordt niet gemerged — visueel één rivier,
+  // geen y-splitsing.
+  { name: 'Nijl',  geom: processMultiRiver(['witte-nijl.json', 'nijl.json'], 'Nijl', 0.02,
       s => s[s.length-1][1] > s[0][1]) },
   // Congo stroomt vanaf Oost-Afrika naar Atlantische monding (~6°S, 12°E).
   // Bron bij Lualaba, monding bij Banana — eindpunt westelijker (kleinere lon).

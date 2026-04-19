@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Issue #50: wateren voor set 8.2 via Overpass.
-//   Nijl         Q3392   → main_stream LineString
-//   Congo        Q3503   → main_stream LineString
-//   Niger        Q3542   → main_stream LineString
-//   Suezkanaal   Q899    → LineString (kanaal, geen side_stream)
-//   Victoriameer Q5505   → Polygon (natural=water, relation)
+//   Nijl          Q3392    → main_stream LineString (Khartoem → Middellandse Zee)
+//   Witte Nijl    Q4814791 → main_stream LineString (Lake Victoria → Khartoem)
+//                            Wordt bij Nijl gechaind zodat de school-Nijl volledig is.
+//   Congo         Q3503    → main_stream LineString
+//   Niger         Q3542    → main_stream LineString
+//   Suezkanaal    Q899     → LineString (kanaal, geen side_stream)
+//   Victoriameer  Q5505    → Polygon (natural=water, relation)
 //
 // Gebruikt meerdere mirrors omdat overpass-api.de regelmatig "too busy" is
 // voor grote relations.
@@ -22,6 +24,7 @@ const UA = 'topoquiz-data-fetch/1.0 (https://www.topoquiz.com)';
 
 const QUERIES = [
   { out: 'nijl.json',         q: 'relation["wikidata"="Q3392"]["waterway"="river"];out geom qt;' },
+  { out: 'witte-nijl.json',   q: 'relation["wikidata"="Q4814791"]["waterway"="river"];out geom qt;' },
   { out: 'congo-rivier.json', q: 'relation["wikidata"="Q3503"]["waterway"="river"];out geom qt;' },
   { out: 'niger.json',        q: 'relation["wikidata"="Q3542"]["waterway"="river"];out geom qt;' },
   { out: 'suezkanaal.json',   q: 'relation["wikidata"="Q899"];out geom qt;' },
