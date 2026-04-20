@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.16.1">
+<meta name="version" content="2.16.4">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1811,6 +1811,7 @@ function finishAnswer() {
           document.getElementById('qtot').textContent = activeCities.length;
           updateScoreboard();
           renderQuestion();
+          if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
         });
       }, 2000);
       return;
@@ -2047,7 +2048,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.16.1';
+const APP_VERSION = 'v2.16.4';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -2178,6 +2179,8 @@ async function startQuiz(mode, startPhase = 0) {
   const restored = restoreProgress();
   quizStartTime = Date.now();
   _trackQuiz(restored ? 'resume' : 'start');
+  // Dev-menu synchroniseren met zojuist gestarte set/modus/fase
+  if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = consecutiveCorrect = 0;
@@ -2436,8 +2439,33 @@ async function _maybeDeepLink() {
   if (last && SETS[last]) setSel.value = last;
   refreshPhases();
 
+  // Sync dropdowns naar het level dat op dit moment gespeeld wordt.
+  // Aangeroepen bij panel-expand en na phase-transitions, zodat de dev-
+  // kortsluiting altijd het huidige spel weerspiegelt.
+  function syncToLive() {
+    if (typeof selectedSet !== 'undefined' && SETS[selectedSet]) {
+      setSel.value = String(selectedSet);
+      refreshPhases();
+    }
+    if (typeof gameMode !== 'undefined' && gameMode) {
+      const modeSel = panel.querySelector('#dev-mode');
+      if ([...modeSel.options].some(o => o.value === gameMode)) {
+        modeSel.value = gameMode;
+      }
+    }
+    if (typeof currentPhaseIndex !== 'undefined' && !phaseSel.disabled) {
+      const phaseOpt = [...phaseSel.options].find(o => Number(o.value) === currentPhaseIndex);
+      if (phaseOpt) phaseSel.value = String(currentPhaseIndex);
+    }
+  }
+  // Expose globaal zodat de game-loop na startQuiz / fase-wissel kan
+  // resyncen zonder een harde koppeling te maken.
+  window.__devMenuSync = syncToLive;
+
   panel.querySelector('.head').addEventListener('click', () => {
+    const wasCollapsed = panel.classList.contains('collapsed');
     panel.classList.toggle('collapsed');
+    if (wasCollapsed) syncToLive();  // expand → sync met huidig spel
   });
 
   panel.querySelector('#dev-go').addEventListener('click', async () => {
