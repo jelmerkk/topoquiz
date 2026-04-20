@@ -30,8 +30,9 @@ Kies de juiste array op basis van het elementtype:
 | `ALL_CITIES` | Steden, hoofdsteden | Stip op kaart |
 | `ALL_PROVINCES` | Nederlandse provincies | Polygoon (`provincie_2023.geojson`) |
 | `ALL_WATERS` | Wateren (rivieren, zeeën) | Lijn/polygoon (`wateren.geojson`) |
-| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`, `landen-zuidoost-azie.geojson`, `landen-oceanie.geojson`) |
+| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`, `landen-zuidoost-azie.geojson`, `landen-oceanie.geojson`, `landen-midden-amerika.geojson`) |
 | `ALL_PROVINCES` (eilanden) | Indonesische eilanden | Polygoon (`eilanden-zuidoost-azie.geojson`) — Kalimantan, Sumatra, Sulawesi, Java, Molukken |
+| `ALL_PROVINCES` (Antillen) | ABC + Sint Maarten | Polygoon (`eilanden-midden-amerika.geojson`) — echte polygonen voor set 8.9 (Saba + Sint Eustatius als fuzzy ellips) |
 | `ALL_PROVINCES` (gebieden) | Tasmanië + Antarctica | Polygoon (`gebieden-oceanie.geojson`) — echte polygonen voor set 8.8 |
 
 Velden per item:
@@ -48,8 +49,12 @@ Velden per item:
 | `lat` / `lon` | ✓ | WGS84-coördinaten (centroid voor label) |
 | `pop` | alleen `ALL_CITIES` | Bevolking; bepaalt de stipgrootte (logaritmisch, 4–12px) |
 | `sets` | ✓ | Array van set-nummers; een item kan in meerdere sets zitten |
-| `capital` | | `true` voor provinciehoofdsteden (vierkante marker) |
+| `capital` | | `true` voor hoofdsteden (vierkante marker) |
 | `aliases` | | Alternatieve spellingen die als goed worden geaccepteerd |
+| `kind` | | `ALL_PROVINCES`: `'gewest'` / `'eiland'` / `'gebied'` — voor UI-labels in niet-NL-sets (7.2 gewesten, 8.7 eilanden, 8.8/8.9 gebieden) |
+| `shape` | | `'fuzzy'` (ellips) of `'peak'` (bergtop-driehoek) — zie *Shape-overrides* onder Wateren |
+| `rx`, `ry`, `rot` | bij `shape:'fuzzy'` | Ellips-radii in graden + rotatie (°) |
+| `posBySet` | | Per-set positie-override: `{ [setNr]: { lat, lon, rx?, ry?, rot? } }` — zie *Shape-overrides* |
 
 Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. rivieren in set 7.3); `sets` afwezig = gedeeld (NL wateren, altijd geladen voor set 57).
 
@@ -178,11 +183,37 @@ Alle waterlichamen staan in `wateren.geojson` als GeoJSON `FeatureCollection`. E
 |------|--------------|
 | `LineString` | Rijn, Waal, Neder-Rijn, Lek, IJssel, Maas, Bergse Maas, Oude Maas, Nieuwe Waterweg, Noordzeekanaal, Amsterdam-Rijnkanaal |
 | `Polygon` | Noordzee, Waddenzee, Oosterschelde, Westerschelde, Eems |
-| `fuzzy` (ellips) | Alle nieuwe zeeën en oceanen (Middellandse Zee, Oostzee, Atlantische Oceaan, …) |
+| `fuzzy` (ellips) | Alle nieuwe zeeën en oceanen (Middellandse Zee, Oostzee, Atlantische Oceaan, Grote Oceaan, Indische Oceaan, Caribische Zee, …) |
 
 ### Zeeën/oceanen: gebruik fuzzy, niet hard polygoon
 
-Een harde zee-polygoon met echte kustlijn vergt per kust OSM-ways chainen, RDP, inlet-overbruggingen en visuele verificatie — de Noordzee (#37, #38) kostte meerdere iteraties en blijft dichtbij land imperfect. Voor alle **nieuwe** zeeën/oceanen gebruiken we daarom een `shape: 'fuzzy'` ellips, zo geplaatst en gemaatvoerd dat de ellips **niet tegen land aanligt** (ruime marge t.o.v. de kust). De Noordzee/Waddenzee/etc. blijven hard polygoon (al gedaan), maar we investeren daar niet meer in tenzij er een concrete blokkerende fout is.
+Een harde zee-polygoon met echte kustlijn vergt per kust OSM-ways chainen, RDP, inlet-overbruggingen en visuele verificatie — de Noordzee (#37, #38) kostte meerdere iteraties en blijft dichtbij land imperfect. Voor alle **nieuwe** zeeën/oceanen gebruiken we daarom een `shape: 'fuzzy'` ellips, zo geplaatst en gemaatvoerd dat de ellips **niet tegen land aanligt** (ruime marge t.o.v. de kust). De Noordzee/Waddenzee/etc. blijven hard polygoon (al gedaan), maar we investeren daar niet meer in tenzij er een concrete blokkerende fout is. De Atlantische Oceaan was eerder een polygoon maar is in v2.16.0 omgezet naar fuzzy om per-set plaatsing mogelijk te maken (zie `posBySet` hieronder).
+
+### Shape-overrides: `fuzzy`, `peak`, en `posBySet`
+
+Items in `ALL_WATERS` en `ALL_PROVINCES` kunnen een afwijkende visuele vorm krijgen via het `shape`-veld. `ensureShapeFeatures()` in `index.html` vervangt of injecteert de feature op rendertijd:
+
+| `shape` | Rendering | Extra velden | Gebruikt voor |
+|---------|-----------|--------------|---------------|
+| (geen) | Polygon/LineString uit de GeoJSON | — | Standaard (NL-provincies, landen, rivieren, hard polygoon-zeeën) |
+| `'fuzzy'` | Doorzichtige ellips | `rx`, `ry` (graden), optioneel `rot` | Zeeën/oceanen, gebieden zonder scherpe grens (Himalaya, Sahara), te kleine eilanden (Saba, Sint Eustatius) |
+| `'peak'` | Gekleurde driehoek (bergtop) | — | Mount Everest (set 8.5) en toekomstige bergtoppen |
+
+**`posBySet`-override** — één entry, per-set plaatsing:
+
+Voor items die in meerdere sets zitten maar per set een ander kijkvlak hebben (typisch oceanen). De base `lat/lon/rx/ry/rot` geldt als default; `posBySet[setNr]` overrulet die waarden alleen voor die ene set. `buildEllipseFeature(entry, activeSet)` leest de override op rendertijd.
+
+```js
+{ name: 'Grote Oceaan', lat: 30, lon: 160, shape: 'fuzzy', rx: 30, ry: 25,
+  sets: [86, 87, 88, 89],
+  posBySet: {
+    88: { lat:  -5, lon: 180, rx: 17, ry: 22 },   // Oceanië-perspectief
+    89: { lat:  10, lon: -92, rx:  3, ry:  5 },   // Midden-Amerika-perspectief
+  },
+}
+```
+
+Gebruikt voor Atlantische Oceaan, Grote Oceaan en Indische Oceaan (set 78/88/89 gedeeld).
 
 ### Klik-op-de-kaart modus (wateren)
 

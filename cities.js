@@ -438,6 +438,12 @@ const ALL_CITIES = [
   { name: 'Auckland',        lat: -36.85, lon: 174.76, pop: 1700000, sets: [88], aliases: ['Tāmaki Makaurau'] },
   { name: 'Wellington',      lat: -41.29, lon: 174.78, pop:  420000, sets: [88], capital: true, aliases: ['Te Whanganui-a-Tara'] },
   { name: 'Port Moresby',    lat:  -9.48, lon: 147.15, pop:  380000, sets: [88], capital: true, aliases: ['Port-Moresby'] },
+  // ── Set 89: Steden van Midden-Amerika en Caraïben (8.9) ────────────────────
+  // Opdrachtblad (Geobas p.117) noemt maar 2 hoofdsteden als stad-opdracht:
+  // Havana (Cuba) en Willemstad (Curaçao — NL Antillen-hoofdstad). Overige
+  // hoofdsteden van de regio zitten impliciet in de landen-fase.
+  { name: 'Havana',          lat: 23.13, lon: -82.36, pop: 2100000, sets: [89], capital: true, aliases: ['La Habana', 'Habana'] },
+  { name: 'Willemstad',      lat: 12.11, lon: -68.93, pop:  140000, sets: [89], capital: true },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -571,6 +577,21 @@ const ALL_COUNTRIES = [
   { name: 'Australië',            lat: -25.0, lon: 135.0, sets: [88], aliases: ['Australia', 'Commonwealth of Australia'] },
   { name: 'Nieuw-Zeeland',        lat: -41.0, lon: 174.0, sets: [88], aliases: ['New Zealand', 'Aotearoa'] },
   { name: 'Papoea-Nieuw-Guinea',  lat:  -6.0, lon: 145.0, sets: [88], aliases: ['Papua New Guinea', 'PNG', 'Papoea Nieuw-Guinea'] },
+  // ── Set 89: Landen Midden-Amerika en Caraïben (8.9) — NE polygonen in landen-midden-amerika.geojson ─
+  // Caraïben (4): Cuba, Jamaica, Haïti, Dominicaanse Republiek.
+  // Midden-Amerika (7): Guatemala, Belize, Honduras, El Salvador, Nicaragua,
+  // Costa Rica, Panama.
+  { name: 'Cuba',                   lat: 21.50, lon: -79.00, sets: [89], aliases: ['República de Cuba'] },
+  { name: 'Jamaica',                lat: 18.10, lon: -77.30, sets: [89] },
+  { name: 'Haïti',                  lat: 19.00, lon: -72.50, sets: [89], aliases: ['Haiti', 'Ayiti'] },
+  { name: 'Dominicaanse Republiek', lat: 19.00, lon: -70.50, sets: [89], aliases: ['Dominican Republic', 'República Dominicana', 'Dom Rep'] },
+  { name: 'Guatemala',              lat: 15.50, lon: -90.20, sets: [89] },
+  { name: 'Belize',                 lat: 17.20, lon: -88.50, sets: [89] },
+  { name: 'Honduras',               lat: 14.80, lon: -86.50, sets: [89] },
+  { name: 'El Salvador',            lat: 13.80, lon: -88.90, sets: [89], aliases: ['ElSalvador'] },
+  { name: 'Nicaragua',              lat: 12.80, lon: -85.20, sets: [89] },
+  { name: 'Costa Rica',             lat:  9.90, lon: -84.00, sets: [89], aliases: ['CostaRica'] },
+  { name: 'Panama',                 lat:  8.80, lon: -80.00, sets: [89], aliases: ['Panamá', 'República de Panamá'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -624,7 +645,14 @@ const ALL_WATERS = [
   { name: 'Botnische Golf',     lat: 62.00, lon: 20.00, sets: [78], aliases: ['Gulf of Bothnia', 'Pohjanlahti'] },
   { name: 'Finse Golf',         lat: 59.70, lon: 25.00, sets: [78], aliases: ['Gulf of Finland', 'Suomenlahti'] },
   { name: 'Barentszzee',        lat: 71.50, lon: 37.00, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
-  { name: 'Atlantische Oceaan', lat: 62.00, lon:  0.00, sets: [78], aliases: ['Atlantic Ocean', 'Atlantic'] },
+  // Atlantische Oceaan: voorheen hard polygon in wateren.geojson (set 78).
+  // Omgezet naar fuzzy ellips met posBySet — set 78 NW-Europa perspectief
+  // (west van Ierland/Noorwegen), set 89 Caraïbisch perspectief (oostelijk
+  // van de Antillen). ensureShapeFeatures vervangt de polygon-feature via
+  // findIndex-by-name op rendertijd.
+  { name: 'Atlantische Oceaan', lat: 55.00, lon: -15.00, shape: 'fuzzy', rx: 5.00, ry: 8.00, sets: [78, 89],
+    posBySet: { 89: { lat: 20.00, lon: -52.00, rx: 12.00, ry: 10.00 } },
+    aliases: ['Atlantic Ocean', 'Atlantic'] },
   // ── Set 79: Wateren van Zuidoost-Europa (7.9) ─────────────────────────────
   { name: 'Bosporus',           lat: 41.12, lon: 29.07, sets: [79], aliases: ['Bosphorus', 'İstanbul Boğazı'] },
   // ── Set 81: Wateren van Zuid-Amerika (8.1) ────────────────────────────────
@@ -651,9 +679,10 @@ const ALL_WATERS = [
   // Caribische Zee: fuzzy (policy — geen nieuwe harde zee-polygonen).
   { name: 'Mississippi',   lat:  38.00, lon: -91.00, sets: [83], aliases: ['Mississippi River'] },
   { name: 'Rio Grande',    lat:  31.00, lon:-103.00, sets: [83], aliases: ['Río Grande', 'Río Bravo', 'Río Bravo del Norte'] },
-  { name: 'Panamakanaal',  lat:   9.15, lon: -79.70, sets: [83], aliases: ['Panama Canal', 'Canal de Panamá'] },
+  // Panamakanaal + Caribische Zee: hergebruikt in set 89 via sets:[83,89].
+  { name: 'Panamakanaal',  lat:   9.15, lon: -79.70, sets: [83, 89], aliases: ['Panama Canal', 'Canal de Panamá'] },
   // Caribische Zee: fuzzy ellips, ~9°N..23°N, -88°W..-60°W. rx=14 (lon), ry=7 (lat).
-  { name: 'Caribische Zee', lat: 15.00, lon: -75.00, shape: 'fuzzy', rx: 14.00, ry: 7.00, sets: [83], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
+  { name: 'Caribische Zee', lat: 15.00, lon: -75.00, shape: 'fuzzy', rx: 14.00, ry: 7.00, sets: [83, 89], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
   // ── Set 84: Wateren van Midden-Oosten (8.4) ───────────────────────────────
   // Eufraat: LineString uit OSM Q34589 (main_stream) → wateren.geojson.
   // Suezkanaal + Rode Zee: hergebruikt uit set 82 via sets:[82,84].
@@ -695,8 +724,13 @@ const ALL_WATERS = [
   { name: 'Zuid-Chinese Zee',   lat:  14.00, lon: 115.00, shape: 'fuzzy', rx:  8.00, ry: 10.00, sets: [86], aliases: ['South China Sea', 'Zuid Chinese Zee'] },
   // posBySet: Oceanie-perspectief centreert de Grote Oceaan ten oosten van
   // Australië/NZ (tropisch zuidelijk deel) i.p.v. het Japan-noord-perspectief.
-  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88],
-    posBySet: { 88: { lat:  -5.00, lon: 180.00, rx: 17.00, ry: 22.00 } },
+  // Set 89 (Midden-Amerika): centrum westelijk van Panama/Guatemala in het
+  // zichtbare deel van de Pacific binnen de set-89 bounds (-95°W..-60°W).
+  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88, 89],
+    posBySet: {
+      88: { lat:  -5.00, lon: 180.00, rx: 17.00, ry: 22.00 },
+      89: { lat:   6.00, lon: -92.00, rx: 10.00, ry:  4.00 },
+    },
     aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
 
@@ -825,6 +859,17 @@ const ALL_PROVINCES = [
   { name: 'Tasmanië',                lat: -42.00, lon: 147.00, kind: 'eiland', sets: [88], aliases: ['Tasmania'] },
   { name: 'Grote Victoria-Woestijn', lat: -28.50, lon: 128.00, kind: 'gebied', shape: 'fuzzy', rx: 5.50, ry: 2.50, sets: [88], aliases: ['Great Victoria Desert', 'Grote Victoriawoestijn'] },
   { name: 'Antarctica',              lat: -78.00, lon:  20.00, kind: 'gebied', sets: [88], aliases: ['Zuidpoolcontinent'] },
+  // ── Set 89: Nederlandse Antillen (8.9) ─────────────────────────────────────
+  // Alle 6 eilanden als echte polygoon uit OSM place=island relations in
+  // eilanden-midden-amerika.geojson. Saba + Sint Eustatius zijn klein
+  // (~13/21 km²) maar eerder-fuzzy-rendering mixed slecht met de ABC+SXM
+  // polygonen (gestreept naast solide) — nu consistent polygoon.
+  { name: 'Aruba',         lat: 12.52, lon: -69.97, kind: 'eiland', sets: [89] },
+  { name: 'Curaçao',       lat: 12.17, lon: -68.99, kind: 'eiland', sets: [89], aliases: ['Curacao'] },
+  { name: 'Bonaire',       lat: 12.18, lon: -68.27, kind: 'eiland', sets: [89] },
+  { name: 'Sint Maarten',  lat: 18.04, lon: -63.07, kind: 'eiland', sets: [89], aliases: ['St. Maarten', 'Sint-Maarten'] },
+  { name: 'Saba',          lat: 17.63, lon: -63.23, kind: 'eiland', sets: [89] },
+  { name: 'Sint Eustatius',lat: 17.49, lon: -62.98, kind: 'eiland', sets: [89], aliases: ['Statia', 'St. Eustatius'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -1069,6 +1114,21 @@ const SETS = {
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 89: Midden-Amerika en Caraïben (8.9) — 11 landen, 2 steden,
+   // 6 eilanden (ABC + SXM real polygon, Saba + Sint Eustatius fuzzy), 4 wateren
+   // (Caribische Zee + Panamakanaal hergebruikt uit 83; Atlantische + Grote
+   // Oceaan via posBySet). Bounds: Guatemala-west (~-92°) tot Dom Rep-oost
+   // (~-68°), Panama-zuid (~7°N) tot Cuba-noord (~23°N). Klikdrempels 150/400
+   // (tussen EU-schaal 100/300 en continent-schaal 250/700).
+   89: { name: '8.9 – Midden-Amerika en Caraïben', group: 8, mastery: 1,
+         bounds: [[5, -95], [28, -60]],
+         clickCorrectKm: 150, clickCloseKm: 400,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Eilanden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
