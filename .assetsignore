@@ -1,0 +1,25 @@
+# CF Workers asset-upload ignore — gitignore-style.
+# Reden: data/overpass-artefacten bevatten files >25 MB (CF per-asset limit).
+# Sinds v2.9.0 (set 8.2) faalt de CF-build zonder deze uitsluiting.
+
+# Dev-artefacten + bron-data (niet nodig in productie)
+data/
+node_modules/
+coverage/
+tests/
+.github/
+.claude/
+
+# Test + tooling-bestanden
+test.js
+playwright.config.js
+package.json
+package-lock.json
+wrangler.jsonc
+
+# Documentatie + dotfiles
+README.md
+CLAUDE.md
+.gitignore
+.DS_Store
+.git/
