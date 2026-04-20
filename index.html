@@ -2281,6 +2281,92 @@ async function _maybeDeepLink() {
 (async () => {
   if (!(await _maybeDeepLink())) showStartScreen();
 })();
+
+// ── Dev-menu ─────────────────────────────────────────────────
+// Zichtbaar op *.workers.dev en bij ?dev=1. Korte shortcut om elke
+// combinatie van set+modus+fase te testen zonder door de normale UI
+// te navigeren. Niet op productie — www.topoquiz.com laat hem weg.
+(function initDevMenu() {
+  const isDevHost = location.hostname.endsWith('.workers.dev')
+    || new URLSearchParams(location.search).has('dev');
+  if (!isDevHost) return;
+
+  const css = document.createElement('style');
+  css.textContent = `
+    #dev-panel { position:fixed; bottom:8px; right:8px; z-index:9999;
+      background:#222; color:#fff; padding:6px 8px; border-radius:6px;
+      font:12px/1.3 system-ui,sans-serif; box-shadow:0 2px 8px rgba(0,0,0,.3);
+      max-width:260px; }
+    #dev-panel.collapsed > .body { display:none; }
+    #dev-panel .head { cursor:pointer; font-weight:bold; user-select:none; }
+    #dev-panel select, #dev-panel button { font:inherit; margin:2px 0; width:100%; }
+    #dev-panel button { background:#4a7; color:#fff; border:0; padding:4px; border-radius:4px; cursor:pointer; }
+  `;
+  document.head.appendChild(css);
+
+  const panel = document.createElement('div');
+  panel.id = 'dev-panel';
+  panel.innerHTML = `
+    <div class="head">🛠️ dev</div>
+    <div class="body">
+      <select id="dev-set"></select>
+      <select id="dev-mode">
+        <option value="mc">Meerkeuze</option>
+        <option value="text">Typen</option>
+        <option value="map">Kaart-klik</option>
+      </select>
+      <select id="dev-phase"></select>
+      <button id="dev-go">Start</button>
+    </div>`;
+  document.body.appendChild(panel);
+
+  const setSel   = panel.querySelector('#dev-set');
+  const phaseSel = panel.querySelector('#dev-phase');
+
+  // Sorteer numeriek voor leesbare volgorde (54, 71…83, 98, 99)
+  Object.keys(SETS).map(Number).sort((a, b) => a - b).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = `${k} — ${SETS[k].name}`;
+    setSel.appendChild(opt);
+  });
+
+  function refreshPhases() {
+    phaseSel.innerHTML = '';
+    const set = SETS[Number(setSel.value)];
+    if (set?.phases?.length) {
+      set.phases.forEach((p, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `fase ${i + 1}: ${p.label}`;
+        phaseSel.appendChild(opt);
+      });
+      phaseSel.disabled = false;
+    } else {
+      phaseSel.innerHTML = '<option value="0">— geen fases —</option>';
+      phaseSel.disabled = true;
+    }
+  }
+  setSel.addEventListener('change', refreshPhases);
+
+  // Start op laatst-gekozen set uit dev-localStorage (handig bij reloads)
+  const last = localStorage.getItem('devMenuSet');
+  if (last && SETS[last]) setSel.value = last;
+  refreshPhases();
+
+  panel.querySelector('.head').addEventListener('click', () => {
+    panel.classList.toggle('collapsed');
+  });
+
+  panel.querySelector('#dev-go').addEventListener('click', async () => {
+    const set   = Number(setSel.value);
+    const mode  = panel.querySelector('#dev-mode').value;
+    const phase = Number(phaseSel.value) || 0;
+    localStorage.setItem('devMenuSet', String(set));
+    selectedSet = set;
+    await startQuiz(mode, phase);
+  });
+})();
 </script>
 <footer style="font-size:0.65rem;color:#3a4f88;margin-top:auto;padding:4px 0">
   <span id="version-tag" onclick="hardRefresh()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted" title="Klik om cache te wissen en opnieuw te laden"></span>
