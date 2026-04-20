@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Set 83 debug</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  html,body,#map{margin:0;height:100vh}
+  .lbl{background:none;border:none;box-shadow:none;font-weight:bold;font-size:12px;color:#111;text-shadow:0 0 2px #fff,0 0 2px #fff}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map', { zoomControl: true, attributionControl: false }).setView([35, -90], 3);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+function color(name) {
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return `hsl(${h % 360}, 65%, 55%)`;
+}
+
+// Landen
+fetch('landen-noord-midden-amerika.geojson').then(r=>r.json()).then(gj => {
+  L.geoJSON(gj, {
+    style: f => ({ color: '#222', weight: 1, fillColor: color(f.properties.name), fillOpacity: 0.5 }),
+    onEachFeature: (f, layer) => layer.bindTooltip(f.properties.name, { permanent: true, direction: 'center', className: 'lbl' }),
+  }).addTo(map);
+});
+
+// Gewesten (filter sets:[83])
+fetch('gewesten.geojson').then(r=>r.json()).then(gj => {
+  const filtered = { type: 'FeatureCollection', features: gj.features.filter(f => (f.properties.sets||[]).includes(83)) };
+  L.geoJSON(filtered, {
+    style: f => ({ color: '#800', weight: 2, fillColor: '#f88', fillOpacity: 0.5 }),
+    onEachFeature: (f, layer) => layer.bindTooltip(f.properties.name, { permanent: true, direction: 'center', className: 'lbl' }),
+  }).addTo(map);
+});
+
+// Wateren (filter sets:[83])
+fetch('wateren.geojson').then(r=>r.json()).then(gj => {
+  const filtered = { type: 'FeatureCollection', features: gj.features.filter(f => (f.properties.sets||[]).includes(83)) };
+  L.geoJSON(filtered, {
+    style: f => f.geometry.type === 'LineString'
+      ? { color: '#06c', weight: 3 }
+      : { color: '#00e', weight: 2, fillColor: '#88f', fillOpacity: 0.3 },
+    onEachFeature: (f, layer) => layer.bindTooltip(f.properties.name, { permanent: true, direction: 'center', className: 'lbl' }),
+  }).addTo(map);
+});
+</script>
+</body>
+</html>

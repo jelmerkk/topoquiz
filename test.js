@@ -1235,6 +1235,113 @@ expect('Set 82 heeft 7 wateren', ALL_WATERS.filter(w => w.sets?.includes(82)).le
     vm?.geometry.type === 'Polygon' || vm?.geometry.type === 'MultiPolygon');
 }
 
+// ── Set 83 — Noord- en Midden-Amerika (8.3) ──────────────────
+
+section('Set 83 — Noord- en Midden-Amerika');
+
+const SET83_LANDEN = ['Canada','VS','Mexico','Cuba','Haïti','Guatemala','Nicaragua'];
+const SET83_STEDEN = [
+  'Ottawa','Toronto','Montréal','Vancouver','Washington','New York','Chicago',
+  'Los Angeles','San Francisco','Houston','New Orleans','Miami','Detroit',
+  'Denver','Mexico-Stad','Monterrey','Havana',
+];
+const SET83_GEWESTEN_HARD   = ['Alaska','Groenland','Texas','Florida'];
+const SET83_GEBIEDEN_FUZZY  = ['Rocky Mountains','Sierra Nevada','Appalachen'];
+const SET83_WATEREN         = ['Mississippi','Rio Grande','Panamakanaal','Caribische Zee'];
+
+expect('Set 83 bestaat in SETS',        !!SETS[83]);
+expect('Set 83 is groep 8',             SETS[83]?.group === 8);
+expect('Set 83 heeft 4 fases',          SETS[83]?.phases?.length === 4);
+expect('Set 83 fase 1 is country',      SETS[83]?.phases?.[0]?.quizType === 'country');
+expect('Set 83 fase 2 is place',        SETS[83]?.phases?.[1]?.quizType === 'place');
+expect('Set 83 fase 3 is province',     SETS[83]?.phases?.[2]?.quizType === 'province');
+expect('Set 83 fase 4 is water',        SETS[83]?.phases?.[3]?.quizType === 'water');
+expect('Set 83 heeft bounds',           Array.isArray(SETS[83]?.bounds));
+expect('Set 83 heeft continentale klikdrempels (≥250/700)',
+  SETS[83]?.clickCorrectKm >= 250 && SETS[83]?.clickCloseKm >= 700);
+
+SET83_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(83));
+  expect(`${naam} in ALL_COUNTRIES (set 83)`, !!c);
+});
+expect('Set 83 heeft 7 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(83)).length === 7);
+
+SET83_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(83));
+  expect(`${naam} in ALL_CITIES (set 83)`, !!s);
+});
+expect('Set 83 heeft 17 steden', ALL_CITIES.filter(c => c.sets?.includes(83)).length === 17);
+
+// 4 hoofdsteden: Ottawa, Washington, Mexico-Stad, Havana
+const set83Capitals = ALL_CITIES.filter(c => c.sets?.includes(83) && c.capital);
+expect('Set 83 heeft 4 hoofdsteden', set83Capitals.length === 4);
+
+SET83_GEWESTEN_HARD.forEach(naam => {
+  const g = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(83));
+  expect(`${naam} in ALL_PROVINCES (set 83)`, !!g);
+  expect(`${naam} kind === 'gewest' (set 83)`, g?.kind === 'gewest');
+  expect(`${naam} is niet fuzzy (set 83)`, g?.shape !== 'fuzzy');
+});
+
+SET83_GEBIEDEN_FUZZY.forEach(naam => {
+  const r = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(83));
+  expect(`${naam} in ALL_PROVINCES (set 83)`, !!r);
+  expect(`${naam} is fuzzy (set 83)`, r?.shape === 'fuzzy');
+  expect(`${naam} kind === 'gebied' (set 83)`, r?.kind === 'gebied');
+});
+
+expect('Set 83 heeft 7 regio\'s (4 gewesten + 3 gebieden)',
+  ALL_PROVINCES.filter(p => p.sets?.includes(83)).length === 7);
+
+SET83_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(83));
+  expect(`${naam} in ALL_WATERS (set 83)`, !!w);
+});
+expect('Set 83 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(83)).length === 4);
+
+// Landen-polygonen in landen-noord-midden-amerika.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-noord-midden-amerika.geojson'), 'utf8'));
+  SET83_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-noord-midden-amerika.geojson`, !!f);
+    expect(`${naam} sets bevat 83`, f?.properties.sets?.includes(83));
+  });
+}
+
+// Harde gewesten-polygonen in gewesten.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'gewesten.geojson'), 'utf8'));
+  SET83_GEWESTEN_HARD.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(83));
+    expect(`${naam} polygoon in gewesten.geojson (set 83)`, !!f);
+    expect(`${naam} is Polygon/MultiPolygon`,
+      f?.geometry.type === 'Polygon' || f?.geometry.type === 'MultiPolygon');
+  });
+}
+
+// Rivieren + kanaal als LineString in wateren.geojson
+// Caribische Zee is fuzzy (policy) — niet in geojson.
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  ['Mississippi','Rio Grande','Panamakanaal'].forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(83));
+    expect(`${naam} LineString in wateren.geojson (set 83)`, f?.geometry.type === 'LineString');
+  });
+  // Mississippi stroomt N→Z (Itasca ~47°N → delta ~29°N).
+  const miss = gj.features.find(x => x.properties.name === 'Mississippi' && x.properties.sets?.includes(83));
+  if (miss) {
+    const c = miss.geometry.coordinates;
+    expect('Mississippi start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+  }
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
