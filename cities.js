@@ -407,6 +407,23 @@ const ALL_CITIES = [
   { name: 'Sapporo',      lat: 43.07, lon: 141.35,pop: 2700000, sets: [86], aliases: ['Sapporo-shi'] },
   { name: 'Pyongyang',    lat: 39.02, lon: 125.75,pop: 3100000, sets: [86], capital: true, aliases: ['Pjongjang', 'P\'yŏngyang'] },
   { name: 'Seoul',        lat: 37.57, lon: 126.98,pop:25000000, sets: [86], capital: true, aliases: ['Seoel', 'Sŏul'] },
+  // ── Set 87: Steden van Zuidoost-Azië (8.7) ─────────────────────────────────
+  // 11 steden: 9 hoofdsteden (Bangkok/Hanoi/Phnom Penh/Vientiane/Kuala
+  // Lumpur/Singapore/Jakarta/Manila + Yangon als grootste stad Myanmar,
+  // officieel is Naypyidaw hoofdstad, maar die staat niet in opdrachtblad)
+  // + 2 tweede steden (Ho Chi Minhstad en Surabaya). Yangon is in de quiz
+  // een stad, niet hoofdstad.
+  { name: 'Yangon',          lat: 16.80, lon: 96.15, pop: 5400000, sets: [87], aliases: ['Rangoon', 'Rangun'] },
+  { name: 'Bangkok',         lat: 13.75, lon: 100.50,pop:10500000, sets: [87], capital: true, aliases: ['Krung Thep', 'Bangkok-Metropolitan'] },
+  { name: 'Hanoi',           lat: 21.03, lon: 105.85,pop: 8000000, sets: [87], capital: true, aliases: ['Hà Nội'] },
+  { name: 'Ho Chi Minhstad', lat: 10.82, lon: 106.63,pop: 9000000, sets: [87], aliases: ['Ho Chi Minh-stad', 'Saigon', 'Thành phố Hồ Chí Minh'] },
+  { name: 'Phnom Penh',      lat: 11.56, lon: 104.92,pop: 2100000, sets: [87], capital: true, aliases: ['Phnompenh', 'Phnum Pénh'] },
+  { name: 'Vientiane',       lat: 17.97, lon: 102.60,pop:  820000, sets: [87], capital: true, aliases: ['Vientianne', 'Viangchan'] },
+  { name: 'Kuala Lumpur',    lat:  3.14, lon: 101.69,pop: 1800000, sets: [87], capital: true, aliases: ['K.L.', 'KL'] },
+  { name: 'Singapore',       lat:  1.35, lon: 103.82,pop: 5700000, sets: [87], capital: true, aliases: ['Singapura'] },
+  { name: 'Jakarta',         lat: -6.18, lon: 106.83,pop:11000000, sets: [87], capital: true, aliases: ['Djakarta', 'Batavia'] },
+  { name: 'Surabaya',        lat: -7.26, lon: 112.75,pop: 3000000, sets: [87], aliases: ['Soerabaja'] },
+  { name: 'Manila',          lat: 14.60, lon: 120.98,pop:14000000, sets: [87], capital: true, aliases: ['Maynila'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -526,6 +543,16 @@ const ALL_COUNTRIES = [
   { name: 'Noord-Korea',   lat: 40.3, lon:127.5, sets: [86], aliases: ['North Korea', 'DPRK', 'Chosŏn'] },
   { name: 'Zuid-Korea',    lat: 36.5, lon:127.8, sets: [86], aliases: ['South Korea', 'ROK', 'Hanguk'] },
   { name: 'Taiwan',        lat: 23.7, lon:121.0, sets: [86], aliases: ['Formosa', 'Republic of China', 'ROC', 'Táiwān'] },
+  // ── Set 87: Landen van Zuidoost-Azië (8.7) — NE polygonen in landen-zuidoost-azie.geojson ─
+  { name: 'Myanmar',       lat: 21.0, lon: 96.0, sets: [87], aliases: ['Birma', 'Burma'] },
+  { name: 'Thailand',      lat: 15.5, lon:101.0, sets: [87], aliases: ['Prathet Thai', 'Siam'] },
+  { name: 'Vietnam',       lat: 16.0, lon:108.0, sets: [87], aliases: ['Viëtnam', 'Việt Nam'] },
+  { name: 'Cambodja',      lat: 12.5, lon:105.0, sets: [87], aliases: ['Kambodja', 'Cambodia', 'Kampuchea'] },
+  { name: 'Laos',          lat: 19.0, lon:102.5, sets: [87], aliases: ['Lao'] },
+  { name: 'Maleisië',      lat:  4.2, lon:109.7, sets: [87], aliases: ['Malaysia', 'Malaisie'] },
+  { name: 'Singapore',     lat:  1.35,lon:103.82,sets: [87], aliases: ['Singapura'] },
+  { name: 'Indonesië',     lat: -2.5, lon:118.0, sets: [87], aliases: ['Indonesia', 'Republik Indonesia'] },
+  { name: 'Filipijnen',    lat: 12.9, lon:122.5, sets: [87], aliases: ['Philippines', 'Pilipinas'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -626,7 +653,7 @@ const ALL_WATERS = [
   { name: 'Middellandse Zee', lat:  35.00, lon:  18.00, shape: 'fuzzy', rx: 20.00, ry: 5.00, sets: [84], aliases: ['Mediterrane Zee', 'Mediterranean', 'Mediterranean Sea'] },
   // Indische Oceaan: gigantisch. Vanuit ME-perspectief centraal op Arabische
   // Zee zodat hij ~Z-oost in beeld komt. Grote ellips.
-  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84, 85], aliases: ['Indian Ocean'] },
+  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84, 85, 87], aliases: ['Indian Ocean'] },
   // ── Set 85: Wateren van Zuid-Azië (8.5) ────────────────────────────────────
   // Ganges (Q5089) + Indus (Q7348): LineStrings uit OSM main_stream → wateren.geojson.
   // 3 zeeën als fuzzy ellips; Indische Oceaan gedeeld met set 84.
@@ -644,7 +671,7 @@ const ALL_WATERS = [
   { name: 'Huang He',           lat:  37.50, lon: 110.00, sets: [86], aliases: ['Gele Rivier', 'Yellow River', 'Huáng Hé'] },
   { name: 'Chang Jiang',        lat:  30.00, lon: 112.00, sets: [86], aliases: ['Yangtze', 'Yangzi', 'Cháng Jiāng', 'Blauwe Rivier'] },
   { name: 'Zuid-Chinese Zee',   lat:  14.00, lon: 115.00, shape: 'fuzzy', rx:  8.00, ry: 10.00, sets: [86], aliases: ['South China Sea', 'Zuid Chinese Zee'] },
-  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86], aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
+  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87], aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -757,6 +784,14 @@ const ALL_PROVINCES = [
   { name: 'Tibet',    lat: 31.50, lon:  89.00, kind: 'gebied', shape: 'fuzzy', rx:  8.00, ry: 3.50, sets: [86], aliases: ['Xizang', 'Bod'] },
   { name: 'Gobi',     lat: 43.00, lon: 103.00, kind: 'gebied', shape: 'fuzzy', rx: 12.00, ry: 3.50, sets: [86], aliases: ['Gobi-woestijn', 'Gobi Desert'] },
   { name: 'Siberië',  lat: 62.00, lon: 100.00, kind: 'gebied', shape: 'fuzzy', rx: 35.00, ry: 9.00, sets: [86], aliases: ['Siberia', 'Sibir'] },
+  // ── Set 87: Eilanden van Zuidoost-Azië (8.7) ───────────────────────────────
+  // Echte polygonen uit OSM place=island relations → eilanden-zuidoost-azie.geojson.
+  // kind: 'eiland' (nieuw). centroïd alleen nodig voor pan-to.
+  { name: 'Kalimantan', lat:  0.00, lon: 114.00, kind: 'eiland', sets: [87], aliases: ['Borneo (Indonesisch deel)'] },
+  { name: 'Sumatra',    lat:  0.00, lon: 102.00, kind: 'eiland', sets: [87], aliases: ['Sumatera'] },
+  { name: 'Sulawesi',   lat: -2.00, lon: 121.00, kind: 'eiland', sets: [87], aliases: ['Celebes'] },
+  { name: 'Java',       lat: -7.50, lon: 111.00, kind: 'eiland', sets: [87], aliases: ['Jawa'] },
+  { name: 'Molukken',   lat: -3.00, lon: 128.00, kind: 'eiland', sets: [87], aliases: ['Maluku', 'Spice Islands', 'Kepulauan Maluku'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -973,6 +1008,21 @@ const SETS = {
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 87: Zuidoost-Azië (8.7) — 9 landen, 11 steden, 5 eilanden, 2 wateren ─
+   // Eilanden zijn echte polygonen uit OSM place=island relations (file
+   // eilanden-zuidoost-azie.geojson) — niet fuzzy. Wateren zijn Grote Oceaan
+   // + Indische Oceaan, hergebruikt uit sets 86/84-85 via meervoudige set-tag.
+   // Bounds: Sumatra-west (~95°E) tot Papoea-oost (~142°E); Sumba/Timor
+   // (~-11°S) tot Myanmar-noord (~28°N). Klikdrempels 250/700 conform 8.1–8.6.
+   87: { name: '8.7 – Zuidoost-Azië', group: 8, mastery: 1,
+         bounds: [[-11, 92], [28, 142]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Eilanden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
