@@ -795,6 +795,12 @@ const WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 5,   opacity: 1,   
 const WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 3,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3 };
 const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
+// Fuzzy-waterstijlen — voor zeeën/baaien/zeestraten zonder scherpe grens.
+// Kleur blijft blauw (semantiek: water), onderbroken rand markeert fuzzy.
+const FUZZY_WATER_DEFAULT   = { color: '#1565C0', weight: 2,   opacity: 0.6, dashArray: '6 5', fillColor: '#42A5F5',        fillOpacity: 0.12 };
+const FUZZY_WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   dashArray: '6 5', fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.35 };
+const FUZZY_WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2.5, opacity: 0.9, dashArray: '6 5', fillColor: C_MASTERED_FILL,  fillOpacity: 0.25 };
+
 // Landstijlen
 const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6',        fillOpacity: 0.35 };
 const COUNTRY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5  };
@@ -823,7 +829,10 @@ const polygonTypes = {
     featureData: null,
     layers: {},
     quizLayer: null,
-    styles: { default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN },
+    styles: {
+      default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN,
+      fuzzyDefault: FUZZY_WATER_DEFAULT, fuzzyHighlight: FUZZY_WATER_HIGHLIGHT, fuzzyMastered: FUZZY_WATER_MASTERED,
+    },
     nameKey: 'name',
     afterHighlight(item) {
       const layer = this.layers[item.name];
