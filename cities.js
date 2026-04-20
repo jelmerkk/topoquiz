@@ -372,6 +372,22 @@ const ALL_CITIES = [
   { name: 'Tbilisi',    lat: 41.72, lon: 44.79, pop: 1100000, sets: [84], capital: true, aliases: ['Tiflis'] },
   { name: 'Jerevan',    lat: 40.18, lon: 44.51, pop: 1100000, sets: [84], capital: true, aliases: ['Yerevan', 'Erevan'] },
   { name: 'Bakoe',      lat: 40.41, lon: 49.87, pop: 2300000, sets: [84], capital: true, aliases: ['Baku', 'Bakı'] },
+  // ── Set 85: Steden van Zuid-Azië (8.5) ─────────────────────────────────────
+  // 12 steden: 6 hoofdsteden (Tasjkent/Kabul/Islamabad/New Delhi/Kathmandu/Dhaka)
+  // + 6 niet-hoofdsteden (Almaty als voormalige hoofdstad KZ; Lahore/Karachi PK;
+  // Mumbai/Chennai/Kolkata IN). Sri Lanka: opdrachtblad vraagt geen stad.
+  { name: 'Almaty',     lat: 43.24, lon: 76.89, pop: 2000000, sets: [85], aliases: ['Alma-Ata', 'Almata'] },
+  { name: 'Tasjkent',   lat: 41.30, lon: 69.24, pop: 2900000, sets: [85], capital: true, aliases: ['Tashkent', 'Toshkent'] },
+  { name: 'Kabul',      lat: 34.53, lon: 69.17, pop: 4600000, sets: [85], capital: true, aliases: ['Kabol', 'Kābul'] },
+  { name: 'Islamabad',  lat: 33.69, lon: 73.05, pop: 1100000, sets: [85], capital: true, aliases: ['Islāmābād'] },
+  { name: 'Lahore',     lat: 31.55, lon: 74.34, pop:13500000, sets: [85], aliases: ['Lāhaur'] },
+  { name: 'Karachi',    lat: 24.86, lon: 67.01, pop:16000000, sets: [85], aliases: ['Karāchi'] },
+  { name: 'New Delhi',  lat: 28.61, lon: 77.21, pop:32000000, sets: [85], capital: true, aliases: ['Delhi', 'Nieuw-Delhi'] },
+  { name: 'Mumbai',     lat: 19.08, lon: 72.88, pop:20000000, sets: [85], aliases: ['Bombay'] },
+  { name: 'Chennai',    lat: 13.08, lon: 80.27, pop:11000000, sets: [85], aliases: ['Madras'] },
+  { name: 'Kolkata',    lat: 22.57, lon: 88.36, pop:15000000, sets: [85], aliases: ['Calcutta', 'Calcuta'] },
+  { name: 'Kathmandu',  lat: 27.72, lon: 85.32, pop: 1500000, sets: [85], capital: true, aliases: ['Kāṭhmāṇḍau'] },
+  { name: 'Dhaka',      lat: 23.81, lon: 90.41, pop:10000000, sets: [85], capital: true, aliases: ['Dacca', 'Ḍhaka'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -473,6 +489,15 @@ const ALL_COUNTRIES = [
   { name: 'Georgië',       lat: 42.3, lon: 43.5, sets: [84], aliases: ['Georgia', 'Sakartvelo'] },
   { name: 'Armenië',       lat: 40.1, lon: 45.0, sets: [84], aliases: ['Armenia', 'Hayastan'] },
   { name: 'Azerbeidzjan',  lat: 40.3, lon: 47.8, sets: [84], aliases: ['Azerbaijan', 'Azerbeidzjaan'] },
+  // ── Set 85: Landen van Zuid-Azië (8.5) ─────────────────────────────────────
+  { name: 'Kazachstan',    lat: 48.0, lon: 68.0, sets: [85], aliases: ['Kazakhstan', 'Qazaqstan'] },
+  { name: 'Oezbekistan',   lat: 41.5, lon: 64.0, sets: [85], aliases: ['Uzbekistan', 'Oʻzbekiston'] },
+  { name: 'Afghanistan',   lat: 33.9, lon: 66.0, sets: [85], aliases: ['Afganistan', 'Afġānistān'] },
+  { name: 'Pakistan',      lat: 30.0, lon: 70.0, sets: [85], aliases: ['Pākistān'] },
+  { name: 'India',         lat: 22.5, lon: 79.0, sets: [85], aliases: ['Bhārat', 'Hindustan'] },
+  { name: 'Nepal',         lat: 28.2, lon: 84.1, sets: [85], aliases: ['Nēpāl'] },
+  { name: 'Bangladesh',    lat: 23.7, lon: 90.4, sets: [85], aliases: ['Bānglādesh'] },
+  { name: 'Sri Lanka',     lat:  7.9, lon: 80.8, sets: [85], aliases: ['Ceylon', 'Srī Laṅkā'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -573,7 +598,16 @@ const ALL_WATERS = [
   { name: 'Middellandse Zee', lat:  35.00, lon:  18.00, shape: 'fuzzy', rx: 20.00, ry: 5.00, sets: [84], aliases: ['Mediterrane Zee', 'Mediterranean', 'Mediterranean Sea'] },
   // Indische Oceaan: gigantisch. Vanuit ME-perspectief centraal op Arabische
   // Zee zodat hij ~Z-oost in beeld komt. Grote ellips.
-  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84], aliases: ['Indian Ocean'] },
+  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84, 85], aliases: ['Indian Ocean'] },
+  // ── Set 85: Wateren van Zuid-Azië (8.5) ────────────────────────────────────
+  // Ganges (Q5089) + Indus (Q7348): LineStrings uit OSM main_stream → wateren.geojson.
+  // 3 zeeën als fuzzy ellips; Indische Oceaan gedeeld met set 84.
+  { name: 'Ganges',             lat:  25.50, lon:  85.00, sets: [85], aliases: ['Ganga', 'Gaṅgā'] },
+  { name: 'Indus',              lat:  28.00, lon:  70.00, sets: [85], aliases: ['Sindhu', 'Sindh'] },
+  // Arabische Zee: ~8°N..25°N, 55°E..75°E. rx=10, ry=8.
+  { name: 'Arabische Zee',      lat:  15.00, lon:  65.00, shape: 'fuzzy', rx: 10.00, ry:  8.00, sets: [85], aliases: ['Arabian Sea'] },
+  // Golf van Bengalen: ~5°N..22°N, 80°E..95°E. rx=7, ry=8.
+  { name: 'Golf van Bengalen',  lat:  14.00, lon:  88.00, shape: 'fuzzy', rx:  7.00, ry:  8.00, sets: [85], aliases: ['Bay of Bengal', 'Bengaalse Golf'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -673,6 +707,12 @@ const ALL_PROVINCES = [
   // Appalachen: van Alabama tot Maine, SW-NE diagonaal. N-Z-ellips dekt
   // vrijwel volledig de hele rug; rot niet strikt nodig op continent-zoom.
   { name: 'Appalachen',      lat:  39.00, lon: -79.00, kind: 'gebied', shape: 'fuzzy', rx:  2.50, ry:  6.50, sets: [83], aliases: ['Appalachian Mountains', 'Appalachians'] },
+  // ── Set 85: Gebieden van Zuid-Azië (8.5) ────────────────────────────────────
+  // Himalaya: fuzzy ellips over de gebergteboog NW→ZO, ~27°N/83°E met lichte
+  // rotatie. Mount Everest: nieuw type 'berg' met shape: 'peak' — rendert als
+  // rood-bruine driehoek (zie PEAK_* stijlen in index.html).
+  { name: 'Himalaya',       lat: 29.00, lon: 83.00, kind: 'gebied', shape: 'fuzzy', rx: 12.00, ry: 2.20, rot: -20, sets: [85], aliases: ['Himalaja', 'Himālaya'] },
+  { name: 'Mount Everest',  lat: 27.99, lon: 86.93, kind: 'berg',   shape: 'peak',  size: 1.2, sets: [85], aliases: ['Everest', 'Sagarmāthā', 'Chomolungma'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -861,6 +901,20 @@ const SETS = {
            { id: 'countries', label: 'Landen',  quizType: 'country' },
            { id: 'cities',    label: 'Steden',  quizType: 'place'   },
            { id: 'waters',    label: 'Wateren', quizType: 'water'   },
+         ] },
+   // ── Set 85: Zuid-Azië (8.5) — 8 landen, 12 steden, 2 gebieden, 5 wateren ──
+   // Gebieden-fase bevat Himalaya (fuzzy) + Mount Everest (nieuw shape 'peak',
+   // driehoek-marker in rood-bruin). Bounds: Sri Lanka zuid (~5°N) tot
+   // Kazachstan noord (~56°N); Arabische Zee west (~55°E) tot Bangladesh oost
+   // (~95°E). Klikdrempels 250/700 conform 8.1–8.4.
+   85: { name: '8.5 – Zuid-Azië', group: 8, mastery: 1,
+         bounds: [[5, 55], [56, 95]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
