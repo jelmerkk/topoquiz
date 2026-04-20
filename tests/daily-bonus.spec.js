@@ -95,36 +95,29 @@ test('#80: distractor-pool filtert per _itemType (geen cross-type)', async ({ pa
   await selectGroup(page, 7);
   await page.locator('.daily-btn').click();
   await page.waitForSelector('#question-text');
-  // Loop door alle 10 vragen en check dat de MC-opties altijd hetzelfde _itemType zijn
-  for (let i = 0; i < 10; i++) {
-    const sameType = await page.evaluate(() => {
-      if (!currentCity) return true;
-      const ot = currentCity._itemType;
-      const opts = Array.from(document.querySelectorAll('#options button'));
-      const names = opts.map(b => b.textContent.trim());
-      // Distractor-pool mirror: zelfde _itemType
-      return names.every(n => {
-        // Zoek item in alle pools
-        const all = [...ALL_CITIES, ...ALL_COUNTRIES, ...ALL_WATERS, ...ALL_PROVINCES];
-        const found = all.find(it => it.name === n);
-        if (!found) return false;
-        // Match op pool-origine — 'region' matcht ALL_PROVINCES (alle kinds)
-        if (ot === 'region')  return ALL_PROVINCES.includes(found);
-        if (ot === 'country') return ALL_COUNTRIES.includes(found);
-        if (ot === 'water')   return ALL_WATERS.includes(found);
-        return ALL_CITIES.includes(found);
+  // Statische verificatie: roep nearbyDistractors aan voor elk item in de
+  // daily en check dat alle distractors het juiste _itemType hebben. Dit
+  // vermijdt de 2s auto-advance-timing van de UI-loop (finishAnswer).
+  const results = await page.evaluate(() => {
+    const inPool = (n, pool) => pool.some(it => it.name === n);
+    const rows = [];
+    for (const city of activeCities) {
+      // distractorPool() leest global `currentCity` — mirror productie.
+      currentCity = city;
+      const ds = nearbyDistractors(city, 3);
+      const ot = city._itemType;
+      const bad = ds.filter(d => {
+        if (ot === 'region')  return !inPool(d.name, ALL_PROVINCES);
+        if (ot === 'country') return !inPool(d.name, ALL_COUNTRIES);
+        if (ot === 'water')   return !inPool(d.name, ALL_WATERS);
+        return !inPool(d.name, ALL_CITIES);
       });
-    });
-    expect(sameType).toBe(true);
-    // Klik altijd eerste optie om door te gaan (correctness interesseert ons niet)
-    await page.locator('#options button').first().click();
-    // Wacht op volgende vraag of einde
-    const next = page.locator('#next-btn');
-    if (await next.isVisible()) await next.click();
-    await page.waitForTimeout(80);
-    // Check of de quiz afgelopen is
-    const ended = await page.locator('#end-screen').isVisible();
-    if (ended) break;
+      rows.push({ name: city.name, ot, distractors: ds.map(d => d.name), bad: bad.map(b => b.name) });
+    }
+    return rows;
+  });
+  for (const r of results) {
+    expect(r.bad, `Cross-type distractors voor ${r.ot} ${r.name}: ${r.distractors.join(', ')}`).toEqual([]);
   }
 });
 
@@ -144,6 +137,9 @@ test('#80: bonus groep 8 zoomt naar item (geen NL-fallback)', async ({ page }) =
   await page.locator('.group-btn', { hasText: '8' }).click();
   await page.locator('.mode-btn.bonus-btn').click();
   await page.waitForSelector('#question-text');
+  // Laat initiële fitBounds-animatie van de eerste vraag uitsterven voor we
+  // Armenia forceren (anders overlapt de nieuwe fitBounds met een lopende).
+  await page.waitForTimeout(600);
   await page.evaluate(() => {
     const arm = ALL_COUNTRIES.find(c => c.name === 'Armenië');
     arm._itemType = 'country';
@@ -152,7 +148,16 @@ test('#80: bonus groep 8 zoomt naar item (geen NL-fallback)', async ({ page }) =
     currentCity = arm;
     setHighlightPolygon('country', arm);
   });
-  await page.waitForTimeout(800);
+  // fitBounds animeert — wacht tot kaart-center binnen Armenië-range ligt,
+  // niet op een vaste timeout (flaky op langzame runners).
+  await page.waitForFunction(
+    () => {
+      const c = map.getCenter();
+      return c.lat > 35 && c.lat < 45 && c.lng > 40 && c.lng < 50;
+    },
+    null,
+    { timeout: 4000 }
+  );
   const center = await page.evaluate(() => [map.getCenter().lat, map.getCenter().lng]);
   // Armenië ≈ 40°N 45°E — niet NL (≈52°N 5°E)
   expect(center[0]).toBeGreaterThan(35);
