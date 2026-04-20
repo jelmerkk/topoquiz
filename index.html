@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.16.4">
+<meta name="version" content="2.17.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1007,14 +1007,25 @@ function buildPolygonLayer(type) {
   let geoData = t.featureData;
   if (type === 'water') geoData = smoothGeoJSON(geoData);
 
+  const _setDef = SETS[selectedSet] || {};
+  const _isMixed = _setDef.daily || _setDef.bonus;
   t.quizLayer = L.geoJSON(geoData, {
     style: f => styleForFeature(t, f, 'default'),
     interactive: false,
     filter: f => {
       const name = f.properties[t.nameKey];
       if (!activeNames.has(name)) return false;
-      // Feature-level sets: oplossing voor dubbele namen (bijv. Maas NL vs Maas België)
       const fSets = f.properties.sets;
+      if (_isMixed) {
+        // Daily/bonus (#80): activeCities is heterogeen — match feature-sets tegen
+        // item-eigen sets om dubbele namen tussen sets (bv. Maas NL vs Maas BE)
+        // goed te disambigueren.
+        const item = activeCities.find(c => c.name === name && polygonTypeFor(c._itemType) === type);
+        if (!item) return false;
+        if (fSets?.length && item.sets?.length) return fSets.some(s => item.sets.includes(s));
+        return true;
+      }
+      // Feature-level sets: oplossing voor dubbele namen (bijv. Maas NL vs Maas België)
       if (fSets?.length) return fSets.includes(selectedSet);
       // Geen feature-sets: toon alleen als de data-array ook geen set-specificatie heeft
       // (geeft hetzelfde resultaat als de old isPhased-check: enkel voor niet-gefaseerde sets)
@@ -1255,8 +1266,12 @@ function makeRng(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-function dateSeed(dateStr) {
-  return dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
+function dateSeed(dateStr, group) {
+  const dNum = dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
+  if (group == null) return dNum;
+  // Multiplicatie met priem + group zorgt voor stabiele maar verschillende
+  // seeds per groep op dezelfde dag (issue #80).
+  return (dNum * 31 + Number(group)) | 0;
 }
 function seededShuffle(arr, rng) {
   const a = [...arr];
@@ -1266,7 +1281,59 @@ function seededShuffle(arr, rng) {
   }
   return a;
 }
+// Huidige geselecteerde groep uit sessionStorage. Fallback: null.
+function getSelectedGroup() {
+  try { const g = sessionStorage.getItem('selectedGroup'); return g ? Number(g) : null; } catch (_) { return null; }
+}
+// Pool van alle items van een bepaald type binnen de geselecteerde groep (issue #80).
+// Types: 'place' → ALL_CITIES, 'country' → ALL_COUNTRIES, 'water' → ALL_WATERS,
+// 'region' → ALL_PROVINCES (alle kinds; distractor-filter splitst op kind).
+function poolForType(type, group) {
+  const inGroup = item => item.sets?.some(s => SETS[s]?.group === group);
+  if (type === 'place')   return ALL_CITIES.filter(inGroup);
+  if (type === 'country') return ALL_COUNTRIES.filter(inGroup);
+  if (type === 'water')   return ALL_WATERS.filter(inGroup);
+  if (type === 'region')  return ALL_PROVINCES.filter(inGroup);
+  return [];
+}
+// _itemType → polygonTypes-key (null voor steden = markers i.p.v. polygonen).
+function polygonTypeFor(itemType) {
+  if (itemType === 'country') return 'country';
+  if (itemType === 'water')   return 'water';
+  if (itemType === 'region')  return 'province';
+  return null;
+}
+// Bouw een heterogene pool volgens een format-specificatie. Elk item krijgt
+// ._itemType zodat currentQuizType/distractorPool/renderQuestion weten welk
+// type ze bekijken. Volgorde wordt daarna doorgeshuffled zodat de types door
+// elkaar lopen tijdens het spelen.
+function buildMixedPool(fmt, group, rng) {
+  const out = [];
+  // Dedupeer over types heen op naam — streak[c.name] en andere maps gebruiken
+  // alleen naam als key. Groep 8 kan bv. "Panama" als land én stad hebben.
+  const usedNames = new Set();
+  for (const { type, count } of fmt) {
+    const pool = poolForType(type, group).filter(p => !usedNames.has(p.name));
+    const picks = seededShuffle(pool, rng).slice(0, count);
+    for (const it of picks) { it._itemType = type; out.push(it); usedNames.add(it.name); }
+  }
+  return seededShuffle(out, rng);
+}
+function dailyPool(dateStr, group) {
+  const fmt = DAILY_FORMAT[group];
+  if (!fmt) return [];
+  return buildMixedPool(fmt, group, makeRng(dateSeed(dateStr, group)));
+}
+function buildBonusPool(group) {
+  const fmt = BONUS_FORMAT[group];
+  if (!fmt) return [];
+  // Bonus is niet datum-deterministisch — iedere klik = nieuwe mix.
+  return buildMixedPool(fmt, group, makeRng((Math.random() * 0x7fffffff) | 0));
+}
+// Backwards-compat: oude dailyCities() nog ergens in de source?
 function dailyCities(dateStr) {
+  // Wordt niet meer direct aangeroepen (vervangen door dailyPool(dateStr, group))
+  // maar we laten hem staan zodat oude sessionStorage-entries niet breken.
   const rng = makeRng(dateSeed(dateStr));
   return seededShuffle(ALL_CITIES, rng).slice(0, 10);
 }
@@ -1277,6 +1344,9 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 function dailyStorageKey() { return `tq_daily_${todayStr()}`; }
+// Samengestelde key voor dailyAnswers (#80) — nodig om naam-collisions tussen
+// types af te handelen (bv. "Panama" als land én als stad in groep 8).
+function dailyAnswerKey(city) { return city._itemType ? `${city._itemType}:${city.name}` : city.name; }
 
 let dailyAnswers = {}; // { cityName: true|false } — eerste poging per stad
 let mapClickMarker = null; // tijdelijke marker na klik op kaart
@@ -1290,9 +1360,14 @@ let hintRevealed = 0; // aantal tekens van de hint dat getoond is
 let currentPhaseIndex = 0; // actieve fase-index voor sets met phases-array
 
 // Geeft het effectieve quizType terug voor de huidige sessie.
-// Voor gefaseerde sets: de quizType van de actieve fase.
+// - Gefaseerde sets: de quizType van de actieve fase.
+// - Daily/bonus (heterogeen, issue #80): afgeleid van currentCity._itemType.
+// - Overige sets: set.quizType zoals gedefinieerd in cities.js.
 function currentQuizType() {
   const set = SETS[selectedSet];
+  if ((set.daily || set.bonus) && currentCity?._itemType) {
+    return polygonTypeFor(currentCity._itemType) || 'place';
+  }
   return set.phases ? set.phases[currentPhaseIndex].quizType : set.quizType;
 }
 
@@ -1376,6 +1451,69 @@ function initLevel(setNumber) {
   if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
   clearPolygonLayers();
 
+  const _set = SETS[setNumber];
+
+  // ── Daily/Bonus (issue #80): heterogene pool uit meerdere item-types ─────
+  if (_set.daily || _set.bonus) {
+    const g = getSelectedGroup() || 5;
+    if (_set.daily) {
+      activeCities = dailyPool(todayStr(), g);
+      dailyAnswers = {};
+    } else {
+      // Bonus: probeer opgeslagen selectie te herstellen, anders nieuwe mix.
+      let items = null;
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(`qp_${setNumber}_${gameMode}`));
+        if (saved?.bonusCities) {
+          items = saved.bonusCities.map(x => {
+            // Backwards-compat: oude opslag was array van strings (alleen steden).
+            if (typeof x === 'string') {
+              const c = ALL_CITIES.find(cc => cc.name === x);
+              if (c) c._itemType = 'place';
+              return c;
+            }
+            const pool = poolForType(x._itemType, g);
+            const found = pool.find(p => p.name === x.name);
+            if (found) found._itemType = x._itemType;
+            return found;
+          }).filter(Boolean);
+          if (items.length < 5) items = null;
+        }
+      } catch (_) {}
+      if (!items) items = buildBonusPool(g);
+      activeCities = items;
+    }
+    // Bouw polygon-lagen voor elk type dat in de pool voorkomt.
+    const typesInPool = new Set(activeCities.map(c => polygonTypeFor(c._itemType)).filter(Boolean));
+    if (typesInPool.has('country')) buildPolygonLayer('country');
+    if (typesInPool.has('water'))   buildPolygonLayer('water');
+    if (typesInPool.has('province')) buildPolygonLayer('province');
+    // Markers voor place-items — regio/land/water hebben geen marker.
+    const placeItems = activeCities.filter(c => c._itemType === 'place');
+    placeItems.forEach(c => {
+      c._hadWrong = false;
+      if (c.capital) {
+        const s = cityRadius(c) * 2;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="capital-marker" style="width:${s}px;height:${s}px"></div>`,
+          iconSize: [s, s], iconAnchor: [s / 2, s / 2],
+        });
+        c.marker = L.marker([c.lat, c.lon], { icon, interactive: false }).addTo(markerLayer);
+        c.marker.setStyle = function(style) {
+          const el = this.getElement()?.querySelector('.capital-marker');
+          if (!el) return;
+          el.style.backgroundColor = style.fillColor;
+          el.style.borderColor     = style.color;
+        };
+      } else {
+        c.marker = L.circleMarker([c.lat, c.lon], { ...NORMAL_STYLE, radius: cityRadius(c), interactive: false })
+          .addTo(markerLayer);
+      }
+    });
+    return;
+  }
+
   const _qt = currentQuizType(); // respecteert phases[currentPhaseIndex] als die er is
   if (_qt === 'province') {
     activeCities = ALL_PROVINCES.filter(p => p.sets.includes(setNumber));
@@ -1387,26 +1525,7 @@ function initLevel(setNumber) {
     activeCities = ALL_COUNTRIES.filter(c => c.sets.includes(setNumber));
     buildPolygonLayer('country');
   } else {
-    if (SETS[setNumber].daily) {
-      activeCities = dailyCities(todayStr());
-      dailyAnswers = {};
-    } else if (SETS[setNumber].bonus) {
-      // Bonus level: probeer opgeslagen selectie te herstellen, anders 20 willekeurig
-      let cities = null;
-      try {
-        const saved = JSON.parse(sessionStorage.getItem(`qp_${setNumber}_${gameMode}`));
-        if (saved?.bonusCities) {
-          cities = saved.bonusCities.map(n => ALL_CITIES.find(c => c.name === n)).filter(Boolean);
-          if (cities.length < 5) cities = null;
-        }
-      } catch (_) {}
-      if (!cities) {
-        cities = shuffle([...ALL_CITIES]).slice(0, 20);
-      }
-      activeCities = cities;
-    } else {
-      activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
-    }
+    activeCities = ALL_CITIES.filter(c => c.sets.includes(setNumber));
     activeCities.forEach(c => {
       c._hadWrong = false;
       if (c.capital) {
@@ -1476,7 +1595,19 @@ function dist(a, b) {
 
 // Globale pool per quizType — gebruikt als fallback wanneer een phase
 // (bijv. 1 water of 2 regio's in set 81) te weinig items heeft voor MC.
+// Voor daily/bonus (issue #80): pool wordt gefilterd op _itemType én kind,
+// zodat een stad nooit als distractor bij een regio-vraag verschijnt.
 function distractorPool() {
+  const set = SETS[selectedSet];
+  if ((set.daily || set.bonus) && currentCity?._itemType) {
+    const g = getSelectedGroup() || 5;
+    const pool = poolForType(currentCity._itemType, g);
+    // Sub-filter voor regio: zelfde kind (Friesland ≠ Sahara qua vraagtekst).
+    if (currentCity._itemType === 'region' && currentCity.kind) {
+      return pool.filter(p => p.kind === currentCity.kind);
+    }
+    return pool;
+  }
   const qt = currentQuizType();
   if (qt === 'province') return ALL_PROVINCES;
   if (qt === 'water')    return ALL_WATERS;
@@ -1485,7 +1616,18 @@ function distractorPool() {
 }
 
 function nearbyDistractors(city, n) {
-  let pool = activeCities.filter(c => c !== city);
+  // Voor daily/bonus (mixed activeCities): filter intra-set distractors op
+  // hetzelfde _itemType als de vraag, anders lek je een stad bij een
+  // regio-vraag. Kind-filter voor regio (gewest ≠ eiland).
+  const set = SETS[selectedSet];
+  const mixed = (set.daily || set.bonus) && city?._itemType;
+  let pool = activeCities.filter(c => {
+    if (c === city) return false;
+    if (!mixed) return true;
+    if (c._itemType !== city._itemType) return false;
+    if (city._itemType === 'region' && city.kind && c.kind !== city.kind) return false;
+    return true;
+  });
   if (pool.length < n) {
     const extra = distractorPool().filter(c => c !== city && !pool.includes(c));
     pool = pool.concat(extra);
@@ -1647,8 +1789,9 @@ function spawnConfetti() {
 }
 
 function recordCorrect(city, fb, close = false) {
-  if (SETS[selectedSet].daily && !(city.name in dailyAnswers)) {
-    dailyAnswers[city.name] = !close; // eerste poging: exact = true, close = false
+  if (SETS[selectedSet].daily) {
+    const k = dailyAnswerKey(city);
+    if (!(k in dailyAnswers)) dailyAnswers[k] = !close; // eerste poging: exact = true, close = false
   }
   streak[city.name]++;
   sessionOk++;
@@ -1674,8 +1817,9 @@ function recordCorrect(city, fb, close = false) {
 }
 
 function recordWrong(city, fb) {
-  if (SETS[selectedSet].daily && !(city.name in dailyAnswers)) {
-    dailyAnswers[city.name] = false;
+  if (SETS[selectedSet].daily) {
+    const k = dailyAnswerKey(city);
+    if (!(k in dailyAnswers)) dailyAnswers[k] = false;
   }
   streak[city.name] = 0;
   city._hadWrong = true;
@@ -1845,18 +1989,20 @@ function showEnd() {
   const total = cumulativeOk + cumulativeErr;
   const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
+  const _endIsMixed = _endSet.daily || _endSet.bonus;
   const _endQts  = _endSet.phases ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
-  const isProvince = !_endSet.phases && _endSet.quizType === 'province';
-  const isWater    = !_endSet.phases && _endSet.quizType === 'water';
+  const isProvince = !_endSet.phases && !_endIsMixed && _endSet.quizType === 'province';
+  const isWater    = !_endSet.phases && !_endIsMixed && _endSet.quizType === 'water';
 
   const isDaily = _endSet.daily;
   if (isDaily) {
-    const results = activeCities.map(c => dailyAnswers[c.name] === true);
+    const results = activeCities.map(c => dailyAnswers[dailyAnswerKey(c)] === true);
     const correct = results.filter(Boolean).length;
     const emoji   = dailyResultEmoji(results);
     try { localStorage.setItem(dailyStorageKey(), emoji); } catch (_) {}
+    // Wording neutraal — daily bevat niet meer alléén steden (issue #80).
     document.getElementById('end-text').innerHTML =
-      `<strong>${correct} van de 10</strong> steden meteen goed geraden! 🗺️`;
+      `<strong>${correct} van de ${activeCities.length}</strong> meteen goed geraden! 🗺️`;
     document.getElementById('daily-emoji').textContent = emoji;
     document.getElementById('daily-share-wrap').style.display = 'block';
     document.getElementById('rating-wrap').style.display = 'none';
@@ -1866,7 +2012,9 @@ function showEnd() {
     document.getElementById('rating-wrap').style.display = '';
     document.getElementById('end-stars').style.display = '';
     document.getElementById('end-text').innerHTML =
-      _endSet.phases
+      _endIsMixed
+        ? `Je hebt alle <strong>${activeCities.length} items</strong> in de bonus gespeeld! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
+        : _endSet.phases
         ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
         : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
@@ -1952,8 +2100,19 @@ function _renderLevelSelect() {
   el.appendChild(groupWrap);
 
   Object.entries(SETS).forEach(([num, set]) => {
-    if (set.daily) return; // tijdelijk verborgen
-    if (set.bonus) return; // tijdelijk verborgen
+    // Daily/bonus (#80): toon alleen als er een format voor de gekozen groep is.
+    if (set.daily || set.bonus) {
+      if (!selectedGroup) return;
+      const g = Number(selectedGroup);
+      const fmt = (set.daily ? DAILY_FORMAT : BONUS_FORMAT)[g];
+      if (!fmt) return;
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn ' + (set.daily ? 'daily-btn' : 'bonus-btn');
+      btn.textContent = set.daily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
+      btn.onclick = () => selectLevel(Number(num));
+      el.appendChild(btn);
+      return;
+    }
     // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
     if (!selectedGroup || set.group !== Number(selectedGroup)) return;
     const btn = document.createElement('button');
@@ -2038,7 +2197,9 @@ function _renderModeSelect(setNumber) {
 
 function selectLevel(setNumber) {
   selectedSet = setNumber;
-  if (SETS[setNumber].daily) {
+  // Daily en bonus (#80) draaien altijd in MC — tekst/kaart-klik zijn onhandig
+  // bij mixed types (een regio kun je niet "typen" op een schoolniveau).
+  if (SETS[setNumber].daily || SETS[setNumber].bonus) {
     history.pushState({ screen: 'quiz', set: setNumber, mode: 'mc' }, '');
     startQuiz('mc');
     return;
@@ -2048,7 +2209,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.16.4';
+const APP_VERSION = 'v2.17.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -2142,9 +2303,24 @@ function showStartScreen() {
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
   history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
-  // Bepaal welke quizTypes nodig zijn (één of meerdere bij gefaseerde sets)
+  // Bepaal welke quizTypes nodig zijn.
+  // - Gefaseerde sets: alle fase-quizTypes.
+  // - Daily/bonus (#80): alle polygon-types die in het format kunnen voorkomen.
+  // - Overige sets: het enige set.quizType.
   const _set = SETS[selectedSet];
-  const _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
+  let _allQts;
+  if (_set.daily || _set.bonus) {
+    const g = getSelectedGroup() || 5;
+    const fmt = (_set.daily ? DAILY_FORMAT : BONUS_FORMAT)[g] || [];
+    const types = new Set();
+    for (const { type } of fmt) {
+      const pt = polygonTypeFor(type);
+      if (pt) types.add(pt);
+    }
+    _allQts = Array.from(types);
+  } else {
+    _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
+  }
   for (const qt of _allQts) {
     if (!polygonTypes[qt]) continue;
     await polygonTypes[qt].dataPromise;
@@ -2240,7 +2416,10 @@ function saveProgress() {
   const hadWrong = {};
   activeCities.forEach(c => { hadWrong[c.name] = c._hadWrong; });
   const data = { streak, sessionOk, sessionErr, hadWrong };
-  if (SETS[selectedSet].bonus) data.bonusCities = activeCities.map(c => c.name);
+  // Bonus-sessie: bewaar naam + _itemType zodat mixed-type pool correct hersteld
+  // kan worden (issue #80). Oude opslag (string[]) wordt via backwards-compat pad
+  // in initLevel gelezen als 'place'.
+  if (SETS[selectedSet].bonus) data.bonusCities = activeCities.map(c => ({ name: c.name, _itemType: c._itemType || 'place' }));
   try {
     sessionStorage.setItem(`qp_${selectedSet}_${gameMode}`, JSON.stringify(data));
   } catch (_) {}
