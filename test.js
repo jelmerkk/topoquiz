@@ -1733,6 +1733,98 @@ for (const naam of ['Myanmar','Thailand','Vietnam','Cambodja','Laos',
 }
 }
 
+// ── Set 88 — Australië en Oceanië (8.8) ─────────────────────────
+section('Set 88 — Australië en Oceanië (8.8)');
+
+expect('Set 88 bestaat',                 !!SETS[88]);
+expect('Set 88 group = 8',                SETS[88]?.group === 8);
+expect('Set 88 heeft 4 phases',           SETS[88]?.phases?.length === 4);
+expect('Set 88 phase 1 = country',        SETS[88]?.phases[0].quizType === 'country');
+expect('Set 88 phase 2 = place',          SETS[88]?.phases[1].quizType === 'place');
+expect('Set 88 phase 3 = province',       SETS[88]?.phases[2].quizType === 'province');
+expect('Set 88 phase 4 = water',          SETS[88]?.phases[3].quizType === 'water');
+expect('Set 88 phase 3 label = Gebieden', SETS[88]?.phases[2].label === 'Gebieden');
+expect('Set 88 heeft bounds',             Array.isArray(SETS[88]?.bounds));
+
+// 3 landen
+for (const naam of ['Australië','Nieuw-Zeeland','Papoea-Nieuw-Guinea']) {
+  const c = ALL_COUNTRIES.find(l => l.name === naam && l.sets?.includes(88));
+  expect(`${naam} in ALL_COUNTRIES (set 88)`, !!c);
+}
+
+// 10 steden
+const cities88 = ALL_CITIES.filter(c => c.sets?.includes(88));
+expect('Set 88 heeft 10 steden', cities88.length === 10);
+for (const naam of ['Sydney','Melbourne','Brisbane','Perth','Adelaide','Canberra',
+                    'Darwin','Auckland','Wellington','Port Moresby']) {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(88));
+  expect(`${naam} in ALL_CITIES (set 88)`, !!s);
+}
+
+// 3 hoofdsteden: Canberra, Wellington, Port Moresby
+const caps88 = cities88.filter(c => c.capital).map(c => c.name).sort();
+expect('Set 88 heeft 3 hoofdsteden', caps88.length === 3);
+expect('Set 88 hoofdsteden correct',
+  JSON.stringify(caps88) === JSON.stringify(['Canberra','Port Moresby','Wellington']));
+
+// Sydney niet hoofdstad (bekende valkuil — grootste stad, maar Canberra is hoofdstad)
+const sydney = ALL_CITIES.find(c => c.name === 'Sydney' && c.sets?.includes(88));
+expect('Sydney niet hoofdstad', sydney && !sydney.capital);
+
+// Auckland niet hoofdstad (grootste NZ-stad, Wellington is hoofdstad)
+const auckland = ALL_CITIES.find(c => c.name === 'Auckland' && c.sets?.includes(88));
+expect('Auckland niet hoofdstad', auckland && !auckland.capital);
+
+// 3 gebieden: Tasmanië (eiland, echte polygoon), Grote Victoria-Woestijn (fuzzy),
+// Antarctica (gebied, echte polygoon).
+const tas = ALL_PROVINCES.find(p => p.name === 'Tasmanië' && p.sets?.includes(88));
+expect('Tasmanië in ALL_PROVINCES (set 88)', !!tas);
+expect('Tasmanië kind = eiland',               tas?.kind === 'eiland');
+expect('Tasmanië niet fuzzy',                  tas?.shape !== 'fuzzy');
+
+const gvw = ALL_PROVINCES.find(p => p.name === 'Grote Victoria-Woestijn' && p.sets?.includes(88));
+expect('Grote Victoria-Woestijn in set 88', !!gvw);
+expect('Grote Victoria-Woestijn is fuzzy',  gvw?.shape === 'fuzzy');
+
+const ant = ALL_PROVINCES.find(p => p.name === 'Antarctica' && p.sets?.includes(88));
+expect('Antarctica in ALL_PROVINCES (set 88)', !!ant);
+expect('Antarctica niet fuzzy',                ant?.shape !== 'fuzzy');
+
+// 2 wateren: Grote Oceaan + Indische Oceaan met posBySet[88] override
+const grOc88 = ALL_WATERS.find(w => w.name === 'Grote Oceaan' && w.sets?.includes(88));
+expect('Grote Oceaan ook in set 88',                    !!grOc88);
+expect('Grote Oceaan heeft posBySet[88]',               !!grOc88?.posBySet?.[88]);
+expect('Grote Oceaan set-88 override op zuidelijke hemisfeer',
+  grOc88?.posBySet?.[88]?.lat < 0);
+
+const inOc88 = ALL_WATERS.find(w => w.name === 'Indische Oceaan' && w.sets?.includes(88));
+expect('Indische Oceaan ook in set 88',                 !!inOc88);
+expect('Indische Oceaan heeft posBySet[88]',            !!inOc88?.posBySet?.[88]);
+expect('Indische Oceaan set-88 override op zuidelijke hemisfeer',
+  inOc88?.posBySet?.[88]?.lat < 0);
+
+// Polygon-bestanden
+{
+const fs = require('fs');
+const landGj88 = JSON.parse(fs.readFileSync('landen-oceanie.geojson', 'utf8'));
+expect('landen-oceanie.geojson heeft 3 features', landGj88.features.length === 3);
+for (const naam of ['Australië','Nieuw-Zeeland','Papoea-Nieuw-Guinea']) {
+  const f = landGj88.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon in landen-oceanie.geojson`, !!f);
+  expect(`${naam} sets bevat 88`, f?.properties.sets?.includes(88));
+}
+
+const gebGj = JSON.parse(fs.readFileSync('gebieden-oceanie.geojson', 'utf8'));
+expect('gebieden-oceanie.geojson heeft 2 features', gebGj.features.length === 2);
+for (const naam of ['Tasmanië','Antarctica']) {
+  const f = gebGj.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon in gebieden-oceanie.geojson`, !!f);
+  expect(`${naam} is Polygon/MultiPolygon`,
+    f?.geometry.type === 'Polygon' || f?.geometry.type === 'MultiPolygon');
+  expect(`${naam} sets bevat 88`, f?.properties.sets?.includes(88));
+}
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus

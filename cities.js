@@ -424,6 +424,20 @@ const ALL_CITIES = [
   { name: 'Jakarta',         lat: -6.18, lon: 106.83,pop:11000000, sets: [87], capital: true, aliases: ['Djakarta', 'Batavia'] },
   { name: 'Surabaya',        lat: -7.26, lon: 112.75,pop: 3000000, sets: [87], aliases: ['Soerabaja'] },
   { name: 'Manila',          lat: 14.60, lon: 120.98,pop:14000000, sets: [87], capital: true, aliases: ['Maynila'] },
+  // ── Set 88: Steden van Australië/Nieuw-Zeeland/Oceanië (8.8) ────────────────
+  // 3 hoofdsteden: Canberra (AU), Wellington (NZ), Port Moresby (PNG).
+  // 7 grote niet-hoofdsteden: Sydney, Melbourne, Brisbane, Perth, Adelaide,
+  // Darwin (uitgestrektheid NT), Auckland (grootste NZ-stad).
+  { name: 'Sydney',          lat: -33.87, lon: 151.21, pop: 5300000, sets: [88] },
+  { name: 'Melbourne',       lat: -37.81, lon: 144.96, pop: 5100000, sets: [88] },
+  { name: 'Brisbane',        lat: -27.47, lon: 153.03, pop: 2600000, sets: [88] },
+  { name: 'Perth',           lat: -31.95, lon: 115.86, pop: 2100000, sets: [88] },
+  { name: 'Adelaide',        lat: -34.93, lon: 138.60, pop: 1400000, sets: [88] },
+  { name: 'Canberra',        lat: -35.28, lon: 149.13, pop:  460000, sets: [88], capital: true },
+  { name: 'Darwin',          lat: -12.46, lon: 130.84, pop:  150000, sets: [88] },
+  { name: 'Auckland',        lat: -36.85, lon: 174.76, pop: 1700000, sets: [88], aliases: ['Tāmaki Makaurau'] },
+  { name: 'Wellington',      lat: -41.29, lon: 174.78, pop:  420000, sets: [88], capital: true, aliases: ['Te Whanganui-a-Tara'] },
+  { name: 'Port Moresby',    lat:  -9.48, lon: 147.15, pop:  380000, sets: [88], capital: true, aliases: ['Port-Moresby'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -553,6 +567,10 @@ const ALL_COUNTRIES = [
   { name: 'Singapore',     lat:  1.35,lon:103.82,sets: [87], aliases: ['Singapura'] },
   { name: 'Indonesië',     lat: -2.5, lon:118.0, sets: [87], aliases: ['Indonesia', 'Republik Indonesia'] },
   { name: 'Filipijnen',    lat: 12.9, lon:122.5, sets: [87], aliases: ['Philippines', 'Pilipinas'] },
+  // ── Set 88: Landen Oceanië (8.8) ────────────────────────────────────────────
+  { name: 'Australië',            lat: -25.0, lon: 135.0, sets: [88], aliases: ['Australia', 'Commonwealth of Australia'] },
+  { name: 'Nieuw-Zeeland',        lat: -41.0, lon: 174.0, sets: [88], aliases: ['New Zealand', 'Aotearoa'] },
+  { name: 'Papoea-Nieuw-Guinea',  lat:  -6.0, lon: 145.0, sets: [88], aliases: ['Papua New Guinea', 'PNG', 'Papoea Nieuw-Guinea'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -653,7 +671,11 @@ const ALL_WATERS = [
   { name: 'Middellandse Zee', lat:  35.00, lon:  18.00, shape: 'fuzzy', rx: 20.00, ry: 5.00, sets: [84], aliases: ['Mediterrane Zee', 'Mediterranean', 'Mediterranean Sea'] },
   // Indische Oceaan: gigantisch. Vanuit ME-perspectief centraal op Arabische
   // Zee zodat hij ~Z-oost in beeld komt. Grote ellips.
-  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84, 85, 87], aliases: ['Indian Ocean'] },
+  // posBySet: Oceanie-perspectief (set 88) centreert de Indische Oceaan westelijk
+  // van Australië — ander kijkvlak dan vanuit ME/ZO-Azië.
+  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84, 85, 87, 88],
+    posBySet: { 88: { lat: -25.00, lon:  85.00, rx: 15.00, ry: 20.00 } },
+    aliases: ['Indian Ocean'] },
   // ── Set 85: Wateren van Zuid-Azië (8.5) ────────────────────────────────────
   // Ganges (Q5089) + Indus (Q7348): LineStrings uit OSM main_stream → wateren.geojson.
   // 3 zeeën als fuzzy ellips; Indische Oceaan gedeeld met set 84.
@@ -671,7 +693,11 @@ const ALL_WATERS = [
   { name: 'Huang He',           lat:  37.50, lon: 110.00, sets: [86], aliases: ['Gele Rivier', 'Yellow River', 'Huáng Hé'] },
   { name: 'Chang Jiang',        lat:  30.00, lon: 112.00, sets: [86], aliases: ['Yangtze', 'Yangzi', 'Cháng Jiāng', 'Blauwe Rivier'] },
   { name: 'Zuid-Chinese Zee',   lat:  14.00, lon: 115.00, shape: 'fuzzy', rx:  8.00, ry: 10.00, sets: [86], aliases: ['South China Sea', 'Zuid Chinese Zee'] },
-  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87], aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
+  // posBySet: Oceanie-perspectief centreert de Grote Oceaan ten oosten van
+  // Australië/NZ (tropisch zuidelijk deel) i.p.v. het Japan-noord-perspectief.
+  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88],
+    posBySet: { 88: { lat: -15.00, lon: 175.00, rx: 25.00, ry: 30.00 } },
+    aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -792,6 +818,13 @@ const ALL_PROVINCES = [
   { name: 'Sulawesi',   lat: -2.00, lon: 121.00, kind: 'eiland', sets: [87], aliases: ['Celebes'] },
   { name: 'Java',       lat: -7.50, lon: 111.00, kind: 'eiland', sets: [87], aliases: ['Jawa'] },
   { name: 'Molukken',   lat: -3.00, lon: 128.00, kind: 'eiland', sets: [87], aliases: ['Maluku', 'Spice Islands', 'Kepulauan Maluku'] },
+  // ── Set 88: Gebieden van Oceanië (8.8) ─────────────────────────────────────
+  // Tasmanië: echte polygoon — eiland-staat ten zuiden van AU (Bass Strait).
+  // Grote Victoria-Woestijn: fuzzy ellips — binnenland Zuid-Australië.
+  // Antarctica: echte polygoon — zuidpoolcontinent, hele ring ten zuiden van -60°.
+  { name: 'Tasmanië',                lat: -42.00, lon: 147.00, kind: 'eiland', sets: [88], aliases: ['Tasmania'] },
+  { name: 'Grote Victoria-Woestijn', lat: -28.50, lon: 128.00, kind: 'gebied', shape: 'fuzzy', rx: 5.50, ry: 2.50, sets: [88], aliases: ['Great Victoria Desert', 'Grote Victoriawoestijn'] },
+  { name: 'Antarctica',              lat: -82.00, lon:   0.00, kind: 'gebied', sets: [88], aliases: ['Zuidpoolcontinent'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -1023,6 +1056,19 @@ const SETS = {
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Eilanden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 88: Australië en Oceanië (8.8) — 3 landen, 10 steden, 3 gebieden, 2 wateren
+   // Bounds: AU-west (~113°E) tot NZ-oost (~178°E), zuidgrens -50° (Antarctica-
+   // continent komt niet volledig in beeld maar feature-centrering pakt over bij
+   // de Antarctica-vraag). PNG noord ~-1°S. Klikdrempels 250/700 conform 8.1–8.7.
+   88: { name: '8.8 – Australië en Oceanië', group: 8, mastery: 1,
+         bounds: [[-50, 110], [0, 180]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
