@@ -962,11 +962,12 @@ const SETS = {
          ] },
    // ── Set 86: Oost-Azië (8.6) — 7 landen, 14 steden, 3 gebieden, 4 wateren ──
    // Rusland volledig (ook Kaliningrad), ondanks dat viewport-bounds westelijk
-   // afkappen. Bounds: Taiwan zuid (~20°N) tot Siberië noord (~78°N); Ural
-   // (~40°E, genoeg voor Europees Rusland ook ten dele) tot Kamtsjatka
-   // (~180°E). Klikdrempels 250/700 conform 8.1–8.5.
+   // afkappen. Bounds: kern Oost-Azië (Taiwan zuid ~18°N tot zuid-Siberië ~55°N;
+   // west-China ~95°E tot Japan oost ~150°E). Rusland strekt verder uit maar
+   // feature-centrering neemt over zodra Rusland de vraag is. Klikdrempels
+   // 250/700 conform 8.1–8.5.
    86: { name: '8.6 – Oost-Azië', group: 8, mastery: 1,
-         bounds: [[0, 40], [78, 180]],
+         bounds: [[18, 95], [55, 150]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
