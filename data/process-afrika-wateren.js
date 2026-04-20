@@ -52,6 +52,12 @@ function chain(ways, maxGap = 0.05) {
   const result = [...segs[0]];
   const used = new Set([0]);
 
+  // Issue #84 — bias tegen reversal: accepteer omgekeerde oriëntatie
+  // alleen als die écht korter is (>5% verschil). Anders heeft forward
+  // voorrang, wat chain-continuïteit met de volgende way behoudt en
+  // "knoop"-zigzag zoals bij Malakal (Nijl, Sudd-uitgang) voorkomt.
+  const REV_BIAS = 1.05;
+
   let progressed = true;
   while (progressed && used.size < segs.length) {
     progressed = false;
@@ -60,8 +66,9 @@ function chain(ways, maxGap = 0.05) {
     for (let i = 0; i < segs.length; i++) {
       if (used.has(i)) continue;
       const s = segs[i], d1 = dist(tail, s[0]), d2 = dist(tail, s[s.length-1]);
-      if (d1 < bestDist) { bestDist = d1; bestIdx = i; reversed = false; }
-      if (d2 < bestDist) { bestDist = d2; bestIdx = i; reversed = true; }
+      // Bias: forward (d1) tenzij reverse (d2) strikt > 5% korter.
+      const use = d1 <= d2 * REV_BIAS ? { d: d1, rev: false } : { d: d2, rev: true };
+      if (use.d < bestDist) { bestDist = use.d; bestIdx = i; reversed = use.rev; }
     }
     if (bestIdx !== -1 && bestDist <= maxGap) {
       const seg = reversed ? [...segs[bestIdx]].reverse() : segs[bestIdx];
@@ -75,8 +82,9 @@ function chain(ways, maxGap = 0.05) {
     for (let i = 0; i < segs.length; i++) {
       if (used.has(i)) continue;
       const s = segs[i], d1 = dist(head, s[0]), d2 = dist(head, s[s.length-1]);
-      if (d1 < bestDist) { bestDist = d1; bestIdx = i; reversed = true; }
-      if (d2 < bestDist) { bestDist = d2; bestIdx = i; reversed = false; }
+      // Hier is "forward" prependen = reverseren vóór result.
+      const use = d2 <= d1 * REV_BIAS ? { d: d2, rev: false } : { d: d1, rev: true };
+      if (use.d < bestDist) { bestDist = use.d; bestIdx = i; reversed = use.rev; }
     }
     if (bestIdx !== -1 && bestDist <= maxGap) {
       const seg = reversed ? [...segs[bestIdx]].reverse() : segs[bestIdx];
@@ -107,7 +115,10 @@ function processRiver(file, name, eps, orientFn) {
 
 // Chain meerdere rivier-relaties tot één LineString (bijv. Witte Nijl + Nijl-proper).
 // excludeWayIds: way-refs die overgeslagen worden (issue #84 — Sudd-zijtakken).
-function processMultiRiver(files, name, eps, orientFn, excludeWayIds = []) {
+// primarySequence: way-refs die in exact die volgorde vooraan gechained worden.
+//   Rest van de ways gaat door greedy chain. Bedoeld voor trajecten waar
+//   greedy een visueel onjuiste volgorde kiest (bijv. Malakal-knoop).
+function processMultiRiver(files, name, eps, orientFn, excludeWayIds = [], primarySequence = []) {
   const excl = new Set(excludeWayIds);
   const allWays = [];
   for (const file of files) {
@@ -116,6 +127,15 @@ function processMultiRiver(files, name, eps, orientFn, excludeWayIds = []) {
     const ways = rel.members.filter(m =>
       m.type === 'way' && m.geometry && m.role === 'main_stream' && !excl.has(m.ref));
     allWays.push(...ways);
+  }
+  // Herorder: primarySequence eerst (in opgegeven volgorde), rest daarachter.
+  if (primarySequence.length) {
+    const byRef = new Map(allWays.map(w => [w.ref, w]));
+    const primary = primarySequence.map(ref => byRef.get(ref)).filter(Boolean);
+    const primSet = new Set(primarySequence);
+    const rest = allWays.filter(w => !primSet.has(w.ref));
+    allWays.length = 0;
+    allWays.push(...primary, ...rest);
   }
   // maxGap 2.5° — na exclude van Sudd-zijtakken is de overgebleven gap in de
   // Witte Nijl ~2.2° (van 7.26°N → 9.48°N bij Malakal). 2.5° dekt dat + de
@@ -172,9 +192,21 @@ const features = [
   // voorkeur boven de hoofdstroom die verderop bij Malakal (~9.4°N)
   // weer oppikt, wat een zichtbare terugsprong van ~1° geeft. Expliciet
   // excluden dwingt de main channel (Bahr el Jebel → Witte Nijl proper).
+  //
+  // primarySequence dwingt de Malakal-cluster in geografische volgorde,
+  // startend bij de westelijkste entry (30.76°E, 9.48°N). Greedy pakte
+  // daar de 0.01° dichterbijgelegen east-entry (31.16°E, 9.41°N) — dat
+  // maakt de Sudd-bridge een diagonaal NE i.p.v. vertikaal, en liet
+  // way 1008739000 verweest achter. Met expliciete volgorde loopt de
+  // bridge langs lon ~30.7°E waar de echte Bahr el Jebel N-wandelt.
   { name: 'Nijl',  geom: processMultiRiver(['witte-nijl.json', 'nijl.json'], 'Nijl', 0.02,
       s => s[s.length-1][1] > s[0][1],
-      [1008733163, 1010377914]) },
+      [1008733163, 1010377914],
+      [
+        1008739000, 1308741429, 1010774899, 1250916677,
+        1009713027, 1009713028, 1009713032, 1009713033,
+        1009746174, 1009715225, 625731641,
+      ]) },
   // Congo stroomt vanaf Oost-Afrika naar Atlantische monding (~6°S, 12°E).
   // Bron bij Lualaba, monding bij Banana — eindpunt westelijker (kleinere lon).
   { name: 'Congo', geom: processRiver('congo-rivier.json', 'Congo', 0.02,
