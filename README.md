@@ -30,8 +30,9 @@ Kies de juiste array op basis van het elementtype:
 | `ALL_CITIES` | Steden, hoofdsteden | Stip op kaart |
 | `ALL_PROVINCES` | Nederlandse provincies | Polygoon (`provincie_2023.geojson`) |
 | `ALL_WATERS` | Wateren (rivieren, zeeën) | Lijn/polygoon (`wateren.geojson`) |
-| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`, `landen-zuidoost-azie.geojson`, `landen-oceanie.geojson`) |
+| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`, `landen-zuidoost-azie.geojson`, `landen-oceanie.geojson`, `landen-midden-amerika.geojson`) |
 | `ALL_PROVINCES` (eilanden) | Indonesische eilanden | Polygoon (`eilanden-zuidoost-azie.geojson`) — Kalimantan, Sumatra, Sulawesi, Java, Molukken |
+| `ALL_PROVINCES` (Antillen) | ABC + Sint Maarten | Polygoon (`eilanden-midden-amerika.geojson`) — echte polygonen voor set 8.9 (Saba + Sint Eustatius als fuzzy ellips) |
 | `ALL_PROVINCES` (gebieden) | Tasmanië + Antarctica | Polygoon (`gebieden-oceanie.geojson`) — echte polygonen voor set 8.8 |
 
 Velden per item:

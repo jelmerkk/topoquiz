@@ -55,7 +55,7 @@ jobs:
       - name: Deploy to Uberspace via rsync
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avz --delete --include='index.html' --include='cities.js' --include='sw.js' --include='manifest.json' --include='provincie_2023.geojson' --include='wateren.geojson' --include='gewesten.geojson' --include='landen-europa.geojson' --include='landen-zuidamerika.geojson' --include='landen-afrika.geojson' --include='landen-noord-midden-amerika.geojson' --include='landen-midden-oosten.geojson' --include='landen-zuid-azie.geojson' --include='landen-oost-azie.geojson' --include='landen-zuidoost-azie.geojson' --include='eilanden-zuidoost-azie.geojson' --include='landen-oceanie.geojson' --include='gebieden-oceanie.geojson' --include='sitemap.xml' --include='icon.svg' --include='.htaccess' --exclude='*'
+          switches: -avz --delete --include='index.html' --include='cities.js' --include='sw.js' --include='manifest.json' --include='provincie_2023.geojson' --include='wateren.geojson' --include='gewesten.geojson' --include='landen-europa.geojson' --include='landen-zuidamerika.geojson' --include='landen-afrika.geojson' --include='landen-noord-midden-amerika.geojson' --include='landen-midden-oosten.geojson' --include='landen-zuid-azie.geojson' --include='landen-oost-azie.geojson' --include='landen-zuidoost-azie.geojson' --include='eilanden-zuidoost-azie.geojson' --include='landen-oceanie.geojson' --include='gebieden-oceanie.geojson' --include='landen-midden-amerika.geojson' --include='eilanden-midden-amerika.geojson' --include='sitemap.xml' --include='icon.svg' --include='.htaccess' --exclude='*'
           path: ./
           remote_path: ${{ vars.UBERSPACE_DEPLOY_PATH }}/
           remote_host: ${{ vars.UBERSPACE_SSH_HOST }}

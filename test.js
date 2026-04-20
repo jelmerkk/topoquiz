@@ -1825,6 +1825,103 @@ for (const naam of ['Tasmanië','Antarctica']) {
 }
 }
 
+section('Set 89 — Midden-Amerika en Caraïben (8.9)');
+
+expect('Set 89 bestaat',                   !!SETS[89]);
+expect('Set 89 groep = 8',                 SETS[89]?.group === 8);
+expect('Set 89 heeft 4 phases',            SETS[89]?.phases.length === 4);
+expect('Set 89 phase 1 = country',         SETS[89]?.phases[0].quizType === 'country');
+expect('Set 89 phase 2 = place',           SETS[89]?.phases[1].quizType === 'place');
+expect('Set 89 phase 3 = province',        SETS[89]?.phases[2].quizType === 'province');
+expect('Set 89 phase 3 label = Eilanden',  SETS[89]?.phases[2].label === 'Eilanden');
+expect('Set 89 phase 4 = water',           SETS[89]?.phases[3].quizType === 'water');
+expect('Set 89 heeft bounds',              Array.isArray(SETS[89]?.bounds));
+
+// 11 landen (4 Caraïbisch + 7 Midden-Amerikaans)
+const landen89 = ALL_COUNTRIES.filter(c => c.sets?.includes(89));
+expect('Set 89 heeft 11 landen', landen89.length === 11);
+for (const naam of ['Cuba','Jamaica','Haïti','Dominicaanse Republiek',
+                    'Guatemala','Belize','Honduras','El Salvador',
+                    'Nicaragua','Costa Rica','Panama']) {
+  const c = ALL_COUNTRIES.find(l => l.name === naam && l.sets?.includes(89));
+  expect(`${naam} in ALL_COUNTRIES (set 89)`, !!c);
+}
+
+// 2 steden: Havana + Willemstad (enige op opdrachtblad)
+const cities89 = ALL_CITIES.filter(c => c.sets?.includes(89));
+expect('Set 89 heeft 2 steden', cities89.length === 2);
+const havana = ALL_CITIES.find(c => c.name === 'Havana' && c.sets?.includes(89));
+expect('Havana in ALL_CITIES (set 89)', !!havana);
+expect('Havana is hoofdstad',           havana?.capital === true);
+const wst = ALL_CITIES.find(c => c.name === 'Willemstad' && c.sets?.includes(89));
+expect('Willemstad in ALL_CITIES (set 89)', !!wst);
+expect('Willemstad is hoofdstad',           wst?.capital === true);
+
+// 6 Antillen: 4 echte polygonen + 2 fuzzy
+const antillen89 = ALL_PROVINCES.filter(p => p.sets?.includes(89));
+expect('Set 89 heeft 6 Antillen', antillen89.length === 6);
+for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten']) {
+  const p = ALL_PROVINCES.find(x => x.name === naam && x.sets?.includes(89));
+  expect(`${naam} in ALL_PROVINCES (set 89)`, !!p);
+  expect(`${naam} kind = eiland`,              p?.kind === 'eiland');
+  expect(`${naam} niet fuzzy (polygon)`,       p?.shape !== 'fuzzy');
+}
+for (const naam of ['Saba','Sint Eustatius']) {
+  const p = ALL_PROVINCES.find(x => x.name === naam && x.sets?.includes(89));
+  expect(`${naam} in ALL_PROVINCES (set 89)`, !!p);
+  expect(`${naam} is fuzzy`,                   p?.shape === 'fuzzy');
+}
+
+// Wateren: Caribische Zee + Panamakanaal + Atlantische + Grote Oceaan (4)
+const wateren89 = ALL_WATERS.filter(w => w.sets?.includes(89));
+expect('Set 89 heeft 4 wateren', wateren89.length === 4);
+const carZee = ALL_WATERS.find(w => w.name === 'Caribische Zee' && w.sets?.includes(89));
+expect('Caribische Zee ook in set 89',       !!carZee);
+expect('Caribische Zee blijft ook in set 83', carZee?.sets?.includes(83));
+const panK = ALL_WATERS.find(w => w.name === 'Panamakanaal' && w.sets?.includes(89));
+expect('Panamakanaal ook in set 89',          !!panK);
+expect('Panamakanaal blijft ook in set 83',   panK?.sets?.includes(83));
+
+// Atlantische Oceaan: omgezet naar fuzzy met posBySet[89]
+const atl = ALL_WATERS.find(w => w.name === 'Atlantische Oceaan');
+expect('Atlantische Oceaan is fuzzy',         atl?.shape === 'fuzzy');
+expect('Atlantische Oceaan heeft rx/ry',      atl?.rx > 0 && atl?.ry > 0);
+expect('Atlantische Oceaan in set 78 én 89',  atl?.sets?.includes(78) && atl?.sets?.includes(89));
+expect('Atlantische Oceaan posBySet[89]',     !!atl?.posBySet?.[89]);
+expect('Atlantische Oceaan set-89 op Caraïbisch breedtegraad',
+  atl?.posBySet?.[89]?.lat > 10 && atl?.posBySet?.[89]?.lat < 30);
+
+// Grote Oceaan uitgebreid met set 89 override
+const grOc89 = ALL_WATERS.find(w => w.name === 'Grote Oceaan' && w.sets?.includes(89));
+expect('Grote Oceaan ook in set 89',          !!grOc89);
+expect('Grote Oceaan heeft posBySet[89]',     !!grOc89?.posBySet?.[89]);
+expect('Grote Oceaan set-89 override op westelijke hemisfeer (west van Midden-Amerika)',
+  grOc89?.posBySet?.[89]?.lon < -85);
+
+// Polygon-bestanden
+{
+const fs = require('fs');
+const landGj89 = JSON.parse(fs.readFileSync('landen-midden-amerika.geojson', 'utf8'));
+expect('landen-midden-amerika.geojson heeft 11 features', landGj89.features.length === 11);
+for (const naam of ['Cuba','Jamaica','Haïti','Dominicaanse Republiek',
+                    'Guatemala','Belize','Honduras','El Salvador',
+                    'Nicaragua','Costa Rica','Panama']) {
+  const f = landGj89.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon in landen-midden-amerika.geojson`, !!f);
+  expect(`${naam} sets bevat 89`, f?.properties.sets?.includes(89));
+}
+
+const eilGj89 = JSON.parse(fs.readFileSync('eilanden-midden-amerika.geojson', 'utf8'));
+expect('eilanden-midden-amerika.geojson heeft 4 features', eilGj89.features.length === 4);
+for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten']) {
+  const f = eilGj89.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon in eilanden-midden-amerika.geojson`, !!f);
+  expect(`${naam} is Polygon/MultiPolygon`,
+    f?.geometry.type === 'Polygon' || f?.geometry.type === 'MultiPolygon');
+  expect(`${naam} sets bevat 89`, f?.properties.sets?.includes(89));
+}
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus

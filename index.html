@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.15.0">
+<meta name="version" content="2.16.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1086,12 +1086,17 @@ polygonTypes.province.dataPromise = Promise.all([
     console.warn('Gebieden Oceanië kon niet geladen worden:', err);
     return { type: 'FeatureCollection', features: [] };
   }),
+  // Eilanden Midden-Amerika (set 89 Aruba/Curaçao/Bonaire/Sint Maarten).
+  fetch('/eilanden-midden-amerika.geojson').then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(err => {
+    console.warn('Eilanden Midden-Amerika kon niet geladen worden:', err);
+    return { type: 'FeatureCollection', features: [] };
+  }),
 ])
-  .then(([provData, gewData, zoaData, ocData]) => {
+  .then(([provData, gewData, zoaData, ocData, maData]) => {
     // Border-layer toont alleen NL-provincies (gewesten/eilanden/gebieden horen daar niet bij).
     provinceBorderLayer = L.geoJSON(provData, { style: PROV_BORDER, interactive: false }).addTo(map);
-    // Merge gewesten + eilanden + oceanie-gebieden ná de border-layer.
-    const merged = { ...provData, features: [...provData.features, ...gewData.features, ...zoaData.features, ...ocData.features] };
+    // Merge gewesten + eilanden + oceanie-gebieden + Antillen ná de border-layer.
+    const merged = { ...provData, features: [...provData.features, ...gewData.features, ...zoaData.features, ...ocData.features, ...maData.features] };
     polygonTypes.province.featureData = merged;
   })
   .catch(err => { console.error('Provinciedata kon niet geladen worden:', err); });
@@ -1112,9 +1117,10 @@ polygonTypes.country.dataPromise = Promise.all([
   fetch('/landen-oost-azie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-zuidoost-azie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-oceanie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('/landen-midden-amerika.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
 ])
-  .then(([eu, za, af, nma, me, zazie, oazie, zoazie, oceanie]) => {
-    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features, ...me.features, ...zazie.features, ...oazie.features, ...zoazie.features, ...oceanie.features] };
+  .then(([eu, za, af, nma, me, zazie, oazie, zoazie, oceanie, ma]) => {
+    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features, ...me.features, ...zazie.features, ...oazie.features, ...zoazie.features, ...oceanie.features, ...ma.features] };
     polygonTypes.country.featureData = merged;
   })
   .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
@@ -2040,7 +2046,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.15.0';
+const APP_VERSION = 'v2.16.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
