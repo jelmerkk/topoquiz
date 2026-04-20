@@ -2,7 +2,8 @@
 // Issue #51: processeer NMA-wateren → features in wateren.geojson (sets:[83]).
 //   Mississippi   Q1497   → main_stream LineString (Itasca MN → delta LA, N→Z)
 //   Rio Grande    Q160636 → main_stream LineString (Colorado → Golf, NW→SE)
-//   Panamakanaal  Q7350   → LineString (chain alle ways)
+//   Panamakanaal  Q7350   → LineString (chain alle ways) — ook in set 89
+//     (Midden-Amerika) via sets:[83,89].
 
 const fs   = require('fs');
 const path = require('path');
@@ -141,17 +142,17 @@ const features = [
   // Stad (Pacific, ~8.96°N, −79.52°W). OSM-relation bevat parallelle
   // sluisbanen + Gatun-meer doorvaart — greedy chain + member-order beide
   // zigzaggen. Voor een schoolkaart volstaat een schematische 2-punt lijn.
-  { name: 'Panamakanaal', geom: { type: 'LineString', coordinates: [
+  { name: 'Panamakanaal', sets: [83, 89], geom: { type: 'LineString', coordinates: [
       [-79.9175, 9.3467],  // Colón, Atlantische ingang
       [-79.5170, 8.9600],  // Panama-Stad, Pacific uitgang
   ]} },
 ];
 
 const gj = JSON.parse(fs.readFileSync(DEST, 'utf8'));
-for (const { name, geom } of features) {
+for (const { name, sets, geom } of features) {
   const feature = {
     type: 'Feature',
-    properties: { name, sets: [83] },
+    properties: { name, sets: sets || [83] },
     geometry: geom,
   };
   const idx = gj.features.findIndex(f => f.properties.name === name);
