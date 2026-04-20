@@ -1233,6 +1233,21 @@ expect('Set 82 heeft 7 wateren', ALL_WATERS.filter(w => w.sets?.includes(82)).le
   const vm = gj.features.find(x => x.properties.name === 'Victoriameer' && x.properties.sets?.includes(82));
   expect('Victoriameer Polygon in wateren.geojson (set 82)',
     vm?.geometry.type === 'Polygon' || vm?.geometry.type === 'MultiPolygon');
+
+  // Issue #84 — Nijl mag in Sudd-moeras (4°N–10°N) niet terugspringen
+  // naar een zijtak. Check alleen binnen dat bereik; de Grote Nijlbocht
+  // bij Dongola (~18°N, ~1.5° ZW-uitstap) is een echte geografische
+  // vorm en mag blijven. Sta kleine lokale meanders toe (≤0.15°).
+  const nijl = gj.features.find(x => x.properties.name === 'Nijl' && x.properties.sets?.includes(82));
+  const coords = nijl?.geometry.coordinates || [];
+  let maxSuddBack = 0;
+  let runningMax = -Infinity;
+  for (const [, lat] of coords) {
+    if (lat > runningMax) runningMax = lat;
+    const back = runningMax - lat;
+    if (lat >= 4 && lat <= 10 && back > maxSuddBack) maxSuddBack = back;
+  }
+  expect('Nijl backtrack in Sudd (4-10°N) < 0.3°', maxSuddBack < 0.3);
 }
 
 // ── Set 83 — Noord- en Midden-Amerika (8.3) ──────────────────

@@ -106,19 +106,22 @@ function processRiver(file, name, eps, orientFn) {
 }
 
 // Chain meerdere rivier-relaties tot één LineString (bijv. Witte Nijl + Nijl-proper).
-function processMultiRiver(files, name, eps, orientFn) {
+// excludeWayIds: way-refs die overgeslagen worden (issue #84 — Sudd-zijtakken).
+function processMultiRiver(files, name, eps, orientFn, excludeWayIds = []) {
+  const excl = new Set(excludeWayIds);
   const allWays = [];
   for (const file of files) {
     const raw = JSON.parse(fs.readFileSync(path.join(SRC_DIR, file), 'utf8'));
     const rel = raw.elements.find(e => e.type === 'relation');
     const ways = rel.members.filter(m =>
-      m.type === 'way' && m.geometry && m.role === 'main_stream');
+      m.type === 'way' && m.geometry && m.role === 'main_stream' && !excl.has(m.ref));
     allWays.push(...ways);
   }
-  // maxGap 4.0° — Witte Nijl heeft fragmenten in Sudd-moeras (gaps tot ~3°
-  // tussen main_stream-ways) plus ~0.8° gap bij Khartoem naar Nijl-proper.
-  // Schematische weergave voor schooldoel, dus brede brugging is prima.
-  const chained = chain(allWays, 4.0);
+  // maxGap 2.5° — na exclude van Sudd-zijtakken is de overgebleven gap in de
+  // Witte Nijl ~2.2° (van 7.26°N → 9.48°N bij Malakal). 2.5° dekt dat + de
+  // ~0.8° Khartoem-gap naar Nijl-proper. Breed genoeg voor de brugging, smal
+  // genoeg om geen nieuwe zij-springen toe te staan.
+  const chained = chain(allWays, 2.5);
   const simp = roundCoords(rdp(chained, eps));
   if (orientFn && orientFn(simp) === false) simp.reverse();
   console.log(`  ${name.padEnd(14)} ways=${allWays.length} chain=${chained.length} rdp(${eps})=${simp.length}`);
@@ -162,8 +165,16 @@ const features = [
   // (Khartoem ~15.6°N → delta ~31°N). Samen ~31° span, past bij school-atlas.
   // Blauwe Nijl is educatief maar wordt niet gemerged — visueel één rivier,
   // geen y-splitsing.
+  //
+  // Issue #84: in het Sudd-moeras heeft OSM twee `main_stream`-ways die
+  // de Bahr el Ghazal-confluence naar het ZW in-trekken (way 1008733163
+  // avg 6.47°N, way 1010377914 avg 6.61°N). Greedy chain pakt die bij
+  // voorkeur boven de hoofdstroom die verderop bij Malakal (~9.4°N)
+  // weer oppikt, wat een zichtbare terugsprong van ~1° geeft. Expliciet
+  // excluden dwingt de main channel (Bahr el Jebel → Witte Nijl proper).
   { name: 'Nijl',  geom: processMultiRiver(['witte-nijl.json', 'nijl.json'], 'Nijl', 0.02,
-      s => s[s.length-1][1] > s[0][1]) },
+      s => s[s.length-1][1] > s[0][1],
+      [1008733163, 1010377914]) },
   // Congo stroomt vanaf Oost-Afrika naar Atlantische monding (~6°S, 12°E).
   // Bron bij Lualaba, monding bij Banana — eindpunt westelijker (kleinere lon).
   { name: 'Congo', geom: processRiver('congo-rivier.json', 'Congo', 0.02,
@@ -172,15 +183,18 @@ const features = [
   // Geen strikte oriëntatie-check; accepteer wat chain oplevert.
   { name: 'Niger', geom: processRiver('niger.json',        'Niger', 0.02) },
   // Suezkanaal: N → Z (Port Said → Suez). Port Said ~31.25°N, Suez ~29.97°N.
-  { name: 'Suezkanaal',   geom: processCanal('suezkanaal.json',   'Suezkanaal',  0.005) },
+  // Gedeeld met set 84 (Midden-Oosten) — sets expliciet meegeven zodat
+  // regeneratie de set niet verliest.
+  { name: 'Suezkanaal',   sets: [82, 84],
+    geom: processCanal('suezkanaal.json',   'Suezkanaal',  0.005) },
   { name: 'Victoriameer', geom: processLake ('victoriameer.json', 'Victoriameer', 0.02) },
 ];
 
 const gj = JSON.parse(fs.readFileSync(DEST, 'utf8'));
-for (const { name, geom } of features) {
+for (const { name, sets, geom } of features) {
   const feature = {
     type: 'Feature',
-    properties: { name, sets: [82] },
+    properties: { name, sets: sets || [82] },
     geometry: geom,
   };
   const idx = gj.features.findIndex(f => f.properties.name === name);
