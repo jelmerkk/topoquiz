@@ -1436,6 +1436,123 @@ expect('Set 84 heeft 8 wateren', ALL_WATERS.filter(w => w.sets?.includes(84)).le
   expect('Suezkanaal sets bevat 84', suez?.properties.sets?.includes(84));
 }
 
+// ── Set 85 — Zuid-Azië (8.5) ─────────────────────────────────
+
+section('Set 85 — Zuid-Azië');
+
+const SET85_LANDEN = ['Kazachstan','Oezbekistan','Afghanistan','Pakistan','India','Nepal','Bangladesh','Sri Lanka'];
+const SET85_STEDEN = [
+  'Almaty','Tasjkent','Kabul','Islamabad','Lahore','Karachi',
+  'New Delhi','Mumbai','Chennai','Kolkata','Kathmandu','Dhaka',
+];
+const SET85_GEBIEDEN = ['Himalaya','Mount Everest'];
+const SET85_WATEREN  = ['Ganges','Indus','Arabische Zee','Golf van Bengalen','Indische Oceaan'];
+
+expect('Set 85 bestaat in SETS',        !!SETS[85]);
+expect('Set 85 is groep 8',             SETS[85]?.group === 8);
+expect('Set 85 heeft 4 fases',          SETS[85]?.phases?.length === 4);
+expect('Set 85 fase 1 is country',      SETS[85]?.phases?.[0]?.quizType === 'country');
+expect('Set 85 fase 2 is place',        SETS[85]?.phases?.[1]?.quizType === 'place');
+expect('Set 85 fase 3 is province',     SETS[85]?.phases?.[2]?.quizType === 'province');
+expect('Set 85 fase 4 is water',        SETS[85]?.phases?.[3]?.quizType === 'water');
+expect('Set 85 heeft bounds',           Array.isArray(SETS[85]?.bounds));
+expect('Set 85 heeft continentale klikdrempels (≥250/700)',
+  SETS[85]?.clickCorrectKm >= 250 && SETS[85]?.clickCloseKm >= 700);
+
+SET85_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(85));
+  expect(`${naam} in ALL_COUNTRIES (set 85)`, !!c);
+});
+expect('Set 85 heeft 8 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(85)).length === 8);
+
+SET85_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(85));
+  expect(`${naam} in ALL_CITIES (set 85)`, !!s);
+});
+expect('Set 85 heeft 12 steden', ALL_CITIES.filter(c => c.sets?.includes(85)).length === 12);
+
+// 6 hoofdsteden: Tasjkent, Kabul, Islamabad, New Delhi, Kathmandu, Dhaka.
+const set85Capitals = ALL_CITIES.filter(c => c.sets?.includes(85) && c.capital);
+expect('Set 85 heeft 6 hoofdsteden', set85Capitals.length === 6);
+const almaty = ALL_CITIES.find(c => c.name === 'Almaty' && c.sets?.includes(85));
+expect('Almaty is geen hoofdstad (Astana is KZ-hoofdstad)', !almaty?.capital);
+
+// Sri Lanka: geen stad in opdrachtblad.
+expect('Geen Colombo in set 85 (opdrachtblad vraagt geen SL-stad)',
+  !ALL_CITIES.find(c => c.name === 'Colombo' && c.sets?.includes(85)));
+
+SET85_GEBIEDEN.forEach(naam => {
+  const g = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(85));
+  expect(`${naam} in ALL_PROVINCES (set 85)`, !!g);
+});
+expect('Set 85 heeft 2 regio\'s', ALL_PROVINCES.filter(p => p.sets?.includes(85)).length === 2);
+
+const himalaya = ALL_PROVINCES.find(p => p.name === 'Himalaya' && p.sets?.includes(85));
+expect('Himalaya is fuzzy', himalaya?.shape === 'fuzzy');
+expect('Himalaya kind === gebied', himalaya?.kind === 'gebied');
+
+const everest = ALL_PROVINCES.find(p => p.name === 'Mount Everest' && p.sets?.includes(85));
+expect('Mount Everest is peak', everest?.shape === 'peak');
+expect('Mount Everest kind === berg', everest?.kind === 'berg');
+expect('Mount Everest heeft size', typeof everest?.size === 'number');
+// Everest ligt op ~27.99°N/86.93°E.
+expect('Mount Everest coord ~27.99°N', Math.abs((everest?.lat ?? 0) - 27.99) < 0.1);
+expect('Mount Everest coord ~86.93°E', Math.abs((everest?.lon ?? 0) - 86.93) < 0.1);
+
+SET85_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(85));
+  expect(`${naam} in ALL_WATERS (set 85)`, !!w);
+});
+expect('Set 85 heeft 5 wateren', ALL_WATERS.filter(w => w.sets?.includes(85)).length === 5);
+
+// Fuzzy zeeën: Arabische Zee, Golf van Bengalen, Indische Oceaan.
+['Arabische Zee','Golf van Bengalen','Indische Oceaan'].forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(85));
+  expect(`${naam} is fuzzy (set 85)`, w?.shape === 'fuzzy');
+});
+
+// Indische Oceaan gedeeld met set 84.
+const io = ALL_WATERS.find(w => w.name === 'Indische Oceaan');
+expect('Indische Oceaan sets bevat 84', io?.sets?.includes(84));
+expect('Indische Oceaan sets bevat 85', io?.sets?.includes(85));
+
+// Landen-polygonen in landen-zuid-azie.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-zuid-azie.geojson'), 'utf8'));
+  SET85_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-zuid-azie.geojson`, !!f);
+    expect(`${naam} sets bevat 85`, f?.properties.sets?.includes(85));
+  });
+}
+
+// Ganges + Indus als LineString in wateren.geojson.
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  ['Ganges','Indus'].forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(85));
+    expect(`${naam} LineString in wateren.geojson (set 85)`, f?.geometry.type === 'LineString');
+  });
+  // Ganges: Gangotri ~30.9°N/79.1°E → Bengal delta ~22°N/90°E. NW → ZO.
+  const g = gj.features.find(x => x.properties.name === 'Ganges' && x.properties.sets?.includes(85));
+  if (g) {
+    const c = g.geometry.coordinates;
+    expect('Ganges start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+    expect('Ganges start westelijker dan eind (W→O)', c[0][0] < c[c.length-1][0]);
+  }
+  // Indus: Tibet ~32°N/81°E → Karachi ~24°N/67°E. NE → ZW.
+  const i = gj.features.find(x => x.properties.name === 'Indus' && x.properties.sets?.includes(85));
+  if (i) {
+    const c = i.geometry.coordinates;
+    expect('Indus start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+    expect('Indus start oostelijker dan eind (O→W)', c[0][0] > c[c.length-1][0]);
+  }
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
