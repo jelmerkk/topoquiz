@@ -762,7 +762,7 @@ const tileLayer = USE_CARTO_TILES
   ? L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
-      minZoom: 3, maxZoom: 19,
+      minZoom: 2, maxZoom: 19,
     })
   : L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
