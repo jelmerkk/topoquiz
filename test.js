@@ -1876,6 +1876,16 @@ expect('Caribische Zee blijft ook in set 83', carZee?.sets?.includes(83));
 const panK = ALL_WATERS.find(w => w.name === 'Panamakanaal' && w.sets?.includes(89));
 expect('Panamakanaal ook in set 89',          !!panK);
 expect('Panamakanaal blijft ook in set 83',   panK?.sets?.includes(83));
+// wateren.geojson-feature moet óók sets:[...,89] hebben, anders rendert
+// de LineString niet in set 89 (filter op feature.properties.sets).
+{
+  const fs = require('fs');
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const panGj = gjW.features.find(f => f.properties.name === 'Panamakanaal');
+  expect('Panamakanaal in wateren.geojson',     !!panGj);
+  expect('Panamakanaal geojson-sets bevat 89',  panGj?.properties.sets?.includes(89));
+  expect('Panamakanaal geojson-sets bevat 83',  panGj?.properties.sets?.includes(83));
+}
 
 // Atlantische Oceaan: omgezet naar fuzzy met posBySet[89]
 const atl = ALL_WATERS.find(w => w.name === 'Atlantische Oceaan');
