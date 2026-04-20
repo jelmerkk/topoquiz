@@ -87,8 +87,8 @@ Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. rivieren in set 7.3); 
 | `bounds` | `[[lat,lon],[lat,lon]]` — viewport voor EU/wereld-sets |
 | `clickCorrectKm` / `clickCloseKm` | Klik-drempels (overschrijven globale standaard 20/60 km) |
 | `mastery` | Optioneel: overschrijft `MASTERY_MC`/`MASTERY_TEXT` voor deze set |
-| `bonus` | `true` = elke sessie 20 willekeurige steden uit `ALL_CITIES` |
-| `daily` | `true` = 10 datum-geseedde steden, bypast mode-selectiescherm |
+| `bonus` | `true` = per-groep willekeurige mixed pool (zie *Dagelijkse uitdaging & bonus* onder) |
+| `daily` | `true` = per-groep datum-geseedde mixed pool, bypast mode-selectiescherm |
 
 **Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, 70 → test-level, enz.
 
@@ -115,11 +115,57 @@ Elke set (behalve provincies) biedt drie oefenmodi:
 
 ## Speciale sets
 
-### Dagelijkse uitdaging (set 98)
-Elke dag 10 steden, geseed op de datum — voor iedereen hetzelfde. Altijd meerkeuze, mastery = 1×. Resultaat deelbaar als emoji-grid. Bovenaan het startscherm.
+### Dagelijkse uitdaging & bonus (set 98 / 99) — per groep, mixed-type
 
-### Bonus level (set 99)
-Elke sessie 20 willekeurige steden uit alle sets gecombineerd. Mastery = 1×. Goud omrand op het startscherm.
+Zowel de daily (set 98) als de bonus (set 99) zijn **per-groep** en bevatten een
+**mix van item-types** (steden, provincies/regio's, wateren, landen, gebergten) —
+afgestemd op wat een kind in die groep heeft geleerd. Altijd meerkeuze,
+mastery = 1×, knoppen onderaan de set-lijst na groepkeuze.
+
+De mix per groep wordt gedreven door twee tabellen in `cities.js`:
+
+```js
+const DAILY_FORMAT = {
+  5: [ {type:'region', count:3}, {type:'place', count:5}, {type:'water', count:2} ],
+  6: [ {type:'place',  count:10} ],
+  7: [ {type:'country', count:2}, {type:'place', count:4}, {type:'region', count:3}, {type:'water', count:1} ],
+  8: [ {type:'country', count:3}, {type:'place', count:4}, {type:'region', count:2}, {type:'water', count:1} ],
+};
+const BONUS_FORMAT = {
+  5: [...],  // 20 items: 6 regio + 10 steden + 4 wateren
+  6: [ {type:'place', count:25} ],
+  7: [...],  // 35 items: 7 landen + 14 steden + 7 regio + 4 gebergten + 3 wateren
+  8: [...],  // 40 items: 12 landen + 16 steden + 8 gebergten + 4 wateren
+};
+```
+
+- **Types** (`_itemType`): `'place'` (uit `ALL_CITIES`), `'country'` (`ALL_COUNTRIES`),
+  `'water'` (`ALL_WATERS`), `'region'` (alle kinds uit `ALL_PROVINCES` — provincie,
+  gewest, regio, gebied, eiland, berg).
+- **Per-groep filter**: elk item komt uit `ALL_<X>` gefilterd op
+  `item.sets.some(s => SETS[s].group === selectedGroup)`.
+- **Daily seed**: `dateSeed(dateStr, group) = (dateNum * 31 + group) | 0` — zelfde
+  datum + andere groep geeft een andere pool.
+- **Bonus** wordt bij de eerste klik opgebouwd en in `sessionStorage` bewaard
+  (`{name, _itemType}[]`) zodat terugnavigeren dezelfde pool herstelt.
+- **Distractors** in meerkeuze worden per vraag gefilterd op hetzelfde
+  `_itemType` (en voor `region` ook op `kind`) — geen stad als distractor bij
+  een regio-vraag.
+- **Dedupe**: `buildMixedPool` houdt een `usedNames`-set bij zodat namen die in
+  meerdere pools voorkomen (Panama stad + land, Luxemburg stad + land) niet
+  dubbel in één sessie landen — dat voorkomt collisions in de
+  streak/answer-tracking.
+- **Composite answer-key**: `dailyAnswerKey(city) = "${_itemType}:${name}"` zodat
+  cross-type naam-duplicaten los worden bijgehouden in de daily-emoji-grid.
+- **Map-framing**: `startQuiz` slaat voor daily/bonus de rAF-bounds-fallback
+  over; `renderQuestion` bepaalt per item het kader (polygon → `fitBounds`
+  op de laag; `place` → `flyTo` op de stad met zoom 8). Zonder deze skip
+  racete de NL_BOUNDS-fallback met de Armenia-fitBounds en klapte de kaart
+  terug naar Nederland.
+
+Toegankelijkheid: de daily- en bonus-knop zijn alleen zichtbaar nadat de
+leerling op het startscherm een groep heeft gekozen. Daarvoor hangen ze
+verborgen onder `sessionStorage.selectedGroup`.
 
 ---
 
