@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.10.0">
+<meta name="version" content="2.10.1">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -910,18 +910,22 @@ function buildEllipseFeature(entry) {
   };
 }
 
-// Injecteer ellips-features in de province featureData zodra die klaar is.
-// Idempotent: vervangt een bestaande feature met dezelfde naam, zodat hot-reloads clean blijven.
+// Injecteer ellips-features in province- én water-featureData zodra die klaar is.
+// Idempotent: vervangt een bestaande feature met dezelfde naam, zodat hot-reloads
+// clean blijven. Waters met shape:'fuzzy' (zeeën, zeestraten, baaien) renderen zo
+// als doorzichtige ellips — geen harde polygon nodig, conform de zee-policy.
 function ensureFuzzyEllipseFeatures() {
-  const pt = polygonTypes.province;
-  if (!pt.featureData) return;
-  const fuzzyEntries = ALL_PROVINCES.filter(p => p.shape === 'fuzzy');
-  for (const entry of fuzzyEntries) {
-    const feat = buildEllipseFeature(entry);
-    const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
-    if (idx >= 0) pt.featureData.features[idx] = feat;
-    else pt.featureData.features.push(feat);
-  }
+  const inject = (pt, source) => {
+    if (!pt.featureData) return;
+    for (const entry of source.filter(x => x.shape === 'fuzzy')) {
+      const feat = buildEllipseFeature(entry);
+      const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
+      if (idx >= 0) pt.featureData.features[idx] = feat;
+      else pt.featureData.features.push(feat);
+    }
+  };
+  inject(polygonTypes.province, ALL_PROVINCES);
+  inject(polygonTypes.water,    ALL_WATERS);
 }
 
 function styleForFeature(t, f, stateKey) {
@@ -939,7 +943,7 @@ function buildPolygonLayer(type) {
   t.layersBuilt = false;
   const activeNames = new Set(activeCities.map(c => c.name));
 
-  if (type === 'province') ensureFuzzyEllipseFeatures();
+  if (type === 'province' || type === 'water') ensureFuzzyEllipseFeatures();
 
   let geoData = t.featureData;
   if (type === 'water') geoData = smoothGeoJSON(geoData);
@@ -1961,7 +1965,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.10.0';
+const APP_VERSION = 'v2.10.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 

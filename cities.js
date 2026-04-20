@@ -513,8 +513,10 @@ const ALL_WATERS = [
   { name: 'Niger',                lat:  13.00, lon:   3.00, sets: [82], aliases: ['Niger-rivier'] },
   { name: 'Victoriameer',         lat:  -1.00, lon:  33.00, sets: [82], aliases: ['Lake Victoria', 'Nalubaale'] },
   { name: 'Suezkanaal',           lat:  30.60, lon:  32.35, sets: [82], aliases: ['Suez Canal', 'Qanāt as-Suways', 'قناة السويس'] },
-  { name: 'Rode Zee',             lat:  20.00, lon:  38.00, sets: [82], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
-  { name: 'Straat van Gibraltar', lat:  35.95, lon:  -5.60, sets: [82], aliases: ['Strait of Gibraltar', 'Estrecho de Gibraltar'] },
+  // Rode Zee: fuzzy, langgerekt N-Z, ~12°N..28°N, 33°E..43°E. rx=5, ry=8.
+  { name: 'Rode Zee',             lat:  20.00, lon:  38.00, shape: 'fuzzy', rx: 5.00, ry: 8.00, sets: [82], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
+  // Straat van Gibraltar: smalle zeestraat (~14 km); kleine ellips, net zichtbaar.
+  { name: 'Straat van Gibraltar', lat:  35.95, lon:  -5.60, shape: 'fuzzy', rx: 0.80, ry: 0.40, sets: [82], aliases: ['Strait of Gibraltar', 'Estrecho de Gibraltar'] },
   // ── Set 83: Wateren van Noord- en Midden-Amerika (8.3) ────────────────────
   // Mississippi/Rio Grande: LineStrings uit OSM main_stream.
   // Panamakanaal: 2-punt schematische lijn (OSM-relation had parallelle
@@ -523,7 +525,8 @@ const ALL_WATERS = [
   { name: 'Mississippi',   lat:  38.00, lon: -91.00, sets: [83], aliases: ['Mississippi River'] },
   { name: 'Rio Grande',    lat:  31.00, lon:-103.00, sets: [83], aliases: ['Río Grande', 'Río Bravo', 'Río Bravo del Norte'] },
   { name: 'Panamakanaal',  lat:   9.15, lon: -79.70, sets: [83], aliases: ['Panama Canal', 'Canal de Panamá'] },
-  { name: 'Caribische Zee', lat: 15.00, lon: -75.00, sets: [83], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
+  // Caribische Zee: fuzzy ellips, ~9°N..23°N, -88°W..-60°W. rx=14 (lon), ry=7 (lat).
+  { name: 'Caribische Zee', lat: 15.00, lon: -75.00, shape: 'fuzzy', rx: 14.00, ry: 7.00, sets: [83], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -787,11 +790,11 @@ const SETS = {
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
    // ── Set 83: Noord- en Midden-Amerika (8.3) — 7 landen, 17 steden, 7 gebieden, 4 wateren ─
-   // Bounds ruim: van Aleoeten (~-170°W) tot Groenland-oost (~-10°W), van
-   // Panama (~5°N) tot Alaska/Groenland noord (~75°N). Enorme span, dus
-   // klikdrempels 250/700 conform 8.1/8.2.
+   // Bounds ruim genoeg voor volledige Aleoeten (tot -172°W) én Groenland-
+   // noordkaap (tot 83.6°N). Eerder [[5,-170],[75,-10]] sneed beide af.
+   // Panama (~5°N) is de zuidgrens. Klikdrempels 250/700 conform 8.1/8.2.
    83: { name: '8.3 – Noord- en Midden-Amerika', group: 8, mastery: 1,
-         bounds: [[5, -170], [75, -10]],
+         bounds: [[5, -175], [85, -10]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
