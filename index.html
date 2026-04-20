@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.10.1">
+<meta name="version" content="2.11.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -795,6 +795,12 @@ const WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 5,   opacity: 1,   
 const WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 3,   opacity: 0.9, fillColor: C_MASTERED_FILL,  fillOpacity: 0.3 };
 const WATER_HIDDEN    = { opacity: 0, fillOpacity: 0 };
 
+// Fuzzy-waterstijlen — voor zeeën/baaien/zeestraten zonder scherpe grens.
+// Kleur blijft blauw (semantiek: water), onderbroken rand markeert fuzzy.
+const FUZZY_WATER_DEFAULT   = { color: '#1565C0', weight: 2,   opacity: 0.6, dashArray: '6 5', fillColor: '#42A5F5',        fillOpacity: 0.12 };
+const FUZZY_WATER_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   dashArray: '6 5', fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.35 };
+const FUZZY_WATER_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2.5, opacity: 0.9, dashArray: '6 5', fillColor: C_MASTERED_FILL,  fillOpacity: 0.25 };
+
 // Landstijlen
 const COUNTRY_DEFAULT   = { color: '#2a4a8a', weight: 2,   opacity: 0.9, fillColor: '#3b82f6',        fillOpacity: 0.35 };
 const COUNTRY_HIGHLIGHT = { color: C_HIGHLIGHT_BORDER, weight: 3,   opacity: 1,   fillColor: C_HIGHLIGHT_FILL, fillOpacity: 0.5  };
@@ -823,7 +829,10 @@ const polygonTypes = {
     featureData: null,
     layers: {},
     quizLayer: null,
-    styles: { default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN },
+    styles: {
+      default: WATER_DEFAULT, highlight: WATER_HIGHLIGHT, mastered: WATER_MASTERED, hidden: WATER_HIDDEN,
+      fuzzyDefault: FUZZY_WATER_DEFAULT, fuzzyHighlight: FUZZY_WATER_HIGHLIGHT, fuzzyMastered: FUZZY_WATER_MASTERED,
+    },
     nameKey: 'name',
     afterHighlight(item) {
       const layer = this.layers[item.name];
@@ -1037,9 +1046,10 @@ polygonTypes.country.dataPromise = Promise.all([
   fetch('/landen-zuidamerika.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-afrika.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-noord-midden-amerika.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('/landen-midden-oosten.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
 ])
-  .then(([eu, za, af, nma]) => {
-    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features] };
+  .then(([eu, za, af, nma, me]) => {
+    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features, ...me.features] };
     polygonTypes.country.featureData = merged;
   })
   .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
@@ -1965,7 +1975,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.10.1';
+const APP_VERSION = 'v2.11.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
