@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.14.0">
+<meta name="version" content="2.15.0">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -762,7 +762,7 @@ const tileLayer = USE_CARTO_TILES
   ? L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
-      minZoom: 3, maxZoom: 19,
+      minZoom: 2, maxZoom: 19,
     })
   : L.tileLayer('https://www.topomania.net/styles/topomania-nonames/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.topomania.net">TopoMania</a>',
@@ -829,7 +829,17 @@ const polygonTypes = {
     nameKey: 'name',
     afterHighlight(item) {
       const latlng = [item.lat, item.lon];
-      if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+      const layer = this.layers[item.name];
+      // Voor echte polygon-features (eilanden, continent): fitBounds zodat
+      // grote vormen als Antarctica volledig in beeld komen. Fuzzy/peak
+      // (ellips/driehoek) blijven op panTo — hun zoom mag niet strakker
+      // dan de set-default.
+      if (layer && item.shape !== 'fuzzy' && item.shape !== 'peak') {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 6, animate: true });
+      } else if (!map.getBounds().contains(latlng)) {
+        map.panTo(latlng, { animate: true });
+      }
     },
   },
   water: {
@@ -903,21 +913,30 @@ function smoothGeoJSON(data) {
 // Genereer een ellipse-polygoon (64 punten) rond (lat,lon) met assen rx,ry in graden.
 // Wordt gebruikt voor ALL_PROVINCES-entries met shape:'fuzzy' — bergketens, historische
 // streken en kuststroken die niet tot op de meter begrensd moeten worden.
-function buildEllipseFeature(entry) {
+function buildEllipseFeature(entry, activeSet) {
+  // Per-set position override: een gedeeld water/gebied (bv. Grote Oceaan in sets
+  // 86/87/88) kan per set een andere ellips-positie en -grootte krijgen via
+  // entry.posBySet[setNr] = { lat, lon, rx, ry, rot? }. Default = entry zelf.
+  const o = (activeSet != null && entry.posBySet && entry.posBySet[activeSet]) || null;
+  const lat = o?.lat ?? entry.lat;
+  const lon = o?.lon ?? entry.lon;
+  const rx  = o?.rx  ?? entry.rx;
+  const ry  = o?.ry  ?? entry.ry;
+  const rotDeg = o?.rot ?? entry.rot ?? 0;
   const N = 64;
   const coords = [];
-  const rot = ((entry.rot || 0) * Math.PI) / 180;
+  const rot = (rotDeg * Math.PI) / 180;
   const cosR = Math.cos(rot), sinR = Math.sin(rot);
   // Mercator rekt lengtegraden uit op basis van breedtegraad. Zonder cos(lat)-
   // compensatie zou een geroteerde ellips visueel schuin-getrokken zijn.
-  const lonScale = rot === 0 ? 1 : 1 / Math.cos((entry.lat * Math.PI) / 180);
+  const lonScale = rot === 0 ? 1 : 1 / Math.cos((lat * Math.PI) / 180);
   for (let i = 0; i <= N; i++) {
     const a = (i / N) * 2 * Math.PI;
-    const vx = entry.rx * Math.cos(a);
-    const vy = entry.ry * Math.sin(a);
+    const vx = rx * Math.cos(a);
+    const vy = ry * Math.sin(a);
     const dx = vx * cosR - vy * sinR;
     const dy = vx * sinR + vy * cosR;
-    coords.push([entry.lon + dx * lonScale, entry.lat + dy]);
+    coords.push([lon + dx * lonScale, lat + dy]);
   }
   return {
     type: 'Feature',
@@ -955,7 +974,7 @@ function ensureShapeFeatures() {
     if (!pt.featureData) return;
     for (const entry of source) {
       let feat;
-      if (entry.shape === 'fuzzy')     feat = buildEllipseFeature(entry);
+      if (entry.shape === 'fuzzy')     feat = buildEllipseFeature(entry, selectedSet);
       else if (entry.shape === 'peak') feat = buildPeakFeature(entry);
       else continue;
       const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
@@ -1062,12 +1081,17 @@ polygonTypes.province.dataPromise = Promise.all([
     console.warn('Eilanden ZOA kon niet geladen worden:', err);
     return { type: 'FeatureCollection', features: [] };
   }),
+  // Gebieden Oceanië (set 88 Tasmanië + Antarctica als echte polygonen).
+  fetch('/gebieden-oceanie.geojson').then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(err => {
+    console.warn('Gebieden Oceanië kon niet geladen worden:', err);
+    return { type: 'FeatureCollection', features: [] };
+  }),
 ])
-  .then(([provData, gewData, zoaData]) => {
-    // Border-layer toont alleen NL-provincies (gewesten en eilanden horen daar niet bij).
+  .then(([provData, gewData, zoaData, ocData]) => {
+    // Border-layer toont alleen NL-provincies (gewesten/eilanden/gebieden horen daar niet bij).
     provinceBorderLayer = L.geoJSON(provData, { style: PROV_BORDER, interactive: false }).addTo(map);
-    // Merge gewesten + eilanden ná de border-layer zodat ze beschikbaar zijn voor quizType 'province'.
-    const merged = { ...provData, features: [...provData.features, ...gewData.features, ...zoaData.features] };
+    // Merge gewesten + eilanden + oceanie-gebieden ná de border-layer.
+    const merged = { ...provData, features: [...provData.features, ...gewData.features, ...zoaData.features, ...ocData.features] };
     polygonTypes.province.featureData = merged;
   })
   .catch(err => { console.error('Provinciedata kon niet geladen worden:', err); });
@@ -1087,9 +1111,10 @@ polygonTypes.country.dataPromise = Promise.all([
   fetch('/landen-zuid-azie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-oost-azie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('/landen-zuidoost-azie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('/landen-oceanie.geojson').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
 ])
-  .then(([eu, za, af, nma, me, zazie, oazie, zoazie]) => {
-    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features, ...me.features, ...zazie.features, ...oazie.features, ...zoazie.features] };
+  .then(([eu, za, af, nma, me, zazie, oazie, zoazie, oceanie]) => {
+    const merged = { type: 'FeatureCollection', features: [...eu.features, ...za.features, ...af.features, ...nma.features, ...me.features, ...zazie.features, ...oazie.features, ...zoazie.features, ...oceanie.features] };
     polygonTypes.country.featureData = merged;
   })
   .catch(err => { console.error('Landendata kon niet geladen worden:', err); });
@@ -2015,7 +2040,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.14.0';
+const APP_VERSION = 'v2.15.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
