@@ -25,7 +25,7 @@ test('startscherm toont 4 groep-knoppen (5, 6, 7, 8)', async ({ page }) => {
   await expect(groupBtns.nth(3)).toContainText('8');
 });
 
-test('daily en bonus zijn tijdelijk verborgen (herintroductie na levels)', async ({ page }) => {
+test('daily en bonus zonder groepkeuze nog verborgen (#80)', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.daily-btn')).not.toBeVisible();
   await expect(page.locator('.mode-btn.bonus-btn')).not.toBeVisible();
@@ -53,11 +53,11 @@ test('groep 5: toont sets 5.4, 5.5, 5.6, 5.7 — niet 6.x', async ({ page }) => 
   await expect(page.locator('#level-select .mode-btn', { hasText: 'Noord-Holland' })).not.toBeVisible();
 });
 
-test('groep 5: daily en bonus zijn verborgen (tijdelijk)', async ({ page }) => {
+test('groep 5: daily en bonus zichtbaar na groepkeuze (#80)', async ({ page }) => {
   await page.goto('/');
   await page.locator('.group-btn', { hasText: '5' }).click();
-  await expect(page.locator('.daily-btn')).not.toBeVisible();
-  await expect(page.locator('.mode-btn.bonus-btn')).not.toBeVisible();
+  await expect(page.locator('.daily-btn')).toBeVisible();
+  await expect(page.locator('.mode-btn.bonus-btn')).toBeVisible();
 });
 
 // ── Groep 6 filtert juist ─────────────────────────────────────────────────────

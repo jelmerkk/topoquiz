@@ -1131,10 +1131,30 @@ const SETS = {
            { id: 'regions',   label: 'Eilanden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
          ] },
-   // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
-   98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },
-   // Bonus: 20 willekeurige steden uit alle sets gecombineerd, 1× goed = gememoreerd
-   99: { name: 'Bonus: Alle steden door elkaar', quizType: 'place', fitOnStart: false, mastery: 1, bonus: true },
+   // Dagelijkse uitdaging: datum-geseedde mix per groep, 1× goed = gememoreerd.
+   // Mix wordt bepaald door DAILY_FORMAT[selectedGroup] — 10 items, meerdere types.
+   98: { name: '📅 Uitdaging van vandaag', fitOnStart: false, mastery: 1, daily: true },
+   // Bonus: groep-specifieke mix van items door elkaar, 1× goed = gememoreerd.
+   // Omvang + verhouding uit BONUS_FORMAT[selectedGroup].
+   99: { name: 'Bonus: door elkaar', fitOnStart: false, mastery: 1, bonus: true },
+};
+
+// ── Daily/Bonus format — issue #80 ───────────────────────────────────────────
+// Per groep: welke item-types in welke aantallen komen in de daily/bonus.
+// Types: 'place' (ALL_CITIES), 'country' (ALL_COUNTRIES), 'water' (ALL_WATERS),
+//        'region' (ALL_PROVINCES — kind speelt alleen bij distractor-filter).
+// Daily = altijd 10 items; bonus-omvang verschilt per groep (leeftijds-gekalibreerd).
+const DAILY_FORMAT = {
+  5: [ { type: 'region', count: 3 }, { type: 'place', count: 5 }, { type: 'water', count: 2 } ],
+  6: [ { type: 'place',   count: 10 } ],
+  7: [ { type: 'country', count: 2 }, { type: 'place', count: 4 }, { type: 'region', count: 3 }, { type: 'water', count: 1 } ],
+  8: [ { type: 'country', count: 3 }, { type: 'place', count: 4 }, { type: 'region', count: 2 }, { type: 'water', count: 1 } ],
+};
+const BONUS_FORMAT = {
+  5: [ { type: 'region',  count: 6  }, { type: 'place', count: 10 }, { type: 'water', count: 4 } ], // 20
+  6: [ { type: 'place',   count: 25 } ],                                                             // 25
+  7: [ { type: 'country', count: 7  }, { type: 'place', count: 14 }, { type: 'region', count: 11 }, { type: 'water', count: 3 } ], // 35
+  8: [ { type: 'country', count: 12 }, { type: 'place', count: 16 }, { type: 'region', count: 8  }, { type: 'water', count: 4 } ], // 40
 };
 
 // Radius op logaritmische schaal (4–12px), gebaseerd op globale min/max.
@@ -1147,4 +1167,4 @@ function cityRadius(city) {
 }
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
+if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };

@@ -4,7 +4,7 @@
 
 'use strict';
 
-const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
+const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
 // ── Pure logic (gespiegeld vanuit index.html) ─────────────────
 // Houd synchroon met de implementatie in index.html.
@@ -157,6 +157,8 @@ expect('Er zijn sets gedefinieerd', setEntries.length > 0);
 
 const VALID_QUIZ_TYPES = ['place', 'province', 'water', 'country'];
 const invalidQuizTypes = setEntries.filter(([, s]) => {
+  // Daily/bonus: heterogeen — geen enkel vast quizType (zie DAILY_FORMAT).
+  if (s.daily || s.bonus) return false;
   if (s.phases) return !s.phases.every(p => VALID_QUIZ_TYPES.includes(p.quizType));
   return !VALID_QUIZ_TYPES.includes(s.quizType);
 });
@@ -291,6 +293,126 @@ expect('Correct → 🟢',               dailyResultEmoji([true])           === 
 expect('Fout → 🔴',                  dailyResultEmoji([false])          === '🔴');
 expect('Gemengd resultaat klopt',    dailyResultEmoji([true,false,true]) === '🟢🔴🟢');
 expect('10 resultaten → 10 emoji',   dailyResultEmoji(Array(10).fill(true)).length === 20); // 10 × 2-byte emoji
+
+// ── Issue #80: per-groep daily/bonus met mixed types ─────────────────────────
+// Gespiegelde pure-logica implementatie (parallel aan index.html).
+
+function dateSeedG(dateStr, group) {
+  const dNum = dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
+  if (group == null) return dNum;
+  return (dNum * 31 + Number(group)) | 0;
+}
+
+function poolForType(type, group) {
+  const inGroup = item => item.sets?.some(s => SETS[s]?.group === group);
+  if (type === 'place')   return ALL_CITIES.filter(inGroup);
+  if (type === 'country') return ALL_COUNTRIES.filter(inGroup);
+  if (type === 'water')   return ALL_WATERS.filter(inGroup);
+  if (type === 'region')  return ALL_PROVINCES.filter(inGroup);
+  return [];
+}
+
+function buildMixedPool(fmt, group, rng) {
+  const out = [];
+  // Dedupeer over types heen op naam (zie index.html).
+  const usedNames = new Set();
+  for (const { type, count } of fmt) {
+    const pool = poolForType(type, group).filter(p => !usedNames.has(p.name));
+    const picks = seededShuffle(pool, rng).slice(0, count);
+    for (const it of picks) { it._itemType = type; out.push(it); usedNames.add(it.name); }
+  }
+  return seededShuffle(out, rng);
+}
+
+function dailyPool(dateStr, group) {
+  const fmt = DAILY_FORMAT[group];
+  if (!fmt) return [];
+  return buildMixedPool(fmt, group, makeRng(dateSeedG(dateStr, group)));
+}
+
+section('DAILY_FORMAT / BONUS_FORMAT — configuratie per groep');
+
+expect('DAILY_FORMAT gedefinieerd voor groep 5,6,7,8',
+  [5,6,7,8].every(g => Array.isArray(DAILY_FORMAT[g])));
+expect('BONUS_FORMAT gedefinieerd voor groep 5,6,7,8',
+  [5,6,7,8].every(g => Array.isArray(BONUS_FORMAT[g])));
+for (const g of [5,6,7,8]) {
+  const total = DAILY_FORMAT[g].reduce((a, f) => a + f.count, 0);
+  expect(`groep ${g} daily telt op tot 10`, total === 10, `werkelijk: ${total}`);
+}
+
+section('dateSeed(date, group) — per groep deterministisch');
+
+expect('zelfde date+group → zelfde seed',
+  dateSeedG('2026-04-20', 7) === dateSeedG('2026-04-20', 7));
+expect('zelfde date, andere group → andere seed',
+  dateSeedG('2026-04-20', 7) !== dateSeedG('2026-04-20', 8));
+expect('andere date, zelfde group → andere seed',
+  dateSeedG('2026-04-20', 7) !== dateSeedG('2026-04-21', 7));
+
+section('poolForType');
+
+expect('place,5 geeft >= 20 items',  poolForType('place', 5).length >= 20);
+expect('country,8 geeft >= 40 items', poolForType('country', 8).length >= 40);
+expect('region,6 is leeg',           poolForType('region', 6).length === 0);
+expect('water,7 geeft items',         poolForType('water', 7).length > 0);
+expect('onbekend type → lege pool',   poolForType('xyz', 7).length === 0);
+
+section('dailyPool — deterministisch, mixed, per groep');
+
+const dp7a = dailyPool('2026-04-20', 7);
+const dp7b = dailyPool('2026-04-20', 7);
+const dp7c = dailyPool('2026-04-21', 7);
+const dp8  = dailyPool('2026-04-20', 8);
+
+expect('groep 7 daily = 10 items', dp7a.length === 10);
+expect('zelfde date+group → zelfde volgorde + items',
+  dp7a.map(c=>c.name).join() === dp7b.map(c=>c.name).join());
+expect('groep 7 ≠ groep 8 op zelfde dag',
+  dp7a.map(c=>c.name).join() !== dp8.map(c=>c.name).join());
+expect('andere datum → andere selectie',
+  dp7a.map(c=>c.name).join() !== dp7c.map(c=>c.name).join());
+expect('elk item heeft _itemType',
+  dp7a.every(c => typeof c._itemType === 'string'));
+expect('geen dubbele items (naam+type)',
+  new Set(dp7a.map(c => `${c._itemType}:${c.name}`)).size === dp7a.length);
+
+section('dailyPool — format counts per groep');
+
+for (const g of [5,6,7,8]) {
+  const dp = dailyPool('2026-04-20', g);
+  expect(`groep ${g} daily = 10`, dp.length === 10);
+  const counts = {};
+  dp.forEach(c => counts[c._itemType] = (counts[c._itemType]||0) + 1);
+  for (const { type, count } of DAILY_FORMAT[g]) {
+    expect(`groep ${g} heeft ${count}× ${type}`,
+      counts[type] === count,
+      `werkelijk: ${counts[type] || 0}`);
+  }
+}
+
+section('buildBonusPool — formaat per groep');
+
+for (const g of [5,6,7,8]) {
+  const total = BONUS_FORMAT[g].reduce((a, f) => a + f.count, 0);
+  const bp = buildMixedPool(BONUS_FORMAT[g], g, makeRng(1));
+  expect(`groep ${g} bonus = ${total}`, bp.length === total);
+  const counts = {};
+  bp.forEach(c => counts[c._itemType] = (counts[c._itemType]||0) + 1);
+  for (const { type, count } of BONUS_FORMAT[g]) {
+    expect(`groep ${g} bonus heeft ${count}× ${type}`,
+      counts[type] === count);
+  }
+}
+
+section('dailyPool — pool-bron matcht _itemType');
+
+const dp8full = dailyPool('2026-04-20', 8);
+for (const item of dp8full) {
+  const expectedPool = poolForType(item._itemType, 8);
+  expect(`item ${item.name} (${item._itemType}) staat in poolForType(${item._itemType}, 8)`,
+    expectedPool.some(p => p.name === item.name && p === item));
+}
 
 // ── Kaart-klik modus — pure logica (gespiegeld vanuit index.html) ─────────────
 
