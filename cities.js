@@ -340,6 +340,24 @@ const ALL_CITIES = [
   { name: 'Kinshasa',       lat:  -4.32, lon:  15.31, pop:15000000, sets: [82], capital: true },
   { name: 'Johannesburg',   lat: -26.20, lon:  28.05, pop: 6200000, sets: [82] },
   { name: 'Kaapstad',       lat: -33.93, lon:  18.42, pop: 4700000, sets: [82], capital: true, aliases: ['Cape Town', 'Kaapstadt'] },
+  // ── Set 83: Noord- en Midden-Amerika (8.3) — 17 steden, 4 hoofdsteden ────
+  { name: 'Ottawa',         lat:  45.42, lon: -75.70, pop: 1000000, sets: [83], capital: true },
+  { name: 'Toronto',        lat:  43.65, lon: -79.38, pop: 2800000, sets: [83] },
+  { name: 'Montréal',       lat:  45.50, lon: -73.57, pop: 1800000, sets: [83], aliases: ['Montreal'] },
+  { name: 'Vancouver',      lat:  49.28, lon:-123.12, pop:  675000, sets: [83] },
+  { name: 'Washington',     lat:  38.90, lon: -77.03, pop:  700000, sets: [83], capital: true, aliases: ['Washington D.C.', 'Washington DC'] },
+  { name: 'New York',       lat:  40.71, lon: -74.01, pop: 8400000, sets: [83], aliases: ['New York City', 'NYC'] },
+  { name: 'Chicago',        lat:  41.88, lon: -87.63, pop: 2700000, sets: [83] },
+  { name: 'Los Angeles',    lat:  34.05, lon:-118.24, pop: 4000000, sets: [83], aliases: ['LA', 'L.A.'] },
+  { name: 'San Francisco',  lat:  37.77, lon:-122.42, pop:  875000, sets: [83], aliases: ['SF'] },
+  { name: 'Houston',        lat:  29.76, lon: -95.37, pop: 2300000, sets: [83] },
+  { name: 'New Orleans',    lat:  29.95, lon: -90.07, pop:  380000, sets: [83] },
+  { name: 'Miami',          lat:  25.76, lon: -80.19, pop:  470000, sets: [83] },
+  { name: 'Detroit',        lat:  42.33, lon: -83.05, pop:  630000, sets: [83] },
+  { name: 'Denver',         lat:  39.74, lon:-104.99, pop:  715000, sets: [83] },
+  { name: 'Mexico-Stad',    lat:  19.43, lon: -99.13, pop: 9200000, sets: [83], capital: true, aliases: ['Mexico Stad', 'Mexico City', 'Ciudad de México', 'CDMX'] },
+  { name: 'Monterrey',      lat:  25.67, lon:-100.31, pop: 1140000, sets: [83] },
+  { name: 'Havana',         lat:  23.13, lon: -82.38, pop: 2100000, sets: [83], capital: true, aliases: ['Habana', 'La Habana'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -419,6 +437,14 @@ const ALL_COUNTRIES = [
   { name: 'Senegal',     lat:  14.5, lon: -14.5, sets: [82], aliases: ['Sénégal'] },
   { name: 'DR Congo',    lat:  -2.5, lon:  23.5, sets: [82], aliases: ['Democratische Republiek Congo', 'Congo-Kinshasa', 'Zaïre'] },
   { name: 'Zuid-Afrika', lat: -29.0, lon:  25.0, sets: [82], aliases: ['Zuid Afrika', 'South Africa', 'RSA'] },
+  // ── Set 83: Noord- en Midden-Amerika (8.3) — NE polygonen in landen-noord-midden-amerika.geojson ─
+  { name: 'Canada',    lat:  56.0, lon:-106.0, sets: [83] },
+  { name: 'VS',        lat:  39.0, lon: -98.0, sets: [83], aliases: ['Verenigde Staten', 'USA', 'United States', 'Verenigde Staten van Amerika'] },
+  { name: 'Mexico',    lat:  23.0, lon:-102.0, sets: [83], aliases: ['México', 'Estados Unidos Mexicanos'] },
+  { name: 'Cuba',      lat:  21.5, lon: -79.0, sets: [83] },
+  { name: 'Haïti',     lat:  19.0, lon: -73.0, sets: [83], aliases: ['Haiti', 'République d\'Haïti'] },
+  { name: 'Guatemala', lat:  15.5, lon: -90.3, sets: [83] },
+  { name: 'Nicaragua', lat:  13.0, lon: -85.0, sets: [83] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -489,6 +515,15 @@ const ALL_WATERS = [
   { name: 'Suezkanaal',           lat:  30.60, lon:  32.35, sets: [82], aliases: ['Suez Canal', 'Qanāt as-Suways', 'قناة السويس'] },
   { name: 'Rode Zee',             lat:  20.00, lon:  38.00, sets: [82], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
   { name: 'Straat van Gibraltar', lat:  35.95, lon:  -5.60, sets: [82], aliases: ['Strait of Gibraltar', 'Estrecho de Gibraltar'] },
+  // ── Set 83: Wateren van Noord- en Midden-Amerika (8.3) ────────────────────
+  // Mississippi/Rio Grande: LineStrings uit OSM main_stream.
+  // Panamakanaal: 2-punt schematische lijn (OSM-relation had parallelle
+  // sluisbanen + meerdoorvaart — zigzag-vormig).
+  // Caribische Zee: fuzzy (policy — geen nieuwe harde zee-polygonen).
+  { name: 'Mississippi',   lat:  38.00, lon: -91.00, sets: [83], aliases: ['Mississippi River'] },
+  { name: 'Rio Grande',    lat:  31.00, lon:-103.00, sets: [83], aliases: ['Río Grande', 'Río Bravo', 'Río Bravo del Norte'] },
+  { name: 'Panamakanaal',  lat:   9.15, lon: -79.70, sets: [83], aliases: ['Panama Canal', 'Canal de Panamá'] },
+  { name: 'Caribische Zee', lat: 15.00, lon: -75.00, sets: [83], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -570,6 +605,24 @@ const ALL_PROVINCES = [
   { name: 'Sahara',              lat:  23.00, lon:  10.00, kind: 'gebied', shape: 'fuzzy', rx: 25.00, ry: 7.50, sets: [82], aliases: ['Sahara-woestijn', 'Sahara Desert'] },
   { name: 'Atlasgebergte',       lat:  32.50, lon:  -3.00, kind: 'gebied', shape: 'fuzzy', rx:  6.00, ry: 1.20, sets: [82], aliases: ['Atlas', 'Atlas Mountains'] },
   { name: 'Canarische Eilanden', lat:  28.30, lon: -15.80, kind: 'gebied', shape: 'fuzzy', rx:  2.60, ry: 1.10, sets: [82], aliases: ['Canarische eilanden', 'Canarias', 'Canary Islands'] },
+  // ── Set 83: Noord- en Midden-Amerika (8.3) ────────────────────────────────
+  // Alaska/Groenland/Texas/Florida: harde polygonen uit Natural Earth (admin_1
+  // + admin_0) — kustlijn zonder territoriale wateren. In gewesten.geojson.
+  // Rocky Mountains / Sierra Nevada / Appalachen: fuzzy ellipsen — bergruggen
+  // hebben geen bestuurlijke grens, en school-niveau heeft genoeg aan een ruwe
+  // markering van het gebied.
+  { name: 'Alaska',          lat:  64.00, lon:-152.00, kind: 'gewest', sets: [83] },
+  { name: 'Groenland',       lat:  72.00, lon: -40.00, kind: 'gewest', sets: [83], aliases: ['Greenland', 'Kalaallit Nunaat'] },
+  { name: 'Texas',           lat:  31.00, lon:-100.00, kind: 'gewest', sets: [83] },
+  { name: 'Florida',         lat:  28.50, lon: -82.00, kind: 'gewest', sets: [83] },
+  // Rocky Mountains: lange N-Z rug van Alaska-zuid tot New Mexico (~60°→32°N,
+  // ~-108°W). Centrum op Wyoming/Montana, ry groot.
+  { name: 'Rocky Mountains', lat:  45.00, lon:-112.00, kind: 'gebied', shape: 'fuzzy', rx:  3.00, ry: 14.00, sets: [83], aliases: ['Rockies', 'Rocky Mts', 'Rotsgebergte'] },
+  // Sierra Nevada: CA, langs oostflank Central Valley, ~35.5-40°N.
+  { name: 'Sierra Nevada',   lat:  38.00, lon:-119.50, kind: 'gebied', shape: 'fuzzy', rx:  0.55, ry:  2.50, sets: [83] },
+  // Appalachen: van Alabama tot Maine, SW-NE diagonaal. N-Z-ellips dekt
+  // vrijwel volledig de hele rug; rot niet strikt nodig op continent-zoom.
+  { name: 'Appalachen',      lat:  39.00, lon: -79.00, kind: 'gebied', shape: 'fuzzy', rx:  2.50, ry:  6.50, sets: [83], aliases: ['Appalachian Mountains', 'Appalachians'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -726,6 +779,19 @@ const SETS = {
    // Middellandse Zee in. Klikdrempels 250/700 conform 8.1 (vergelijkbare continent-zoom).
    82: { name: '8.2 – Afrika', group: 8, mastery: 1,
          bounds: [[-36, -20], [38, 55]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 83: Noord- en Midden-Amerika (8.3) — 7 landen, 17 steden, 7 gebieden, 4 wateren ─
+   // Bounds ruim: van Aleoeten (~-170°W) tot Groenland-oost (~-10°W), van
+   // Panama (~5°N) tot Alaska/Groenland noord (~75°N). Enorme span, dus
+   // klikdrempels 250/700 conform 8.1/8.2.
+   83: { name: '8.3 – Noord- en Midden-Amerika', group: 8, mastery: 1,
+         bounds: [[5, -170], [75, -10]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
