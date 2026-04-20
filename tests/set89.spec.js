@@ -136,6 +136,15 @@ test('set 89 — Atlantische Oceaan blijft ook in set 78 (gedeeld)', async ({ pa
   expect(atl.shape).toBe('fuzzy');
 });
 
+test('set 89 — eiland-fase vraagt "Welk eiland is dit?" (niet "provincie")', async ({ page }) => {
+  await startSet89MC(page);
+  // Start in landen-fase. Door fase heen klikken tot eilanden-fase (fase 3).
+  // Quickest: deep-link direct naar fase 2 (0-indexed).
+  await page.goto('/?set=89&mode=mc&phase=2');
+  await page.waitForSelector('#question-text');
+  await expect(page.locator('#question-text')).toHaveText('Welk eiland is dit?');
+});
+
 test('set 89 — Cuba reikt tot ~23°N (noord)', async ({ page }) => {
   await page.goto('/');
   const info = await page.evaluate(async () => {
