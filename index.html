@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.17.0">
+<meta name="version" content="2.17.1">
 <meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1153,7 +1153,14 @@ let highlightMarker = null;
 function setHighlight(city) {
   if (highlightMarker) map.removeLayer(highlightMarker);
   highlightMarker = L.marker([city.lat, city.lon], { icon: pulseIcon, interactive: false }).addTo(map);
-  if (!map.getBounds().contains([city.lat, city.lon])) {
+  // Daily/bonus (#80): mixed pool kan wereldwijd zijn. Als de stad buiten de
+  // huidige zoom-context valt (bv. vorige vraag was Armenië, nu Tokio), echt
+  // inzoomen i.p.v. alleen panTo — anders zie je een puntje op een wereldkaart.
+  const _set = SETS[selectedSet];
+  const isMixed = _set?.daily || _set?.bonus;
+  if (isMixed) {
+    map.flyTo([city.lat, city.lon], 8, { animate: true, duration: 0.6 });
+  } else if (!map.getBounds().contains([city.lat, city.lon])) {
     map.panTo([city.lat, city.lon], { animate: true });
   }
 }
@@ -2209,7 +2216,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.17.0';
+const APP_VERSION = 'v2.17.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -2392,6 +2399,12 @@ async function startQuiz(mode, startPhase = 0) {
   requestAnimationFrame(() => {
     map.invalidateSize();
     const _set = SETS[selectedSet];
+    // Daily/bonus (#80): NIET fitBounds hier. renderQuestion() draait al
+    // synchroon daarna en zoomt naar het juiste item (country/water/region:
+    // via setHighlightPolygon; place: via setHighlight → map.flyTo). Een
+    // NL_BOUNDS-fallback in rAF zou de per-question-zoom racen en Armenië
+    // terugpannen naar NL.
+    if (_set.daily || _set.bonus) return;
     if (_set.bounds)
       map.fitBounds(_set.bounds, { padding: [20, 20], maxZoom: 8 });
     else if (_set.fitOnStart)

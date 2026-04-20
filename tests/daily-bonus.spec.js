@@ -135,3 +135,28 @@ test('#80: seed verschilt per groep op dezelfde dag', async ({ page }) => {
     dateSeed('2026-04-20', 5) !== dateSeed('2026-04-20', 6));
   expect(diff).toBe(true);
 });
+
+// Regressie: bij groep 8 bonus mag de kaart niet op NL blijven hangen bij
+// een Armenië-vraag (startQuiz's rAF-fallback zette NL_BOUNDS na de
+// per-vraag fitBounds — racede en overschreef).
+test('#80: bonus groep 8 zoomt naar item (geen NL-fallback)', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '8' }).click();
+  await page.locator('.mode-btn.bonus-btn').click();
+  await page.waitForSelector('#question-text');
+  await page.evaluate(() => {
+    const arm = ALL_COUNTRIES.find(c => c.name === 'Armenië');
+    arm._itemType = 'country';
+    activeCities = [arm, ...activeCities.filter(c => c.name !== 'Armenië').slice(0, 9)];
+    buildPolygonLayer('country');
+    currentCity = arm;
+    setHighlightPolygon('country', arm);
+  });
+  await page.waitForTimeout(800);
+  const center = await page.evaluate(() => [map.getCenter().lat, map.getCenter().lng]);
+  // Armenië ≈ 40°N 45°E — niet NL (≈52°N 5°E)
+  expect(center[0]).toBeGreaterThan(35);
+  expect(center[0]).toBeLessThan(45);
+  expect(center[1]).toBeGreaterThan(40);
+  expect(center[1]).toBeLessThan(50);
+});
