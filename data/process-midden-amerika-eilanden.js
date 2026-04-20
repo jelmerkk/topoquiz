@@ -104,6 +104,17 @@ function roundRing(ring, digits = 4) {
 
 function pickRelation(elements) {
   const rels = elements.filter(e => e.type === 'relation');
+  // Prefer place=island (fysieke kustlijn) boven boundary=administrative
+  // (bevat vaak territoriale wateren). Sint Maarten (Q25596) is een
+  // place=island relation.
+  const islands = rels.filter(r =>
+    r.tags?.place === 'island' &&
+    r.members.some(m => m.type === 'way' && m.role === 'outer' && m.geometry));
+  if (islands.length > 0) {
+    return islands.sort((a,b) =>
+      b.members.filter(m => m.type === 'way' && m.role === 'outer' && m.geometry).length -
+      a.members.filter(m => m.type === 'way' && m.role === 'outer' && m.geometry).length)[0];
+  }
   const admins = rels.filter(r =>
     r.tags?.boundary === 'administrative' &&
     r.members.some(m => m.type === 'way' && m.role === 'outer' && m.geometry));

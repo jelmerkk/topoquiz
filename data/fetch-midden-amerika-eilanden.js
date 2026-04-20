@@ -3,7 +3,10 @@
 //   Aruba        Q21203 — autonoom land binnen Koninkrijk NL
 //   Curaçao      Q25279 — autonoom land binnen Koninkrijk NL
 //   Bonaire      Q25396 — bijzondere gemeente NL
-//   Sint Maarten Q26273 — autonoom land binnen Koninkrijk NL (NL-zijde eiland)
+//   Sint Maarten Q25596 — fysieke eiland (FR+NL samen). Q26273 is de
+//     NL-admin-boundary, maar die polygoon omvat territoriale wateren tot
+//     ~17.8°N (ver van de kust) — voor quiz-rendering gebruiken we het
+//     place=island relation Q25596 dat enkel de kustlijn volgt.
 //
 // Saba + Sint Eustatius zijn te klein voor echte polygon op Caribbean-zoom
 // (~13 / 21 km²) → worden in cities.js als fuzzy ellips toegevoegd, niet hier.
@@ -26,7 +29,7 @@ const QUERIES = [
   { out: 'aruba.json',        q: 'relation["wikidata"="Q21203"];out geom qt;' },
   { out: 'curacao.json',      q: 'relation["wikidata"="Q25279"];out geom qt;' },
   { out: 'bonaire.json',      q: 'relation["wikidata"="Q25396"];out geom qt;' },
-  { out: 'sint-maarten.json', q: 'relation["wikidata"="Q26273"];out geom qt;' },
+  { out: 'sint-maarten.json', q: 'relation["wikidata"="Q25596"];out geom qt;' },
 ];
 
 function fetchOverpass(query, mirror) {
