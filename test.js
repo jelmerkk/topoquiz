@@ -1553,6 +1553,109 @@ expect('Indische Oceaan sets bevat 85', io?.sets?.includes(85));
   }
 }
 
+// ── Set 86 — Oost-Azië (8.6) ─────────────────────────────────
+
+section('Set 86 — Oost-Azië');
+
+const SET86_LANDEN = ['Rusland','Mongolië','China','Japan','Noord-Korea','Zuid-Korea','Taiwan'];
+const SET86_STEDEN = [
+  'Omsk','Novosibirsk','Irkoetsk','Vladivostok','Harbin',
+  'Ulaanbaatar','Beijing','Shanghai','Hongkong',
+  'Tokyo','Osaka','Sapporo','Pyongyang','Seoul',
+];
+const SET86_GEBIEDEN = ['Tibet','Gobi','Siberië'];
+const SET86_WATEREN  = ['Huang He','Chang Jiang','Zuid-Chinese Zee','Grote Oceaan'];
+
+expect('Set 86 bestaat in SETS',        !!SETS[86]);
+expect('Set 86 is groep 8',             SETS[86]?.group === 8);
+expect('Set 86 heeft 4 fases',          SETS[86]?.phases?.length === 4);
+expect('Set 86 fase 1 is country',      SETS[86]?.phases?.[0]?.quizType === 'country');
+expect('Set 86 fase 2 is place',        SETS[86]?.phases?.[1]?.quizType === 'place');
+expect('Set 86 fase 3 is province',     SETS[86]?.phases?.[2]?.quizType === 'province');
+expect('Set 86 fase 4 is water',        SETS[86]?.phases?.[3]?.quizType === 'water');
+expect('Set 86 heeft bounds',           Array.isArray(SETS[86]?.bounds));
+expect('Set 86 heeft continentale klikdrempels (≥250/700)',
+  SETS[86]?.clickCorrectKm >= 250 && SETS[86]?.clickCloseKm >= 700);
+
+SET86_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(86));
+  expect(`${naam} in ALL_COUNTRIES (set 86)`, !!c);
+});
+expect('Set 86 heeft 7 landen (incl. Taiwan)', ALL_COUNTRIES.filter(c => c.sets?.includes(86)).length === 7);
+
+SET86_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(86));
+  expect(`${naam} in ALL_CITIES (set 86)`, !!s);
+});
+expect('Set 86 heeft 14 steden', ALL_CITIES.filter(c => c.sets?.includes(86)).length === 14);
+
+// 5 hoofdsteden: Beijing, Tokyo, Ulaanbaatar, Pyongyang, Seoul.
+const set86Capitals = ALL_CITIES.filter(c => c.sets?.includes(86) && c.capital);
+expect('Set 86 heeft 5 hoofdsteden', set86Capitals.length === 5);
+
+// Moskou en Taipei staan niet in opdrachtblad.
+expect('Geen Moskou in set 86',
+  !ALL_CITIES.find(c => c.name === 'Moskou' && c.sets?.includes(86)));
+expect('Geen Taipei in set 86',
+  !ALL_CITIES.find(c => c.name === 'Taipei' && c.sets?.includes(86)));
+
+// Hongkong is wél stad, maar geen hoofdstad.
+const hk = ALL_CITIES.find(c => c.name === 'Hongkong' && c.sets?.includes(86));
+expect('Hongkong is stad in set 86', !!hk);
+expect('Hongkong is geen hoofdstad',  !hk?.capital);
+
+SET86_GEBIEDEN.forEach(naam => {
+  const g = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(86));
+  expect(`${naam} in ALL_PROVINCES (set 86)`, !!g);
+  expect(`${naam} is fuzzy`,         g?.shape === 'fuzzy');
+  expect(`${naam} kind === gebied`,  g?.kind === 'gebied');
+});
+expect('Set 86 heeft 3 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(86)).length === 3);
+
+SET86_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(86));
+  expect(`${naam} in ALL_WATERS (set 86)`, !!w);
+});
+expect('Set 86 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(86)).length === 4);
+
+// Fuzzy zeeën.
+['Zuid-Chinese Zee','Grote Oceaan'].forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(86));
+  expect(`${naam} is fuzzy (set 86)`, w?.shape === 'fuzzy');
+});
+
+// Landen-polygonen in landen-oost-azie.geojson.
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-oost-azie.geojson'), 'utf8'));
+  SET86_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-oost-azie.geojson`, !!f);
+    expect(`${naam} sets bevat 86`, f?.properties.sets?.includes(86));
+  });
+  // Rusland moet vol zijn (>2000 pts na eps=0.05).
+  const rus = gj.features.find(x => x.properties.name === 'Rusland');
+  const countPts = (g) => g.type === 'Polygon' ? g.coordinates.reduce((n,r)=>n+r.length,0)
+                                               : g.coordinates.reduce((n,p)=>n+p.reduce((nn,r)=>nn+r.length,0),0);
+  expect('Rusland heeft ≥2000 pts (volledige polygoon)', countPts(rus.geometry) >= 2000);
+}
+
+// Huang He + Chang Jiang als LineString, beide W→O.
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  ['Huang He','Chang Jiang'].forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(86));
+    expect(`${naam} LineString in wateren.geojson (set 86)`, f?.geometry.type === 'LineString');
+    if (f) {
+      const c = f.geometry.coordinates;
+      expect(`${naam} stroomt W→O`, c[0][0] < c[c.length-1][0]);
+    }
+  });
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
