@@ -65,7 +65,7 @@ test('set 89 — Antillen in eilanden-midden-amerika.geojson als polygoon', asyn
       sets: f.properties.sets,
     }));
   });
-  for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten']) {
+  for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten','Saba','Sint Eustatius']) {
     const f = info.find(x => x.name === naam);
     expect(f).toBeDefined();
     expect(['Polygon','MultiPolygon']).toContain(f.type);
@@ -73,7 +73,7 @@ test('set 89 — Antillen in eilanden-midden-amerika.geojson als polygoon', asyn
   }
 });
 
-test('set 89 — 6 Antillen: 4 polygonen + 2 fuzzy met juiste kinds', async ({ page }) => {
+test('set 89 — 6 Antillen: alle als echte polygon (consistent)', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(() => {
     const inSet = ALL_PROVINCES.filter(p => p.sets?.includes(89));
@@ -83,12 +83,9 @@ test('set 89 — 6 Antillen: 4 polygonen + 2 fuzzy met juiste kinds', async ({ p
     };
   });
   expect(result.count).toBe(6);
-  expect(result.byName['Aruba']).toEqual({ kind: 'eiland', shape: null });
-  expect(result.byName['Curaçao']).toEqual({ kind: 'eiland', shape: null });
-  expect(result.byName['Bonaire']).toEqual({ kind: 'eiland', shape: null });
-  expect(result.byName['Sint Maarten']).toEqual({ kind: 'eiland', shape: null });
-  expect(result.byName['Saba']).toEqual({ kind: 'eiland', shape: 'fuzzy' });
-  expect(result.byName['Sint Eustatius']).toEqual({ kind: 'eiland', shape: 'fuzzy' });
+  for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten','Saba','Sint Eustatius']) {
+    expect(result.byName[naam]).toEqual({ kind: 'eiland', shape: null });
+  }
 });
 
 test('set 89 — 2 hoofdsteden: Havana + Willemstad', async ({ page }) => {

@@ -651,7 +651,7 @@ const ALL_WATERS = [
   // van de Antillen). ensureShapeFeatures vervangt de polygon-feature via
   // findIndex-by-name op rendertijd.
   { name: 'Atlantische Oceaan', lat: 55.00, lon: -15.00, shape: 'fuzzy', rx: 5.00, ry: 8.00, sets: [78, 89],
-    posBySet: { 89: { lat: 20.00, lon: -55.00, rx: 8.00, ry: 7.00 } },
+    posBySet: { 89: { lat: 20.00, lon: -52.00, rx: 12.00, ry: 10.00 } },
     aliases: ['Atlantic Ocean', 'Atlantic'] },
   // ── Set 79: Wateren van Zuidoost-Europa (7.9) ─────────────────────────────
   { name: 'Bosporus',           lat: 41.12, lon: 29.07, sets: [79], aliases: ['Bosphorus', 'İstanbul Boğazı'] },
@@ -729,7 +729,7 @@ const ALL_WATERS = [
   { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88, 89],
     posBySet: {
       88: { lat:  -5.00, lon: 180.00, rx: 17.00, ry: 22.00 },
-      89: { lat:  10.00, lon: -92.00, rx:  3.00, ry:  5.00 },
+      89: { lat:  12.00, lon: -93.00, rx:  4.00, ry: 10.00 },
     },
     aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
@@ -860,15 +860,16 @@ const ALL_PROVINCES = [
   { name: 'Grote Victoria-Woestijn', lat: -28.50, lon: 128.00, kind: 'gebied', shape: 'fuzzy', rx: 5.50, ry: 2.50, sets: [88], aliases: ['Great Victoria Desert', 'Grote Victoriawoestijn'] },
   { name: 'Antarctica',              lat: -78.00, lon:  20.00, kind: 'gebied', sets: [88], aliases: ['Zuidpoolcontinent'] },
   // ── Set 89: Nederlandse Antillen (8.9) ─────────────────────────────────────
-  // ABC + Sint Maarten: echte polygonen uit OSM-admin-boundaries in
-  // eilanden-midden-amerika.geojson. Saba + Sint Eustatius: te klein voor
-  // polygon op Caribisch-zoom (~13/21 km²), als fuzzy ellips.
+  // Alle 6 eilanden als echte polygoon uit OSM place=island relations in
+  // eilanden-midden-amerika.geojson. Saba + Sint Eustatius zijn klein
+  // (~13/21 km²) maar eerder-fuzzy-rendering mixed slecht met de ABC+SXM
+  // polygonen (gestreept naast solide) — nu consistent polygoon.
   { name: 'Aruba',         lat: 12.52, lon: -69.97, kind: 'eiland', sets: [89] },
   { name: 'Curaçao',       lat: 12.17, lon: -68.99, kind: 'eiland', sets: [89], aliases: ['Curacao'] },
   { name: 'Bonaire',       lat: 12.18, lon: -68.27, kind: 'eiland', sets: [89] },
   { name: 'Sint Maarten',  lat: 18.04, lon: -63.07, kind: 'eiland', sets: [89], aliases: ['St. Maarten', 'Sint-Maarten'] },
-  { name: 'Saba',          lat: 17.63, lon: -63.23, kind: 'eiland', shape: 'fuzzy', rx: 0.25, ry: 0.18, sets: [89] },
-  { name: 'Sint Eustatius',lat: 17.49, lon: -62.98, kind: 'eiland', shape: 'fuzzy', rx: 0.25, ry: 0.18, sets: [89], aliases: ['Statia', 'St. Eustatius'] },
+  { name: 'Saba',          lat: 17.63, lon: -63.23, kind: 'eiland', sets: [89] },
+  { name: 'Sint Eustatius',lat: 17.49, lon: -62.98, kind: 'eiland', sets: [89], aliases: ['Statia', 'St. Eustatius'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },

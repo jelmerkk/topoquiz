@@ -8,8 +8,12 @@
 //     ~17.8°N (ver van de kust) — voor quiz-rendering gebruiken we het
 //     place=island relation Q25596 dat enkel de kustlijn volgt.
 //
-// Saba + Sint Eustatius zijn te klein voor echte polygon op Caribbean-zoom
-// (~13 / 21 km²) → worden in cities.js als fuzzy ellips toegevoegd, niet hier.
+//   Saba            Q25528 — bijzondere gemeente NL (~13 km²)
+//   Sint Eustatius  Q26180 — bijzondere gemeente NL (~21 km²)
+//
+// Alle 6 eilanden als echte polygon voor consistente rendering (eerder waren
+// Saba + Sint Eustatius fuzzy omdat ze te klein leken, maar de mix met
+// polygon-buren werkte visueel verwarrend — zie issue #57 feedback).
 //
 // Relation["wikidata"="Qxxx"] met out geom — het process-script chaint en
 // simplificeert tot Polygon-rings.
@@ -29,7 +33,9 @@ const QUERIES = [
   { out: 'aruba.json',        q: 'relation["wikidata"="Q21203"];out geom qt;' },
   { out: 'curacao.json',      q: 'relation["wikidata"="Q25279"];out geom qt;' },
   { out: 'bonaire.json',      q: 'relation["wikidata"="Q25396"];out geom qt;' },
-  { out: 'sint-maarten.json', q: 'relation["wikidata"="Q25596"];out geom qt;' },
+  { out: 'sint-maarten.json',   q: 'relation["wikidata"="Q25596"];out geom qt;' },
+  { out: 'saba.json',            q: 'relation["wikidata"="Q25528"];out geom qt;' },
+  { out: 'sint-eustatius.json',  q: 'relation["wikidata"="Q26180"];out geom qt;' },
 ];
 
 function fetchOverpass(query, mirror) {

@@ -14,10 +14,13 @@ const SRC_DIR = path.join(__dirname, 'overpass');
 const DEST    = path.join(__dirname, '..', 'eilanden-midden-amerika.geojson');
 
 const ISLANDS = [
-  { file: 'aruba.json',        name: 'Aruba',        eps: 0.0020, minArea: 0.0001, maxRings: 3 },
-  { file: 'curacao.json',      name: 'Curaçao',      eps: 0.0020, minArea: 0.0001, maxRings: 3 },
-  { file: 'bonaire.json',      name: 'Bonaire',      eps: 0.0020, minArea: 0.0001, maxRings: 4 },
-  { file: 'sint-maarten.json', name: 'Sint Maarten', eps: 0.0015, minArea: 0.00005, maxRings: 5 },
+  { file: 'aruba.json',          name: 'Aruba',          eps: 0.0020, minArea: 0.0001,   maxRings: 3 },
+  { file: 'curacao.json',        name: 'Curaçao',        eps: 0.0020, minArea: 0.0001,   maxRings: 3 },
+  { file: 'bonaire.json',        name: 'Bonaire',        eps: 0.0020, minArea: 0.0001,   maxRings: 4 },
+  { file: 'sint-maarten.json',   name: 'Sint Maarten',   eps: 0.0015, minArea: 0.00005,  maxRings: 5 },
+  // Saba + Sint Eustatius zijn klein (~13 / 21 km²) — kleinere eps behoudt vorm.
+  { file: 'saba.json',           name: 'Saba',           eps: 0.0005, minArea: 0.000005, maxRings: 2 },
+  { file: 'sint-eustatius.json', name: 'Sint Eustatius', eps: 0.0005, minArea: 0.000005, maxRings: 2 },
 ];
 
 function perpendicularDist(p, a, b) {

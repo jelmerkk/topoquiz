@@ -1857,19 +1857,14 @@ const wst = ALL_CITIES.find(c => c.name === 'Willemstad' && c.sets?.includes(89)
 expect('Willemstad in ALL_CITIES (set 89)', !!wst);
 expect('Willemstad is hoofdstad',           wst?.capital === true);
 
-// 6 Antillen: 4 echte polygonen + 2 fuzzy
+// 6 Antillen: alle als echte polygon (consistente rendering)
 const antillen89 = ALL_PROVINCES.filter(p => p.sets?.includes(89));
 expect('Set 89 heeft 6 Antillen', antillen89.length === 6);
-for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten']) {
+for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten','Saba','Sint Eustatius']) {
   const p = ALL_PROVINCES.find(x => x.name === naam && x.sets?.includes(89));
   expect(`${naam} in ALL_PROVINCES (set 89)`, !!p);
   expect(`${naam} kind = eiland`,              p?.kind === 'eiland');
   expect(`${naam} niet fuzzy (polygon)`,       p?.shape !== 'fuzzy');
-}
-for (const naam of ['Saba','Sint Eustatius']) {
-  const p = ALL_PROVINCES.find(x => x.name === naam && x.sets?.includes(89));
-  expect(`${naam} in ALL_PROVINCES (set 89)`, !!p);
-  expect(`${naam} is fuzzy`,                   p?.shape === 'fuzzy');
 }
 
 // Wateren: Caribische Zee + Panamakanaal + Atlantische + Grote Oceaan (4)
@@ -1912,8 +1907,8 @@ for (const naam of ['Cuba','Jamaica','Haïti','Dominicaanse Republiek',
 }
 
 const eilGj89 = JSON.parse(fs.readFileSync('eilanden-midden-amerika.geojson', 'utf8'));
-expect('eilanden-midden-amerika.geojson heeft 4 features', eilGj89.features.length === 4);
-for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten']) {
+expect('eilanden-midden-amerika.geojson heeft 6 features', eilGj89.features.length === 6);
+for (const naam of ['Aruba','Curaçao','Bonaire','Sint Maarten','Saba','Sint Eustatius']) {
   const f = eilGj89.features.find(x => x.properties.name === naam);
   expect(`${naam} polygoon in eilanden-midden-amerika.geojson`, !!f);
   expect(`${naam} is Polygon/MultiPolygon`,
