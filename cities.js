@@ -358,6 +358,20 @@ const ALL_CITIES = [
   { name: 'Mexico-Stad',    lat:  19.43, lon: -99.13, pop: 9200000, sets: [83], capital: true, aliases: ['Mexico Stad', 'Mexico City', 'Ciudad de México', 'CDMX'] },
   { name: 'Monterrey',      lat:  25.67, lon:-100.31, pop: 1140000, sets: [83] },
   { name: 'Havana',         lat:  23.13, lon: -82.38, pop: 2100000, sets: [83], capital: true, aliases: ['Habana', 'La Habana'] },
+  // ── Set 84: Midden-Oosten (8.4) — 13 steden, 12 hoofdsteden + Mekka ────────
+  { name: 'Ankara',     lat: 39.93, lon: 32.87, pop: 5600000, sets: [84], capital: true },
+  { name: 'Damascus',   lat: 33.51, lon: 36.28, pop: 2000000, sets: [84], capital: true, aliases: ['Dimasjk', 'Dimashq'] },
+  { name: 'Beiroet',    lat: 33.89, lon: 35.50, pop: 2400000, sets: [84], capital: true, aliases: ['Beirut', 'Bayrūt'] },
+  { name: 'Jeruzalem',  lat: 31.78, lon: 35.22, pop:  950000, sets: [84], capital: true, aliases: ['Jerusalem', 'Yerushalayim', 'Al-Quds'] },
+  { name: 'Amman',      lat: 31.95, lon: 35.93, pop: 4000000, sets: [84], capital: true, aliases: ['ʿAmmān'] },
+  { name: 'Bagdad',     lat: 33.31, lon: 44.36, pop: 7000000, sets: [84], capital: true, aliases: ['Baghdad', 'Baġdād'] },
+  { name: 'Teheran',    lat: 35.69, lon: 51.39, pop: 9000000, sets: [84], capital: true, aliases: ['Tehran', 'Tehrān'] },
+  { name: 'Riyad',      lat: 24.71, lon: 46.68, pop: 7500000, sets: [84], capital: true, aliases: ['Riyadh', 'Ar-Riyāḍ'] },
+  { name: 'Mekka',      lat: 21.42, lon: 39.83, pop: 2000000, sets: [84], aliases: ['Mecca', 'Makkah'] },
+  { name: 'Sanaa',      lat: 15.37, lon: 44.19, pop: 2500000, sets: [84], capital: true, aliases: ['Sana\'a', 'Sanʿāʾ', 'Sana'] },
+  { name: 'Tbilisi',    lat: 41.72, lon: 44.79, pop: 1100000, sets: [84], capital: true, aliases: ['Tiflis'] },
+  { name: 'Jerevan',    lat: 40.18, lon: 44.51, pop: 1100000, sets: [84], capital: true, aliases: ['Yerevan', 'Erevan'] },
+  { name: 'Bakoe',      lat: 40.41, lon: 49.87, pop: 2300000, sets: [84], capital: true, aliases: ['Baku', 'Bakı'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -445,6 +459,20 @@ const ALL_COUNTRIES = [
   { name: 'Haïti',     lat:  19.0, lon: -73.0, sets: [83], aliases: ['Haiti', 'République d\'Haïti'] },
   { name: 'Guatemala', lat:  15.5, lon: -90.3, sets: [83] },
   { name: 'Nicaragua', lat:  13.0, lon: -85.0, sets: [83] },
+  // ── Set 84: Midden-Oosten (8.4) — NE polygonen in landen-midden-oosten.geojson ─
+  { name: 'Turkije',       lat: 39.0, lon: 35.0, sets: [84], aliases: ['Türkiye', 'Turkey'] },
+  { name: 'Syrië',         lat: 35.0, lon: 38.0, sets: [84], aliases: ['Syria', 'Syrie'] },
+  { name: 'Libanon',       lat: 33.9, lon: 35.9, sets: [84], aliases: ['Lebanon', 'Liban'] },
+  { name: 'Israël',        lat: 31.5, lon: 34.8, sets: [84], aliases: ['Israel'] },
+  { name: 'Jordanië',      lat: 31.0, lon: 36.5, sets: [84], aliases: ['Jordan', 'Jordanie'] },
+  { name: 'Irak',          lat: 33.0, lon: 44.0, sets: [84], aliases: ['Iraq'] },
+  { name: 'Iran',          lat: 32.5, lon: 54.0, sets: [84], aliases: ['Perzië', 'Persia'] },
+  { name: 'Saoedi-Arabië', lat: 24.0, lon: 45.0, sets: [84], aliases: ['Saoedi Arabië', 'Saudi-Arabië', 'Saudi Arabia', 'KSA'] },
+  { name: 'Jemen',         lat: 15.5, lon: 47.5, sets: [84], aliases: ['Yemen'] },
+  { name: 'Koeweit',       lat: 29.3, lon: 47.5, sets: [84], aliases: ['Kuwait'] },
+  { name: 'Georgië',       lat: 42.3, lon: 43.5, sets: [84], aliases: ['Georgia', 'Sakartvelo'] },
+  { name: 'Armenië',       lat: 40.1, lon: 45.0, sets: [84], aliases: ['Armenia', 'Hayastan'] },
+  { name: 'Azerbeidzjan',  lat: 40.3, lon: 47.8, sets: [84], aliases: ['Azerbaijan', 'Azerbeidzjaan'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -512,9 +540,10 @@ const ALL_WATERS = [
   { name: 'Congo',                lat:  -2.00, lon:  17.00, sets: [82], aliases: ['Congo-rivier', 'Fleuve Congo'] },
   { name: 'Niger',                lat:  13.00, lon:   3.00, sets: [82], aliases: ['Niger-rivier'] },
   { name: 'Victoriameer',         lat:  -1.00, lon:  33.00, sets: [82], aliases: ['Lake Victoria', 'Nalubaale'] },
-  { name: 'Suezkanaal',           lat:  30.60, lon:  32.35, sets: [82], aliases: ['Suez Canal', 'Qanāt as-Suways', 'قناة السويس'] },
+  { name: 'Suezkanaal',           lat:  30.60, lon:  32.35, sets: [82, 84], aliases: ['Suez Canal', 'Qanāt as-Suways', 'قناة السويس'] },
   // Rode Zee: fuzzy, langgerekt N-Z, ~12°N..28°N, 33°E..43°E. rx=5, ry=8.
-  { name: 'Rode Zee',             lat:  20.00, lon:  38.00, shape: 'fuzzy', rx: 5.00, ry: 8.00, sets: [82], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
+  // Gedeeld met set 82 (Afrika) — zelfde zee grenst aan Afrika én Arabië.
+  { name: 'Rode Zee',             lat:  20.00, lon:  38.00, shape: 'fuzzy', rx: 5.00, ry: 8.00, sets: [82, 84], aliases: ['Red Sea', 'Baḥr al-Aḥmar'] },
   // Straat van Gibraltar: smalle zeestraat (~14 km); kleine ellips, net zichtbaar.
   { name: 'Straat van Gibraltar', lat:  35.95, lon:  -5.60, shape: 'fuzzy', rx: 0.80, ry: 0.40, sets: [82], aliases: ['Strait of Gibraltar', 'Estrecho de Gibraltar'] },
   // ── Set 83: Wateren van Noord- en Midden-Amerika (8.3) ────────────────────
@@ -527,6 +556,24 @@ const ALL_WATERS = [
   { name: 'Panamakanaal',  lat:   9.15, lon: -79.70, sets: [83], aliases: ['Panama Canal', 'Canal de Panamá'] },
   // Caribische Zee: fuzzy ellips, ~9°N..23°N, -88°W..-60°W. rx=14 (lon), ry=7 (lat).
   { name: 'Caribische Zee', lat: 15.00, lon: -75.00, shape: 'fuzzy', rx: 14.00, ry: 7.00, sets: [83], aliases: ['Caraïbische Zee', 'Caribbean Sea', 'Mar Caribe'] },
+  // ── Set 84: Wateren van Midden-Oosten (8.4) ───────────────────────────────
+  // Eufraat: LineString uit OSM Q34589 (main_stream) → wateren.geojson.
+  // Suezkanaal + Rode Zee: hergebruikt uit set 82 via sets:[82,84].
+  // Overige 5 zeeën: fuzzy ellipsen (policy — geen nieuwe harde zee-polygonen).
+  { name: 'Eufraat',          lat:  35.00, lon:  40.00, sets: [84], aliases: ['Euphrates', 'Furāt', 'Al-Furāt'] },
+  // Zwarte Zee: ~41°N..46°N, 28°E..42°E. rx=8, ry=3.
+  { name: 'Zwarte Zee',       lat:  43.00, lon:  34.00, shape: 'fuzzy', rx: 8.00, ry: 3.00, sets: [84], aliases: ['Black Sea', 'Kara Deniz'] },
+  // Perzische Golf: langgerekt NW-SE, ~24°N..30°N, 48°E..57°E.
+  { name: 'Perzische Golf',   lat:  27.00, lon:  51.50, shape: 'fuzzy', rx: 5.50, ry: 2.50, sets: [84], aliases: ['Perzische golf', 'Persian Gulf', 'Arabische Golf', 'Khalīj Fārs'] },
+  // Kaspische Zee: N-Z georiënteerd binnenmeer, ~36°N..47°N, 47°E..54°E.
+  { name: 'Kaspische Zee',    lat:  42.00, lon:  50.50, shape: 'fuzzy', rx: 3.50, ry: 6.00, sets: [84], aliases: ['Caspian Sea', 'Kaspian Zee'] },
+  // Middellandse Zee: enorm, ~30°N..46°N, -5°W..36°E. Centrum binnen Europa
+  // maar ellips strekt tot oost-kust Israël/Libanon. Ook set 82 (NB: set 82
+  // heeft hem nu niet; volgens opdrachtblad 8.2 enkel Rode Zee + Gibraltar).
+  { name: 'Middellandse Zee', lat:  35.00, lon:  18.00, shape: 'fuzzy', rx: 20.00, ry: 5.00, sets: [84], aliases: ['Mediterrane Zee', 'Mediterranean', 'Mediterranean Sea'] },
+  // Indische Oceaan: gigantisch. Vanuit ME-perspectief centraal op Arabische
+  // Zee zodat hij ~Z-oost in beeld komt. Grote ellips.
+  { name: 'Indische Oceaan',  lat:  10.00, lon:  65.00, shape: 'fuzzy', rx: 20.00, ry: 15.00, sets: [84], aliases: ['Indian Ocean'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -801,6 +848,19 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 84: Midden-Oosten (8.4) — 13 landen, 13 steden, 8 wateren ─────────
+   // Opdrachtblad: geen gebieden-fase (afwijking van 8.1/8.2/8.3).
+   // Bounds ruim: Jemen zuid (~12°N) tot Georgië/Kaspische Zee noord (~47°N);
+   // Middellandse Zee west (~22°E) tot Iran oost (~65°E).
+   // Klikdrempels 250/700 conform 8.1/8.2/8.3.
+   84: { name: '8.4 – Midden-Oosten', group: 8, mastery: 1,
+         bounds: [[10, 22], [47, 65]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',  quizType: 'country' },
+           { id: 'cities',    label: 'Steden',  quizType: 'place'   },
+           { id: 'waters',    label: 'Wateren', quizType: 'water'   },
          ] },
    // Dagelijkse uitdaging: 10 datum-geseedde steden, 1× goed = gememoreerd
    98: { name: '📅 Uitdaging van vandaag', quizType: 'place', fitOnStart: false, mastery: 1, daily: true },

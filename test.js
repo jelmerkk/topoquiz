@@ -1342,6 +1342,100 @@ expect('Set 83 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(83)).le
   }
 }
 
+// ── Set 84 — Midden-Oosten (8.4) ─────────────────────────────
+
+section('Set 84 — Midden-Oosten');
+
+const SET84_LANDEN = [
+  'Turkije','Syrië','Libanon','Israël','Jordanië','Irak','Iran',
+  'Saoedi-Arabië','Jemen','Koeweit','Georgië','Armenië','Azerbeidzjan',
+];
+const SET84_STEDEN = [
+  'Ankara','Damascus','Beiroet','Jeruzalem','Amman','Bagdad','Teheran',
+  'Riyad','Mekka','Sanaa','Tbilisi','Jerevan','Bakoe',
+];
+const SET84_WATEREN = [
+  'Eufraat','Suezkanaal','Rode Zee','Zwarte Zee','Perzische Golf',
+  'Kaspische Zee','Middellandse Zee','Indische Oceaan',
+];
+
+expect('Set 84 bestaat in SETS',        !!SETS[84]);
+expect('Set 84 is groep 8',             SETS[84]?.group === 8);
+expect('Set 84 heeft 3 fases',          SETS[84]?.phases?.length === 3);
+expect('Set 84 fase 1 is country',      SETS[84]?.phases?.[0]?.quizType === 'country');
+expect('Set 84 fase 2 is place',        SETS[84]?.phases?.[1]?.quizType === 'place');
+expect('Set 84 fase 3 is water',        SETS[84]?.phases?.[2]?.quizType === 'water');
+expect('Set 84 heeft geen province-fase',
+  !SETS[84]?.phases?.some(p => p.quizType === 'province'));
+expect('Set 84 heeft bounds',           Array.isArray(SETS[84]?.bounds));
+expect('Set 84 heeft continentale klikdrempels (≥250/700)',
+  SETS[84]?.clickCorrectKm >= 250 && SETS[84]?.clickCloseKm >= 700);
+
+SET84_LANDEN.forEach(naam => {
+  const c = ALL_COUNTRIES.find(x => x.name === naam && x.sets?.includes(84));
+  expect(`${naam} in ALL_COUNTRIES (set 84)`, !!c);
+});
+expect('Set 84 heeft 13 landen', ALL_COUNTRIES.filter(c => c.sets?.includes(84)).length === 13);
+
+SET84_STEDEN.forEach(naam => {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(84));
+  expect(`${naam} in ALL_CITIES (set 84)`, !!s);
+});
+expect('Set 84 heeft 13 steden', ALL_CITIES.filter(c => c.sets?.includes(84)).length === 13);
+
+// 12 hoofdsteden (alle behalve Mekka).
+const set84Capitals = ALL_CITIES.filter(c => c.sets?.includes(84) && c.capital);
+expect('Set 84 heeft 12 hoofdsteden', set84Capitals.length === 12);
+const mekka = ALL_CITIES.find(c => c.name === 'Mekka' && c.sets?.includes(84));
+expect('Mekka is geen hoofdstad', !mekka?.capital);
+
+// Geen gewesten of gebieden — opdrachtblad heeft geen province-fase.
+expect('Set 84 heeft 0 regio\'s in ALL_PROVINCES',
+  ALL_PROVINCES.filter(p => p.sets?.includes(84)).length === 0);
+
+SET84_WATEREN.forEach(naam => {
+  const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(84));
+  expect(`${naam} in ALL_WATERS (set 84)`, !!w);
+});
+expect('Set 84 heeft 8 wateren', ALL_WATERS.filter(w => w.sets?.includes(84)).length === 8);
+
+// Fuzzy zeeën moeten shape/rx/ry hebben.
+['Zwarte Zee','Perzische Golf','Kaspische Zee','Middellandse Zee','Indische Oceaan','Rode Zee']
+  .forEach(naam => {
+    const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(84));
+    expect(`${naam} is fuzzy (set 84)`, w?.shape === 'fuzzy');
+    expect(`${naam} heeft rx/ry (set 84)`, typeof w?.rx === 'number' && typeof w?.ry === 'number');
+  });
+
+// Landen-polygonen in landen-midden-oosten.geojson
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'landen-midden-oosten.geojson'), 'utf8'));
+  SET84_LANDEN.forEach(naam => {
+    const f = gj.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-midden-oosten.geojson`, !!f);
+    expect(`${naam} sets bevat 84`, f?.properties.sets?.includes(84));
+  });
+}
+
+// Eufraat als LineString, Suezkanaal gedeeld met set 82.
+{
+  const fs = require('fs');
+  const path = require('path');
+  const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
+  const euf = gj.features.find(x => x.properties.name === 'Eufraat' && x.properties.sets?.includes(84));
+  expect('Eufraat LineString in wateren.geojson (set 84)', euf?.geometry.type === 'LineString');
+  // Eufraat stroomt NO → ZO (Turkije ~39°N → Shatt al-Arab ~31°N).
+  if (euf) {
+    const c = euf.geometry.coordinates;
+    expect('Eufraat start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+  }
+  const suez = gj.features.find(x => x.properties.name === 'Suezkanaal');
+  expect('Suezkanaal sets bevat 82', suez?.properties.sets?.includes(82));
+  expect('Suezkanaal sets bevat 84', suez?.properties.sets?.includes(84));
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
