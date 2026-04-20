@@ -388,6 +388,25 @@ const ALL_CITIES = [
   { name: 'Kolkata',    lat: 22.57, lon: 88.36, pop:15000000, sets: [85], aliases: ['Calcutta', 'Calcuta'] },
   { name: 'Kathmandu',  lat: 27.72, lon: 85.32, pop: 1500000, sets: [85], capital: true, aliases: ['Kāṭhmāṇḍau'] },
   { name: 'Dhaka',      lat: 23.81, lon: 90.41, pop:10000000, sets: [85], capital: true, aliases: ['Dacca', 'Ḍhaka'] },
+  // ── Set 86: Steden van Oost-Azië (8.6) ─────────────────────────────────────
+  // 14 steden: 5 hoofdsteden (Beijing/Tokyo/Ulaanbaatar/Pyongyang/Seoul)
+  // + 9 niet-hoofd. Moskou staat niet in opdrachtblad — focus Siberië.
+  // Harbin (China NO) hoort qua oefening bij de Siberische cluster.
+  // Hongkong is SAR van China — eigen stad zonder capital.
+  { name: 'Omsk',         lat: 54.99, lon: 73.37, pop: 1100000, sets: [86] },
+  { name: 'Novosibirsk',  lat: 55.03, lon: 82.92, pop: 1600000, sets: [86], aliases: ['Novosibirsk', 'Nowosibirsk'] },
+  { name: 'Irkoetsk',     lat: 52.29, lon: 104.30,pop:  620000, sets: [86], aliases: ['Irkutsk'] },
+  { name: 'Vladivostok',  lat: 43.12, lon: 131.89,pop:  600000, sets: [86] },
+  { name: 'Harbin',       lat: 45.80, lon: 126.53,pop:10000000, sets: [86], aliases: ['Haerbin', 'Haʼerbin'] },
+  { name: 'Ulaanbaatar',  lat: 47.91, lon: 106.92,pop: 1600000, sets: [86], capital: true, aliases: ['Ulan Bator', 'Oelan-Bator'] },
+  { name: 'Beijing',      lat: 39.90, lon: 116.41,pop:22000000, sets: [86], capital: true, aliases: ['Peking', 'Běijīng'] },
+  { name: 'Shanghai',     lat: 31.23, lon: 121.47,pop:28000000, sets: [86], aliases: ['Shànghǎi'] },
+  { name: 'Hongkong',     lat: 22.32, lon: 114.17,pop: 7500000, sets: [86], aliases: ['Hong Kong', 'Xianggang', 'Xiānggǎng'] },
+  { name: 'Tokyo',        lat: 35.68, lon: 139.77,pop:37000000, sets: [86], capital: true, aliases: ['Tokio', 'Tōkyō'] },
+  { name: 'Osaka',        lat: 34.69, lon: 135.50,pop:19000000, sets: [86], aliases: ['Ōsaka'] },
+  { name: 'Sapporo',      lat: 43.07, lon: 141.35,pop: 2700000, sets: [86], aliases: ['Sapporo-shi'] },
+  { name: 'Pyongyang',    lat: 39.02, lon: 125.75,pop: 3100000, sets: [86], capital: true, aliases: ['Pjongjang', 'P\'yŏngyang'] },
+  { name: 'Seoul',        lat: 37.57, lon: 126.98,pop:25000000, sets: [86], capital: true, aliases: ['Seoel', 'Sŏul'] },
 ];
 
 // Landen voor sets met quizType 'country'.
@@ -498,6 +517,15 @@ const ALL_COUNTRIES = [
   { name: 'Nepal',         lat: 28.2, lon: 84.1, sets: [85], aliases: ['Nēpāl'] },
   { name: 'Bangladesh',    lat: 23.7, lon: 90.4, sets: [85], aliases: ['Bānglādesh'] },
   { name: 'Sri Lanka',     lat:  7.9, lon: 80.8, sets: [85], aliases: ['Ceylon', 'Srī Laṅkā'] },
+  // ── Set 86: Landen van Oost-Azië (8.6) ─────────────────────────────────────
+  // Rusland: volledig polygoon (incl. Kaliningrad), centroïd in Siberië.
+  { name: 'Rusland',       lat: 60.0, lon: 90.0, sets: [86], aliases: ['Russia', 'Rossija', 'Russische Federatie'] },
+  { name: 'Mongolië',      lat: 46.9, lon:103.0, sets: [86], aliases: ['Mongolia'] },
+  { name: 'China',         lat: 35.0, lon:103.0, sets: [86], aliases: ['Volksrepubliek China', 'PRC', "Zhōngguó"] },
+  { name: 'Japan',         lat: 36.2, lon:138.3, sets: [86], aliases: ['Nippon', 'Nihon'] },
+  { name: 'Noord-Korea',   lat: 40.3, lon:127.5, sets: [86], aliases: ['North Korea', 'DPRK', 'Chosŏn'] },
+  { name: 'Zuid-Korea',    lat: 36.5, lon:127.8, sets: [86], aliases: ['South Korea', 'ROK', 'Hanguk'] },
+  { name: 'Taiwan',        lat: 23.7, lon:121.0, sets: [86], aliases: ['Formosa', 'Republic of China', 'ROC', 'Táiwān'] },
 ];
 
 // De 16 wateren van set 5.7, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -608,6 +636,15 @@ const ALL_WATERS = [
   { name: 'Arabische Zee',      lat:  15.00, lon:  65.00, shape: 'fuzzy', rx: 10.00, ry:  8.00, sets: [85], aliases: ['Arabian Sea'] },
   // Golf van Bengalen: ~5°N..22°N, 80°E..95°E. rx=7, ry=8.
   { name: 'Golf van Bengalen',  lat:  14.00, lon:  88.00, shape: 'fuzzy', rx:  7.00, ry:  8.00, sets: [85], aliases: ['Bay of Bengal', 'Bengaalse Golf'] },
+  // ── Set 86: Wateren van Oost-Azië (8.6) ────────────────────────────────────
+  // Huang He + Chang Jiang: LineStrings uit OSM main_stream → wateren.geojson.
+  // Zuid-Chinese Zee: ~2°N..22°N, 105°E..120°E. rx=8, ry=10.
+  // Grote Oceaan: gigantisch, oostelijk van Japan. Centrum op ~30°N/160°E,
+  // rx=30, ry=25 — dekt het zichtbare deel in de OAZ-viewport.
+  { name: 'Huang He',           lat:  37.50, lon: 110.00, sets: [86], aliases: ['Gele Rivier', 'Yellow River', 'Huáng Hé'] },
+  { name: 'Chang Jiang',        lat:  30.00, lon: 112.00, sets: [86], aliases: ['Yangtze', 'Yangzi', 'Cháng Jiāng', 'Blauwe Rivier'] },
+  { name: 'Zuid-Chinese Zee',   lat:  14.00, lon: 115.00, shape: 'fuzzy', rx:  8.00, ry: 10.00, sets: [86], aliases: ['South China Sea', 'Zuid Chinese Zee'] },
+  { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86], aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
 
 // De 12 provincies van Nederland, met centroïden voor pan-to en aliassen voor tekstinvoer.
@@ -713,6 +750,13 @@ const ALL_PROVINCES = [
   // rood-bruine driehoek (zie PEAK_* stijlen in index.html).
   { name: 'Himalaya',       lat: 29.00, lon: 83.00, kind: 'gebied', shape: 'fuzzy', rx: 12.00, ry: 2.20, rot: -20, sets: [85], aliases: ['Himalaja', 'Himālaya'] },
   { name: 'Mount Everest',  lat: 27.99, lon: 86.93, kind: 'berg',   shape: 'peak',  size: 1.2, sets: [85], aliases: ['Everest', 'Sagarmāthā', 'Chomolungma'] },
+  // ── Set 86: Gebieden van Oost-Azië (8.6) ────────────────────────────────────
+  // Tibet: hoogplateau in SW-China, ~28°N..36°N, 82°E..98°E. rx=8, ry=3.5.
+  // Gobi: woestijn Mongolië+Noord-China, ~39°N..48°N, 90°E..115°E. rx=12, ry=3.5.
+  // Siberië: enorme noordelijke regio, ~52°N..72°N, 65°E..165°E. rx=35, ry=8.
+  { name: 'Tibet',    lat: 31.50, lon:  89.00, kind: 'gebied', shape: 'fuzzy', rx:  8.00, ry: 3.50, sets: [86], aliases: ['Xizang', 'Bod'] },
+  { name: 'Gobi',     lat: 43.00, lon: 103.00, kind: 'gebied', shape: 'fuzzy', rx: 12.00, ry: 3.50, sets: [86], aliases: ['Gobi-woestijn', 'Gobi Desert'] },
+  { name: 'Siberië',  lat: 62.00, lon: 100.00, kind: 'gebied', shape: 'fuzzy', rx: 35.00, ry: 9.00, sets: [86], aliases: ['Siberia', 'Sibir'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -909,6 +953,20 @@ const SETS = {
    // (~95°E). Klikdrempels 250/700 conform 8.1–8.4.
    85: { name: '8.5 – Zuid-Azië', group: 8, mastery: 1,
          bounds: [[5, 55], [56, 95]],
+         clickCorrectKm: 250, clickCloseKm: 700,
+         phases: [
+           { id: 'countries', label: 'Landen',   quizType: 'country'  },
+           { id: 'cities',    label: 'Steden',   quizType: 'place'    },
+           { id: 'regions',   label: 'Gebieden', quizType: 'province' },
+           { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
+         ] },
+   // ── Set 86: Oost-Azië (8.6) — 7 landen, 14 steden, 3 gebieden, 4 wateren ──
+   // Rusland volledig (ook Kaliningrad), ondanks dat viewport-bounds westelijk
+   // afkappen. Bounds: Taiwan zuid (~20°N) tot Siberië noord (~78°N); Ural
+   // (~40°E, genoeg voor Europees Rusland ook ten dele) tot Kamtsjatka
+   // (~180°E). Klikdrempels 250/700 conform 8.1–8.5.
+   86: { name: '8.6 – Oost-Azië', group: 8, mastery: 1,
+         bounds: [[0, 40], [78, 180]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
