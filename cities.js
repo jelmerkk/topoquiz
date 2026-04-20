@@ -729,7 +729,7 @@ const ALL_WATERS = [
   { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88, 89],
     posBySet: {
       88: { lat:  -5.00, lon: 180.00, rx: 17.00, ry: 22.00 },
-      89: { lat:  12.00, lon: -93.00, rx:  4.00, ry: 10.00 },
+      89: { lat:   6.00, lon: -92.00, rx: 10.00, ry:  4.00 },
     },
     aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
