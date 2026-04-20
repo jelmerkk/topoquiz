@@ -829,7 +829,17 @@ const polygonTypes = {
     nameKey: 'name',
     afterHighlight(item) {
       const latlng = [item.lat, item.lon];
-      if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+      const layer = this.layers[item.name];
+      // Voor echte polygon-features (eilanden, continent): fitBounds zodat
+      // grote vormen als Antarctica volledig in beeld komen. Fuzzy/peak
+      // (ellips/driehoek) blijven op panTo — hun zoom mag niet strakker
+      // dan de set-default.
+      if (layer && item.shape !== 'fuzzy' && item.shape !== 'peak') {
+        layer.bringToFront();
+        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 6, animate: true });
+      } else if (!map.getBounds().contains(latlng)) {
+        map.panTo(latlng, { animate: true });
+      }
     },
   },
   water: {

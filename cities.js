@@ -696,7 +696,7 @@ const ALL_WATERS = [
   // posBySet: Oceanie-perspectief centreert de Grote Oceaan ten oosten van
   // Australië/NZ (tropisch zuidelijk deel) i.p.v. het Japan-noord-perspectief.
   { name: 'Grote Oceaan',       lat:  30.00, lon: 160.00, shape: 'fuzzy', rx: 30.00, ry: 25.00, sets: [86, 87, 88],
-    posBySet: { 88: { lat: -15.00, lon: 175.00, rx: 25.00, ry: 30.00 } },
+    posBySet: { 88: { lat:  -5.00, lon: 180.00, rx: 17.00, ry: 22.00 } },
     aliases: ['Stille Oceaan', 'Pacific Ocean', 'Pacific'] },
 ];
 
@@ -824,7 +824,7 @@ const ALL_PROVINCES = [
   // Antarctica: echte polygoon — zuidpoolcontinent, hele ring ten zuiden van -60°.
   { name: 'Tasmanië',                lat: -42.00, lon: 147.00, kind: 'eiland', sets: [88], aliases: ['Tasmania'] },
   { name: 'Grote Victoria-Woestijn', lat: -28.50, lon: 128.00, kind: 'gebied', shape: 'fuzzy', rx: 5.50, ry: 2.50, sets: [88], aliases: ['Great Victoria Desert', 'Grote Victoriawoestijn'] },
-  { name: 'Antarctica',              lat: -82.00, lon:   0.00, kind: 'gebied', sets: [88], aliases: ['Zuidpoolcontinent'] },
+  { name: 'Antarctica',              lat: -78.00, lon:  20.00, kind: 'gebied', sets: [88], aliases: ['Zuidpoolcontinent'] },
   // ── NL-provincies ────────────────────────────────────────────────────────────
   { name: 'Groningen',     lat: 53.22, lon: 6.57, sets: [54], aliases: [] },
   { name: 'Fryslân',       lat: 53.08, lon: 5.84, sets: [54], aliases: ['Friesland', 'Fryslan', 'Fryslân'] },
@@ -1063,7 +1063,7 @@ const SETS = {
    // continent komt niet volledig in beeld maar feature-centrering pakt over bij
    // de Antarctica-vraag). PNG noord ~-1°S. Klikdrempels 250/700 conform 8.1–8.7.
    88: { name: '8.8 – Australië en Oceanië', group: 8, mastery: 1,
-         bounds: [[-50, 110], [0, 180]],
+         bounds: [[-50, 108], [5, 185]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',   quizType: 'country'  },
