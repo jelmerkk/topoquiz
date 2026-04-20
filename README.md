@@ -30,7 +30,8 @@ Kies de juiste array op basis van het elementtype:
 | `ALL_CITIES` | Steden, hoofdsteden | Stip op kaart |
 | `ALL_PROVINCES` | Nederlandse provincies | Polygoon (`provincie_2023.geojson`) |
 | `ALL_WATERS` | Wateren (rivieren, zeeën) | Lijn/polygoon (`wateren.geojson`) |
-| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`) |
+| `ALL_COUNTRIES` | Landen | Polygoon (`landen-europa.geojson`, `landen-zuidamerika.geojson`, `landen-afrika.geojson`, `landen-noord-midden-amerika.geojson`, `landen-midden-oosten.geojson`, `landen-zuid-azie.geojson`, `landen-oost-azie.geojson`, `landen-zuidoost-azie.geojson`) |
+| `ALL_PROVINCES` (eilanden) | Indonesische eilanden | Polygoon (`eilanden-zuidoost-azie.geojson`) — Kalimantan, Sumatra, Sulawesi, Java, Molukken |
 
 Velden per item:
 ```js

@@ -1656,6 +1656,83 @@ expect('Set 86 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(86)).le
   });
 }
 
+// ── Set 87 — Zuidoost-Azië (8.7) ─────────────────────────────────
+section('Set 87 — Zuidoost-Azië (8.7)');
+
+expect('Set 87 bestaat',                 !!SETS[87]);
+expect('Set 87 group = 8',                SETS[87]?.group === 8);
+expect('Set 87 heeft 4 phases',           SETS[87]?.phases?.length === 4);
+expect('Set 87 phase 1 = country',        SETS[87]?.phases[0].quizType === 'country');
+expect('Set 87 phase 2 = place',          SETS[87]?.phases[1].quizType === 'place');
+expect('Set 87 phase 3 = province',       SETS[87]?.phases[2].quizType === 'province');
+expect('Set 87 phase 4 = water',          SETS[87]?.phases[3].quizType === 'water');
+expect('Set 87 phase 3 label = Eilanden', SETS[87]?.phases[2].label === 'Eilanden');
+expect('Set 87 heeft bounds',             Array.isArray(SETS[87]?.bounds));
+
+// 9 landen
+for (const naam of ['Myanmar','Thailand','Vietnam','Cambodja','Laos',
+                    'Maleisië','Singapore','Indonesië','Filipijnen']) {
+  const c = ALL_COUNTRIES.find(l => l.name === naam && l.sets?.includes(87));
+  expect(`${naam} in ALL_COUNTRIES (set 87)`, !!c);
+}
+
+// 11 steden
+for (const naam of ['Yangon','Bangkok','Hanoi','Ho Chi Minhstad','Phnom Penh',
+                    'Vientiane','Kuala Lumpur','Singapore','Jakarta',
+                    'Surabaya','Manila']) {
+  const s = ALL_CITIES.find(c => c.name === naam && c.sets?.includes(87));
+  expect(`${naam} in ALL_CITIES (set 87)`, !!s);
+}
+
+// Yangon = stad, niet hoofdstad (Naypyidaw niet in opdrachtblad)
+const yangon = ALL_CITIES.find(c => c.name === 'Yangon' && c.sets?.includes(87));
+expect('Yangon is stad (niet hoofdstad)', yangon && !yangon.capital);
+
+// 8 hoofdsteden (Myanmar heeft geen hoofdstad in de set — Yangon is stad,
+// Naypyidaw staat niet in opdrachtblad)
+const caps87 = ALL_CITIES.filter(c => c.sets?.includes(87) && c.capital).map(c => c.name).sort();
+expect('Set 87 heeft 8 hoofdsteden', caps87.length === 8);
+expect('Set 87 hoofdsteden correct',
+  JSON.stringify(caps87) === JSON.stringify(['Bangkok','Hanoi','Jakarta','Kuala Lumpur','Manila','Phnom Penh','Singapore','Vientiane']));
+
+// 5 eilanden (gebieden-fase) — echte polygons, kind='eiland'
+for (const naam of ['Kalimantan','Sumatra','Sulawesi','Java','Molukken']) {
+  const e = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(87));
+  expect(`${naam} in ALL_PROVINCES (set 87)`, !!e);
+  expect(`${naam} kind = 'eiland'`, e?.kind === 'eiland');
+  expect(`${naam} niet fuzzy`, e?.shape !== 'fuzzy');
+}
+
+// 2 wateren: Grote Oceaan + Indische Oceaan (beide al bestaand, set 87 toegevoegd)
+const grOc87 = ALL_WATERS.find(w => w.name === 'Grote Oceaan' && w.sets?.includes(87));
+expect('Grote Oceaan ook in set 87', !!grOc87);
+const inOc87 = ALL_WATERS.find(w => w.name === 'Indische Oceaan' && w.sets?.includes(87));
+expect('Indische Oceaan ook in set 87', !!inOc87);
+
+// Eilanden-polygonen in eilanden-zuidoost-azie.geojson
+{
+const fs = require('fs');
+const eilGj = JSON.parse(fs.readFileSync('eilanden-zuidoost-azie.geojson', 'utf8'));
+expect('eilanden-zuidoost-azie.geojson heeft 5 features', eilGj.features.length === 5);
+for (const naam of ['Kalimantan','Sumatra','Sulawesi','Java','Molukken']) {
+  const f = eilGj.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon aanwezig`, !!f);
+  expect(`${naam} is Polygon/MultiPolygon`,
+    f?.geometry.type === 'Polygon' || f?.geometry.type === 'MultiPolygon');
+  expect(`${naam} sets bevat 87`, f?.properties.sets?.includes(87));
+}
+
+// 9 landen-polygonen in landen-zuidoost-azie.geojson
+const landGj87 = JSON.parse(fs.readFileSync('landen-zuidoost-azie.geojson', 'utf8'));
+expect('landen-zuidoost-azie.geojson heeft 9 features', landGj87.features.length === 9);
+for (const naam of ['Myanmar','Thailand','Vietnam','Cambodja','Laos',
+                    'Maleisië','Singapore','Indonesië','Filipijnen']) {
+  const f = landGj87.features.find(x => x.properties.name === naam);
+  expect(`${naam} polygoon in landen-zuidoost-azie.geojson`, !!f);
+  expect(`${naam} sets bevat 87`, f?.properties.sets?.includes(87));
+}
+}
+
 // ── nearbyDistractors — MC fallback bij smalle phase-pool ─────
 //
 // Bij fases met <4 items (bijv. 1 water, 2 regio's in set 81) moet de MC-modus
