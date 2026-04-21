@@ -2,12 +2,12 @@
    Mode-buttons, group-select, daily-btn, quiz-menu en install-knop. */
 
 #start-screen {
+  /* max-width zit in app.css. */
   display: none;
   background: #243060;
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
-  max-width: 680px;
   width: 100%;
 }
 #start-screen h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }

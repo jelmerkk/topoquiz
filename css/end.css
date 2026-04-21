@@ -3,12 +3,12 @@
    die op dit scherm zichtbaar is. */
 
 #end-screen {
+  /* max-width zit in app.css. */
   display: none;
   background: #243060;
   border-radius: 16px;
   padding: 36px 28px;
   text-align: center;
-  max-width: 680px;
   width: 100%;
 }
 #end-screen h2 { font-size: 2rem; color: #f0c040; margin-bottom: 12px; }
