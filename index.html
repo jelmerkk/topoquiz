@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topografie Quiz – Oefen topografie voor groep 5 en 6</title>
-<meta name="version" content="2.18.3">
-<meta name="description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
+<title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
+<meta name="version" content="2.18.4">
+<meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
 <link rel="sitemap" type="application/xml" href="/sitemap.xml">
@@ -14,8 +14,8 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.topoquiz.com/">
-<meta property="og:title" content="Topografie Quiz – Oefen topografie voor groep 5 en 6">
-<meta property="og:description" content="Oefen de topografie van Nederland voor groep 5 en 6. Leer provincies, steden en plaatsen via meerkeuze of zelf typen, met een interactieve kaart.">
+<meta property="og:title" content="Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)">
+<meta property="og:description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta property="og:locale" content="nl_NL">
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
@@ -754,8 +754,9 @@ const map = L.map('leaflet-map', {
 
 // FEATURE FLAG: zet op true voor CARTO Voyager tiles (geen plaatsnamen, open-source)
 //               zet op false voor originele TopoMania tiles
-// Let op: donkere kaart (dark_nolabels) is NIET geschikt — doelgroep zijn kinderen in groep 5
-// die de kaart moeten kunnen herkennen. Gebruik altijd een lichte, vertrouwde kaartstijl.
+// Let op: donkere kaart (dark_nolabels) is NIET geschikt — doelgroep zijn kinderen in de
+// bovenbouw (groep 5 t/m 8) die de kaart moeten kunnen herkennen. Gebruik altijd een lichte,
+// vertrouwde kaartstijl.
 const USE_CARTO_TILES = true;
 
 const tileLayer = USE_CARTO_TILES
@@ -2216,7 +2217,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.18.3';
+const APP_VERSION = 'v2.18.4';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
