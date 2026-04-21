@@ -2049,7 +2049,8 @@ async function startQuiz(mode, startPhase = 0) {
     else if (_set.fitOnStart)
       map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
     else
-      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
+      // Provincies: +1 zoomlevel (NL past strakker in beeld dan met maxZoom 8).
+      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: _set.quizType === 'province' ? 9 : 8 });
   });
   // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
   document.getElementById('qtot').textContent = activeCities.length;
