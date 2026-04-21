@@ -1402,7 +1402,7 @@ function finishAnswer() {
           document.getElementById('qtot').textContent = activeCities.length;
           updateScoreboard();
           renderQuestion();
-          if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
+          router.emit('phase-change');
         });
       }, 2000);
       return;
@@ -1494,14 +1494,14 @@ function applyVisibility(screen) {
 // opts.history ∈ { 'push' | 'replace' | 'none' } — 'none' voor popstate.
 const router = (() => {
   let _current = { screen: null, params: {} };
-  const _listeners = { enter: new Map(), leave: new Map() };
+  const _listeners = { enter: new Map(), leave: new Map(), event: new Map() };
 
-  function _on(bucket, screen, cb) {
-    if (!_listeners[bucket].has(screen)) _listeners[bucket].set(screen, []);
-    _listeners[bucket].get(screen).push(cb);
+  function _on(bucket, key, cb) {
+    if (!_listeners[bucket].has(key)) _listeners[bucket].set(key, []);
+    _listeners[bucket].get(key).push(cb);
   }
-  function _emit(bucket, screen, ...args) {
-    const cbs = _listeners[bucket].get(screen);
+  function _emit(bucket, key, ...args) {
+    const cbs = _listeners[bucket].get(key);
     if (cbs) for (const cb of cbs) { try { cb(...args); } catch (e) { console.error(e); } }
   }
 
@@ -1550,6 +1550,10 @@ const router = (() => {
     fromURL,
     onEnter: (s, cb) => _on('enter', s, cb),
     onLeave: (s, cb) => _on('leave', s, cb),
+    // Generic event bus: dev-menu gebruikt dit voor phase-change events die
+    // geen scherm-transitie zijn maar wel een sync moeten triggeren.
+    on:   (ev, cb) => _on('event', ev, cb),
+    emit: (ev, ...args) => _emit('event', ev, ...args),
     current: () => ({ ..._current }),
   };
 })();
@@ -1919,8 +1923,7 @@ async function startQuiz(mode, startPhase = 0) {
   const restored = restoreProgress();
   quizStartTime = Date.now();
   _trackQuiz(restored ? 'resume' : 'start');
-  // Dev-menu synchroniseren met zojuist gestarte set/modus/fase
-  if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
+  // Dev-menu sync loopt via router.onEnter('quiz', …) — hier niets nodig.
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = consecutiveCorrect = 0;
@@ -2183,9 +2186,10 @@ async function hardRefresh() {
       if (phaseOpt) phaseSel.value = String(currentPhaseIndex);
     }
   }
-  // Expose globaal zodat de game-loop na startQuiz / fase-wissel kan
-  // resyncen zonder een harde koppeling te maken.
-  window.__devMenuSync = syncToLive;
+  // Sync bij quiz-entry (via router) en bij fase-wissel (via event bus).
+  // Geen global meer — alles door de router.
+  router.onEnter('quiz', syncToLive);
+  router.on('phase-change', syncToLive);
 
   panel.querySelector('.head').addEventListener('click', () => {
     const wasCollapsed = panel.classList.contains('collapsed');
