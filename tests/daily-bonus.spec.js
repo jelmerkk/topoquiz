@@ -118,7 +118,7 @@ test('#80: bonus groep 8 zoomt naar item (geen NL-fallback)', async ({ page }) =
     activeCities = [arm, ...activeCities.filter(c => c.name !== 'Armenië').slice(0, 9)];
     buildPolygonLayer('country');
     currentCity = arm;
-    setHighlightPolygon('country', arm);
+    setHighlight('country', arm);
   });
   // fitBounds animeert — wacht tot kaart-center binnen Armenië-range ligt,
   // niet op een vaste timeout (flaky op langzame runners).

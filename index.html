@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.18.8">
+<meta name="version" content="2.18.9">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -255,6 +255,10 @@ const COUNTRY_MASTERED  = { color: C_MASTERED_BORDER,  weight: 2,   opacity: 0.9
 // Centraal configuratie-object voor alle polygon-quizTypes.
 // featureData/layers/quizLayer worden gevuld tijdens runtime.
 // afterHighlight: type-specifiek zoom/pan-gedrag na het markeren van een item.
+// Polygon-types register (#92): vier typen, elk beschreven via data-velden
+// i.p.v. per-type closures. Generic setHighlight() leest de 4 zoom/fit-velden
+// (highlightZoom, highlightPadding, animate, skipFit, fallbackPan) om één
+// gedeelde fitBounds-implementatie aan te sturen.
 const polygonTypes = {
   province: {
     featureData: null,
@@ -266,20 +270,13 @@ const polygonTypes = {
       peakDefault:  PEAK_DEFAULT,  peakHighlight:  PEAK_HIGHLIGHT,  peakMastered:  PEAK_MASTERED,
     },
     nameKey: 'name',
-    afterHighlight(item) {
-      const latlng = [item.lat, item.lon];
-      const layer = this.layers[item.name];
-      // Voor echte polygon-features (eilanden, continent): fitBounds zodat
-      // grote vormen als Antarctica volledig in beeld komen. Fuzzy/peak
-      // (ellips/driehoek) blijven op panTo — hun zoom mag niet strakker
-      // dan de set-default.
-      if (layer && item.shape !== 'fuzzy' && item.shape !== 'peak') {
-        layer.bringToFront();
-        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 6, animate: true });
-      } else if (!map.getBounds().contains(latlng)) {
-        map.panTo(latlng, { animate: true });
-      }
-    },
+    highlightZoom: 6,
+    highlightPadding: [60, 60],
+    animate: true,
+    // Fuzzy/peak (ellips/driehoek) niet strakker inzoomen dan set-default;
+    // voor die shapes gebruikt de fallback een panTo zodra het item buiten beeld valt.
+    skipFit: item => item.shape === 'fuzzy' || item.shape === 'peak',
+    fallbackPan: true,
   },
   water: {
     featureData: null,
@@ -290,13 +287,8 @@ const polygonTypes = {
       fuzzyDefault: FUZZY_WATER_DEFAULT, fuzzyHighlight: FUZZY_WATER_HIGHLIGHT, fuzzyMastered: FUZZY_WATER_MASTERED,
     },
     nameKey: 'name',
-    afterHighlight(item) {
-      const layer = this.layers[item.name];
-      if (layer) {
-        layer.bringToFront();
-        map.fitBounds(layer.getBounds(), { padding: [60, 60], maxZoom: 10 });
-      }
-    },
+    highlightZoom: 10,
+    highlightPadding: [60, 60],
   },
   country: {
     featureData: null,
@@ -304,13 +296,22 @@ const polygonTypes = {
     quizLayer: null,
     styles: { default: COUNTRY_DEFAULT, highlight: COUNTRY_HIGHLIGHT, mastered: COUNTRY_MASTERED },
     nameKey: 'name',
-    afterHighlight(item) {
-      const layer = this.layers[item.name];
-      if (layer && gameMode !== 'map') {
-        layer.bringToFront();
-        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 5, animate: true });
-      }
-    },
+    highlightZoom: 5,
+    highlightPadding: [80, 80],
+    animate: true,
+    // In klik-op-kaart modus niet inzoomen — dan blijft de wereldview behouden
+    // voor de volgende vraag zonder terug-zoom-dans.
+    skipFit: () => gameMode === 'map',
+  },
+  // Markers i.p.v. layer-styling; setHighlight('place', ...) routet naar
+  // pulseIcon + flyTo/panTo. Velden hier zijn placeholders voor het register
+  // zodat clearPolygonLayers/applyMasteredStyle-iteraties geen speciale case nodig hebben.
+  place: {
+    featureData: null,
+    layers: {},
+    quizLayer: null,
+    styles: {},
+    nameKey: 'name',
   },
 };
 
@@ -476,20 +477,49 @@ function buildPolygonLayer(type) {
   t.layersBuilt = true;
 }
 
-function setHighlightPolygon(type, item, mapMode = false) {
+// Unified highlight dispatch (#92): routet 'place' naar marker-highlight en
+// province/water/country naar layer-styling + register-gestuurde fitBounds.
+// Vervangt het oude paar setHighlight(city) + setHighlightPolygon(type, item, mapMode).
+function setHighlight(type, item, mapMode = false) {
+  if (type === 'place') {
+    if (highlightMarker) map.removeLayer(highlightMarker);
+    highlightMarker = L.marker([item.lat, item.lon], { icon: pulseIcon, interactive: false }).addTo(map);
+    // Daily/bonus (#80): mixed pool kan wereldwijd zijn. Als de stad buiten de
+    // huidige zoom-context valt (bv. vorige vraag was Armenië, nu Tokio), echt
+    // inzoomen i.p.v. alleen panTo — anders zie je een puntje op een wereldkaart.
+    const _set = SETS[selectedSet];
+    if (_set?.daily || _set?.bonus) {
+      map.flyTo([item.lat, item.lon], 8, { animate: true, duration: 0.6 });
+    } else if (!map.getBounds().contains([item.lat, item.lon])) {
+      map.panTo([item.lat, item.lon], { animate: true });
+    }
+    return;
+  }
   const t = polygonTypes[type];
   Object.entries(t.layers).forEach(([name, layer]) => {
     const f = layer.feature || { properties: {} };
     if (name === item.name) {
       layer.setStyle(styleForFeature(t, f, 'highlight'));
     } else if (mapMode && t.styles.hidden) {
-      // In kaart-klik modus: niet-geraden items verborgen (alleen water heeft hidden-stijl)
+      // In kaart-klik modus: niet-geraden items verborgen (alleen water heeft hidden-stijl).
       layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : t.styles.hidden);
     } else {
       layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : styleForFeature(t, f, 'default'));
     }
   });
-  if (t.afterHighlight) t.afterHighlight.call(t, item);
+  // Register-gestuurde fitBounds; skipFit-predicate bepaalt of we inzoomen,
+  // fallbackPan zorgt voor panTo zodra het item buiten beeld valt (alleen province).
+  const layer = t.layers[item.name];
+  const skip = t.skipFit && t.skipFit(item);
+  if (layer && !skip) {
+    layer.bringToFront();
+    const opts = { padding: t.highlightPadding, maxZoom: t.highlightZoom };
+    if (t.animate) opts.animate = true;
+    map.fitBounds(layer.getBounds(), opts);
+  } else if (skip && t.fallbackPan) {
+    const latlng = [item.lat, item.lon];
+    if (!map.getBounds().contains(latlng)) map.panTo(latlng, { animate: true });
+  }
 }
 
 function applyMasteredStyle(name) {
@@ -585,20 +615,8 @@ const pulseIcon = L.divIcon({
 });
 let highlightMarker = null;
 
-function setHighlight(city) {
-  if (highlightMarker) map.removeLayer(highlightMarker);
-  highlightMarker = L.marker([city.lat, city.lon], { icon: pulseIcon, interactive: false }).addTo(map);
-  // Daily/bonus (#80): mixed pool kan wereldwijd zijn. Als de stad buiten de
-  // huidige zoom-context valt (bv. vorige vraag was Armenië, nu Tokio), echt
-  // inzoomen i.p.v. alleen panTo — anders zie je een puntje op een wereldkaart.
-  const _set = SETS[selectedSet];
-  const isMixed = _set?.daily || _set?.bonus;
-  if (isMixed) {
-    map.flyTo([city.lat, city.lon], 8, { animate: true, duration: 0.6 });
-  } else if (!map.getBounds().contains([city.lat, city.lon])) {
-    map.panTo([city.lat, city.lon], { animate: true });
-  }
-}
+// setHighlight(city) oude marker-variant is vervangen door de unified
+// setHighlight(type, item, mapMode) hierboven (#92).
 
 // ── Game state ──────────────────────────────────────────────
 const MASTERY_MC   = 3; // meerkeuze: 3× goed
@@ -1113,10 +1131,10 @@ function renderQuestion() {
     };
     document.getElementById('question-text').textContent = QUESTION_TEXT[_rqQt](currentCity);
     if (highlightMarker) { map.removeLayer(highlightMarker); highlightMarker = null; }
-    setHighlightPolygon(_rqQt, currentCity);
+    setHighlight(_rqQt, currentCity);
   } else {
     document.getElementById('question-text').textContent = 'Welke plaats is dit?';
-    setHighlight(currentCity);
+    setHighlight('place', currentCity);
   }
 
   document.getElementById('feedback').textContent = '';
@@ -1294,16 +1312,9 @@ function handleMapClick(e) {
     fillOpacity: 0.9,
   }).addTo(map);
 
-  // Highlight de echte locatie
-  if (isWater) {
-    setHighlightPolygon('water', city, true);
-  } else if (isCountry) {
-    setHighlightPolygon('country', city);
-  } else if (isProvince) {
-    setHighlightPolygon('province', city);
-  } else {
-    setHighlight(city);
-  }
+  // Highlight de echte locatie — één dispatch via de unified setHighlight (#92).
+  // mapMode=true activeert water's hidden-style; andere typen negeren het.
+  setHighlight(_hqQt, city, true);
 
   const fb = document.getElementById('feedback');
   const km = Math.round(distKm);
@@ -1645,7 +1656,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.18.8';
+const APP_VERSION = 'v2.18.9';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1758,7 +1769,7 @@ async function startQuiz(mode, startPhase = 0) {
     _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
   }
   for (const qt of _allQts) {
-    if (!polygonTypes[qt]) continue;
+    if (!polygonTypes[qt]?.dataPromise) continue;
     await polygonTypes[qt].dataPromise;
     if (!polygonTypes[qt].featureData) {
       alert('De kaart kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw.');
