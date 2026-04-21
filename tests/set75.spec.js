@@ -1,10 +1,9 @@
 /**
  * Set 75 — VK en Ierland (issue #44)
  *
- * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
- * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
- * Regio's zijn harde polygonen (géén fuzzy ellipsen), zodat set 7.1 de
- * hele UK als land blijft asken zonder dat de constituents ermee conflicteren.
+ * Data-assertions (Theems LineString) zijn gemigreerd naar test.js. Hier
+ * blijven de polygonTypes- en country-laag-regressietests: die lezen de
+ * runtime-laag in Leaflet, dus Playwright is vereist.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -87,27 +86,4 @@ test('set 75 regio\'s zijn niet in de country-laag (geen conflict met set 7.1)',
   expect(countryNames).not.toContain('Wales');
   expect(countryNames).not.toContain('Schotland');
   expect(countryNames).not.toContain('Noord-Ierland');
-});
-
-test('set 75 — Theems is een LineString die bij Londen langs gaat', async ({ page }) => {
-  await page.goto('/');
-  const bounds = await page.evaluate(async () => {
-    const data = await fetch('/wateren.geojson').then(r => r.json());
-    const theems = data.features.find(f => f.properties.name === 'Theems');
-    if (!theems || theems.geometry.type !== 'LineString') return null;
-    const lats = theems.geometry.coordinates.map(c => c[1]);
-    const lons = theems.geometry.coordinates.map(c => c[0]);
-    return {
-      minLat: Math.min(...lats), maxLat: Math.max(...lats),
-      minLon: Math.min(...lons), maxLon: Math.max(...lons),
-      len: theems.geometry.coordinates.length,
-    };
-  });
-  expect(bounds).not.toBeNull();
-  // Theems loopt ongeveer van 51.35°N – 51.80°N, lon -2.0° tot +0.9°
-  expect(bounds.minLat).toBeGreaterThan(51.0);
-  expect(bounds.maxLat).toBeLessThan(52.5);
-  expect(bounds.minLon).toBeLessThan(-1.5);
-  expect(bounds.maxLon).toBeGreaterThan(0.4);
-  expect(bounds.len).toBeGreaterThan(50);
 });

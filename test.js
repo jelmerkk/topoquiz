@@ -871,6 +871,25 @@ SET74_RIVIEREN.forEach(naam => {
 expect('Rijn ook in set 57', ALL_WATERS.find(w => w.name === 'Rijn')?.sets?.includes(57));
 expect('Set 74 heeft 3 rivieren', ALL_WATERS.filter(w => w.sets?.includes(74)).length === 3);
 
+// Rijn/Elbe/Moezel als LineString in wateren.geojson met ruime geografische bounds.
+{
+  const fs = require('fs');
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  // Rijn: Zwitserland/Bodensee (<48) → Nederland (>51.5), >100 punten.
+  const rijn = gjW.features.find(f => f.properties.name === 'Rijn');
+  expect('Rijn LineString in wateren.geojson', rijn?.geometry.type === 'LineString');
+  const rijnLats = (rijn?.geometry.coordinates || []).map(c => c[1]);
+  expect('Rijn minLat < 48 (tot Zwitserland)', Math.min(...rijnLats) < 48);
+  expect('Rijn maxLat > 51.5 (tot NL)', Math.max(...rijnLats) > 51.5);
+  expect('Rijn heeft >100 punten', (rijn?.geometry.coordinates || []).length > 100);
+  // Elbe en Moezel: LineString met >100 punten.
+  for (const naam of ['Elbe','Moezel']) {
+    const f = gjW.features.find(x => x.properties.name === naam);
+    expect(`${naam} LineString in wateren.geojson`, f?.geometry.type === 'LineString');
+    expect(`${naam} heeft >100 punten`, (f?.geometry.coordinates || []).length > 100);
+  }
+}
+
 // clickResult met set 74 drempels
 expect('set 74: 59 km → correct', clickResult(59, 74) === 'correct');
 expect('set 74: 60 km → close',   clickResult(60, 74) === 'close');
@@ -919,6 +938,21 @@ SET75_WATEREN.forEach(naam => {
 });
 expect('Het Kanaal ook in set 73', ALL_WATERS.find(w => w.name === 'Het Kanaal')?.sets?.includes(73));
 expect('Set 75 heeft 3 wateren', ALL_WATERS.filter(w => w.sets?.includes(75)).length === 3);
+
+// Theems als LineString door Zuid-Engeland (51.0°-52.5°N, -2.0° tot +0.9°E).
+{
+  const fs = require('fs');
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const th = gjW.features.find(f => f.properties.name === 'Theems');
+  expect('Theems LineString in wateren.geojson', th?.geometry.type === 'LineString');
+  const coords = th?.geometry.coordinates || [];
+  const lats = coords.map(c => c[1]), lons = coords.map(c => c[0]);
+  expect('Theems minLat > 51.0', Math.min(...lats) > 51.0);
+  expect('Theems maxLat < 52.5', Math.max(...lats) < 52.5);
+  expect('Theems minLon < -1.5', Math.min(...lons) < -1.5);
+  expect('Theems maxLon > 0.4', Math.max(...lons) > 0.4);
+  expect('Theems heeft >50 punten', coords.length > 50);
+}
 
 // clickResult met set 75 drempels (60/180, identiek aan set 74)
 expect('set 75: 59 km → correct', clickResult(59, 75) === 'correct');
@@ -986,6 +1020,27 @@ SET76_WATEREN.forEach(naam => {
 });
 expect('Set 76 heeft 5 wateren', ALL_WATERS.filter(w => w.sets?.includes(76)).length === 5);
 
+// Donau als LineString met breed latbereik (DE/AT/HU).
+// Sicilië als polygoon in gewesten.geojson.
+{
+  const fs = require('fs');
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const donau = gjW.features.find(f => f.properties.name === 'Donau');
+  expect('Donau LineString in wateren.geojson', donau?.geometry.type === 'LineString');
+  const donauLats = (donau?.geometry.coordinates || []).map(c => c[1]);
+  expect('Donau minLat < 45', Math.min(...donauLats) < 45);
+  expect('Donau maxLat > 48', Math.max(...donauLats) > 48);
+  expect('Donau heeft >50 punten', (donau?.geometry.coordinates || []).length > 50);
+
+  const gjG = JSON.parse(fs.readFileSync('gewesten.geojson', 'utf8'));
+  const sic = gjG.features.find(f => f.properties.name === 'Sicilië');
+  expect('Sicilië in gewesten.geojson', !!sic);
+  const sicPts = sic?.geometry.type === 'MultiPolygon'
+    ? sic.geometry.coordinates.reduce((s, p) => s + p[0].length, 0)
+    : (sic?.geometry.coordinates?.[0].length ?? 0);
+  expect('Sicilië heeft >20 polygoon-punten', sicPts > 20);
+}
+
 // clickResult met set 76 drempels (60/180)
 expect('set 76: 59 km → correct', clickResult(59, 76) === 'correct');
 expect('set 76: 60 km → close',   clickResult(60, 76) === 'close');
@@ -1032,6 +1087,18 @@ expect('set 58: 99 km → correct', clickResult(99, 58) === 'correct');
 expect('set 58: 100 km → close',  clickResult(100, 58) === 'close');
 expect('set 58: 299 km → close',  clickResult(299, 58) === 'close');
 expect('set 58: 300 km → wrong',  clickResult(300, 58) === 'wrong');
+
+// Slovenië als polygoon in landen-europa.geojson (nieuw voor set 58).
+{
+  const fs = require('fs');
+  const gjE = JSON.parse(fs.readFileSync('landen-europa.geojson', 'utf8'));
+  const slo = gjE.features.find(f => f.properties.name === 'Slovenië');
+  expect('Slovenië in landen-europa.geojson', !!slo);
+  const sloPts = slo?.geometry.type === 'MultiPolygon'
+    ? slo.geometry.coordinates.reduce((s, p) => s + p[0].length, 0)
+    : (slo?.geometry.coordinates?.[0].length ?? 0);
+  expect('Slovenië heeft >10 polygoon-punten', sloPts > 10);
+}
 
 // ── Set 77 — Oost-Europa (issue #46) ────────────────────────
 
@@ -1098,6 +1165,34 @@ expect('set 77: 100 km → close',  clickResult(100, 77) === 'close');
 expect('set 77: 299 km → close',  clickResult(299, 77) === 'close');
 expect('set 77: 300 km → wrong',  clickResult(300, 77) === 'wrong');
 
+// Rusland binnen Europese bounds (geen dateline-wrap naar negatieve lons).
+// Dnjepr als LineString met breed latbereik (46°-55°N).
+{
+  const fs = require('fs');
+  const gjE = JSON.parse(fs.readFileSync('landen-europa.geojson', 'utf8'));
+  const rus = gjE.features.find(f => f.properties.name === 'Rusland');
+  expect('Rusland in landen-europa.geojson', !!rus);
+  const polys = rus?.geometry.type === 'MultiPolygon' ? rus.geometry.coordinates : [rus?.geometry.coordinates];
+  let rMinLon = Infinity, rMaxLon = -Infinity;
+  for (const poly of polys) {
+    for (const [lon] of poly[0]) {
+      if (lon < rMinLon) rMinLon = lon;
+      if (lon > rMaxLon) rMaxLon = lon;
+    }
+  }
+  // Na dateline-filter: oostelijkste punt rond 180°E, westelijkste ~19°E (Kaliningrad).
+  expect('Rusland minLon > -170 (geen dateline-wrap)', rMinLon > -170);
+  expect('Rusland maxLon > 100 (tot Siberië)', rMaxLon > 100);
+
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const dnj = gjW.features.find(f => f.properties.name === 'Dnjepr');
+  expect('Dnjepr LineString in wateren.geojson', dnj?.geometry.type === 'LineString');
+  const dnjLats = (dnj?.geometry.coordinates || []).map(c => c[1]);
+  expect('Dnjepr minLat < 48', Math.min(...dnjLats) < 48);
+  expect('Dnjepr maxLat > 54', Math.max(...dnjLats) > 54);
+  expect('Dnjepr heeft >50 punten', (dnj?.geometry.coordinates || []).length > 50);
+}
+
 // ── Set 78 — Noord-Europa (issue #47) ────────────────────────
 
 section('Set 78 — Noord-Europa');
@@ -1146,6 +1241,28 @@ SET78_WATEREN.forEach(naam => {
   expect(`${naam} in ALL_WATERS (set 78)`, !!w);
 });
 expect('Set 78 heeft 6 wateren', ALL_WATERS.filter(w => w.sets?.includes(78)).length === 6);
+
+// Scandinavische landen-polygonen met sets:[78] in landen-europa.geojson.
+// Sont-polygoon ligt in Øresund-bereik (55-56°N, 12-13°E).
+{
+  const fs = require('fs');
+  const gjE = JSON.parse(fs.readFileSync('landen-europa.geojson', 'utf8'));
+  for (const naam of ['Noorwegen','Zweden','Finland','Denemarken']) {
+    const f = gjE.features.find(x => x.properties.name === naam);
+    expect(`${naam} polygoon in landen-europa.geojson`, !!f);
+    expect(`${naam} sets bevat 78`, f?.properties.sets?.includes(78));
+  }
+
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const sont = gjW.features.find(f => f.properties.name === 'Sont');
+  expect('Sont in wateren.geojson', !!sont);
+  const sontCoords = sont?.geometry.coordinates[0] || [];
+  const sontLons = sontCoords.map(c => c[0]), sontLats = sontCoords.map(c => c[1]);
+  expect('Sont minLon > 11', Math.min(...sontLons) > 11);
+  expect('Sont maxLon < 14', Math.max(...sontLons) < 14);
+  expect('Sont minLat > 55', Math.min(...sontLats) > 55);
+  expect('Sont maxLat < 57', Math.max(...sontLats) < 57);
+}
 
 // ── Set 79 — Zuidoost-Europa (issue #48) ─────────────────────
 
@@ -1201,6 +1318,37 @@ SET79_WATEREN.forEach(naam => {
   expect(`${naam} in ALL_WATERS (set 79)`, !!w);
 });
 expect('Set 79 heeft 2 wateren', ALL_WATERS.filter(w => w.sets?.includes(79)).length === 2);
+
+// Griekenland in landen-europa.geojson, Kreta in gewesten.geojson, Bosporus in wateren.geojson.
+{
+  const fs = require('fs');
+  const gjE = JSON.parse(fs.readFileSync('landen-europa.geojson', 'utf8'));
+  const gr = gjE.features.find(x => x.properties.name === 'Griekenland');
+  expect('Griekenland in landen-europa.geojson', !!gr);
+  expect('Griekenland sets bevat 79', gr?.properties.sets?.includes(79));
+
+  const gjG = JSON.parse(fs.readFileSync('gewesten.geojson', 'utf8'));
+  const kreta = gjG.features.find(x => x.properties.name === 'Kreta');
+  expect('Kreta in gewesten.geojson', !!kreta);
+  expect('Kreta sets bevat 79', kreta?.properties.sets?.includes(79));
+  const kCoords = kreta?.geometry.coordinates[0] || [];
+  const kLats = kCoords.map(c => c[1]), kLons = kCoords.map(c => c[0]);
+  // Kreta grofweg 34.8°-35.7°N en 23.5°-26.3°E.
+  expect('Kreta minLat > 34.5', Math.min(...kLats) > 34.5);
+  expect('Kreta maxLat < 36',   Math.max(...kLats) < 36);
+  expect('Kreta minLon > 23',   Math.min(...kLons) > 23);
+  expect('Kreta maxLon < 27',   Math.max(...kLons) < 27);
+
+  const gjW = JSON.parse(fs.readFileSync('wateren.geojson', 'utf8'));
+  const bos = gjW.features.find(f => f.properties.name === 'Bosporus');
+  expect('Bosporus in wateren.geojson', !!bos);
+  const bCoords = bos?.geometry.coordinates[0] || [];
+  const bLats = bCoords.map(c => c[1]), bLons = bCoords.map(c => c[0]);
+  const bCy = (Math.min(...bLats) + Math.max(...bLats)) / 2;
+  const bCx = (Math.min(...bLons) + Math.max(...bLons)) / 2;
+  expect('Bosporus centrum lat tussen 40.8 en 41.4', bCy > 40.8 && bCy < 41.4);
+  expect('Bosporus centrum lon tussen 28.8 en 29.4', bCx > 28.8 && bCx < 29.4);
+}
 
 // ── Set 81 — Zuid-Amerika (8.1) ───────────────────────────────
 
@@ -1276,6 +1424,15 @@ expect('Set 81 heeft 1 water', ALL_WATERS.filter(w => w.sets?.includes(81)).leng
   expect('Amazone in wateren.geojson', !!f);
   expect('Amazone is LineString', f?.geometry.type === 'LineString');
   expect('Amazone sets bevat 81', f?.properties.sets?.includes(81));
+  // Amazone loopt west→oost (Andes ~-73°W → Atlantische Oceaan ~-52°W),
+  // bij de evenaar (-8°S ... +3°N), minstens 50 punten na simplificatie.
+  const coords = f?.geometry.coordinates || [];
+  const lats = coords.map(c => c[1]), lons = coords.map(c => c[0]);
+  expect('Amazone start westelijker dan eind (W→O)',
+    coords[0][0] < coords[coords.length-1][0]);
+  expect('Amazone lat boven -8°S', Math.min(...lats) > -8);
+  expect('Amazone lat onder +3°N', Math.max(...lats) < 3);
+  expect('Amazone heeft >50 punten', coords.length > 50);
 }
 
 // ── Set 82 — Afrika (8.2) ─────────────────────────────────────
@@ -1370,6 +1527,20 @@ expect('Set 82 heeft 7 wateren', ALL_WATERS.filter(w => w.sets?.includes(82)).le
     if (lat >= 4 && lat <= 10 && back > maxSuddBack) maxSuddBack = back;
   }
   expect('Nijl backtrack in Sudd (4-10°N) < 0.3°', maxSuddBack < 0.3);
+
+  // Nijl stroomt zuid→noord: eindpunt (delta) minstens 10° noordelijker dan bron.
+  expect('Nijl eindpunt > bron + 10° lat (N-stroming)',
+    coords[coords.length - 1][1] - coords[0][1] > 10);
+
+  // Victoriameer centroïde op evenaar (−3°–+1°N, 31°–36°E).
+  const vmFeat = gj.features.find(x => x.properties.name === 'Victoriameer' && x.properties.sets?.includes(82));
+  const vmRings = vmFeat?.geometry.type === 'Polygon' ? vmFeat.geometry.coordinates : vmFeat?.geometry.coordinates[0];
+  const vmCoords = vmRings?.[0] || [];
+  const vmLats = vmCoords.map(c => c[1]), vmLons = vmCoords.map(c => c[0]);
+  const vmCy = (Math.min(...vmLats) + Math.max(...vmLats)) / 2;
+  const vmCx = (Math.min(...vmLons) + Math.max(...vmLons)) / 2;
+  expect('Victoriameer centroïde tussen -3° en 1° lat', vmCy > -3 && vmCy < 1);
+  expect('Victoriameer centroïde tussen 31° en 36° lon', vmCx > 31 && vmCx < 36);
 }
 
 // ── Set 83 — Noord- en Midden-Amerika (8.3) ──────────────────
@@ -1476,6 +1647,22 @@ expect('Set 83 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(83)).le
   if (miss) {
     const c = miss.geometry.coordinates;
     expect('Mississippi start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+    // Span moet > 10° latitude zijn (~18° totaal).
+    expect('Mississippi span > 10° latitude', c[0][1] - c[c.length-1][1] > 10);
+  }
+  // Rio Grande stroomt NW→ZO: bron ~37°N/-106°W, monding ~26°N/-97°W.
+  const rg = gj.features.find(x => x.properties.name === 'Rio Grande' && x.properties.sets?.includes(83));
+  if (rg) {
+    const c = rg.geometry.coordinates;
+    expect('Rio Grande start noordelijker dan eind', c[0][1] > c[c.length-1][1]);
+    expect('Rio Grande start westelijker dan eind', c[0][0] < c[c.length-1][0]);
+  }
+  // Panamakanaal: korte LineString Colón (~9.3°N) → Panama-Stad (~9.0°N).
+  const pan = gj.features.find(x => x.properties.name === 'Panamakanaal' && x.properties.sets?.includes(83));
+  if (pan) {
+    const c = pan.geometry.coordinates;
+    expect('Panamakanaal start noordelijker dan eind', c[0][1] > c[c.length-1][1]);
+    expect('Panamakanaal startLat tussen 8.5 en 10', c[0][1] > 8.5 && c[0][1] < 10);
   }
 }
 
@@ -1525,6 +1712,8 @@ const set84Capitals = ALL_CITIES.filter(c => c.sets?.includes(84) && c.capital);
 expect('Set 84 heeft 12 hoofdsteden', set84Capitals.length === 12);
 const mekka = ALL_CITIES.find(c => c.name === 'Mekka' && c.sets?.includes(84));
 expect('Mekka is geen hoofdstad', !mekka?.capital);
+// Mekka ~21.4°N/39.8°E.
+expect('Mekka lat tussen 20 en 23', mekka?.lat > 20 && mekka?.lat < 23);
 
 // Geen gewesten of gebieden — opdrachtblad heeft geen province-fase.
 expect('Set 84 heeft 0 regio\'s in ALL_PROVINCES',
@@ -1563,10 +1752,11 @@ expect('Set 84 heeft 8 wateren', ALL_WATERS.filter(w => w.sets?.includes(84)).le
   const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'wateren.geojson'), 'utf8'));
   const euf = gj.features.find(x => x.properties.name === 'Eufraat' && x.properties.sets?.includes(84));
   expect('Eufraat LineString in wateren.geojson (set 84)', euf?.geometry.type === 'LineString');
-  // Eufraat stroomt NO → ZO (Turkije ~39°N → Shatt al-Arab ~31°N).
+  // Eufraat stroomt NW → ZO (Turkije ~39°N/40°E → Shatt al-Arab ~31°N/47°E).
   if (euf) {
     const c = euf.geometry.coordinates;
     expect('Eufraat start noordelijker dan eind (N→Z)', c[0][1] > c[c.length-1][1]);
+    expect('Eufraat start westelijker dan eind (W→O)', c[0][0] < c[c.length-1][0]);
   }
   const suez = gj.features.find(x => x.properties.name === 'Suezkanaal');
   expect('Suezkanaal sets bevat 82', suez?.properties.sets?.includes(82));
@@ -1729,6 +1919,9 @@ expect('Set 86 heeft 14 steden', ALL_CITIES.filter(c => c.sets?.includes(86)).le
 // 5 hoofdsteden: Beijing, Tokyo, Ulaanbaatar, Pyongyang, Seoul.
 const set86Capitals = ALL_CITIES.filter(c => c.sets?.includes(86) && c.capital);
 expect('Set 86 heeft 5 hoofdsteden', set86Capitals.length === 5);
+expect('Set 86 hoofdsteden correct (sorted)',
+  JSON.stringify(set86Capitals.map(c => c.name).sort()) ===
+  JSON.stringify(['Beijing','Pyongyang','Seoul','Tokyo','Ulaanbaatar']));
 
 // Moskou en Taipei staan niet in opdrachtblad.
 expect('Geen Moskou in set 86',
@@ -1748,6 +1941,8 @@ SET86_GEBIEDEN.forEach(naam => {
   expect(`${naam} kind === gebied`,  g?.kind === 'gebied');
 });
 expect('Set 86 heeft 3 gebieden', ALL_PROVINCES.filter(p => p.sets?.includes(86)).length === 3);
+// Taiwan is land, geen gebied (niet in ALL_PROVINCES).
+expect('Taiwan niet in ALL_PROVINCES', !ALL_PROVINCES.find(p => p.name === 'Taiwan'));
 
 SET86_WATEREN.forEach(naam => {
   const w = ALL_WATERS.find(x => x.name === naam && x.sets?.includes(86));
@@ -1776,6 +1971,14 @@ expect('Set 86 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(86)).le
   const countPts = (g) => g.type === 'Polygon' ? g.coordinates.reduce((n,r)=>n+r.length,0)
                                                : g.coordinates.reduce((n,p)=>n+p.reduce((nn,r)=>nn+r.length,0),0);
   expect('Rusland heeft ≥2000 pts (volledige polygoon)', countPts(rus.geometry) >= 2000);
+  // Kaliningrad-enclave moet meegenomen zijn (min lon < 25°E, ~20°E).
+  let minLon = Infinity;
+  const walkLon = (arr) => {
+    if (typeof arr[0] === 'number') { if (arr[0] < minLon) minLon = arr[0]; }
+    else arr.forEach(walkLon);
+  };
+  walkLon(rus.geometry.coordinates);
+  expect('Rusland bevat Kaliningrad (minLon < 25)', minLon < 25);
 }
 
 // Huang He + Chang Jiang als LineString, beide W→O.
@@ -1868,6 +2071,16 @@ for (const naam of ['Myanmar','Thailand','Vietnam','Cambodja','Laos',
   expect(`${naam} polygoon in landen-zuidoost-azie.geojson`, !!f);
   expect(`${naam} sets bevat 87`, f?.properties.sets?.includes(87));
 }
+// Indonesië strekt zich uit tot Papoea (~141°E bij PNG-grens).
+const indo = landGj87.features.find(x => x.properties.name === 'Indonesië');
+expect('Indonesië is MultiPolygon', indo?.geometry.type === 'MultiPolygon');
+let indoMaxLon = -Infinity;
+const walkIndo = (arr) => {
+  if (typeof arr[0] === 'number') { if (arr[0] > indoMaxLon) indoMaxLon = arr[0]; }
+  else arr.forEach(walkIndo);
+};
+walkIndo(indo.geometry.coordinates);
+expect('Indonesië reikt tot > 135°E (Papoea)', indoMaxLon > 135);
 }
 
 // ── Set 88 — Australië en Oceanië (8.8) ─────────────────────────
@@ -1950,6 +2163,16 @@ for (const naam of ['Australië','Nieuw-Zeeland','Papoea-Nieuw-Guinea']) {
   expect(`${naam} polygoon in landen-oceanie.geojson`, !!f);
   expect(`${naam} sets bevat 88`, f?.properties.sets?.includes(88));
 }
+// Australië reikt tot Tasmanië (zuidkust ~-43.6°S).
+const aus = landGj88.features.find(x => x.properties.name === 'Australië');
+expect('Australië is MultiPolygon', aus?.geometry.type === 'MultiPolygon');
+let ausMinLat = Infinity;
+const walkAus = (arr) => {
+  if (typeof arr[0] === 'number') { if (arr[1] < ausMinLat) ausMinLat = arr[1]; }
+  else arr.forEach(walkAus);
+};
+walkAus(aus.geometry.coordinates);
+expect('Australië reikt tot < -40°S (Tasmanië)', ausMinLat < -40);
 
 const gebGj = JSON.parse(fs.readFileSync('gebieden-oceanie.geojson', 'utf8'));
 expect('gebieden-oceanie.geojson heeft 2 features', gebGj.features.length === 2);
@@ -2052,6 +2275,15 @@ for (const naam of ['Cuba','Jamaica','Haïti','Dominicaanse Republiek',
   expect(`${naam} polygoon in landen-midden-amerika.geojson`, !!f);
   expect(`${naam} sets bevat 89`, f?.properties.sets?.includes(89));
 }
+// Cuba reikt noordelijk tot ~23°N.
+const cuba = landGj89.features.find(x => x.properties.name === 'Cuba');
+let cubaMaxLat = -Infinity;
+const walkCuba = (arr) => {
+  if (typeof arr[0] === 'number') { if (arr[1] > cubaMaxLat) cubaMaxLat = arr[1]; }
+  else arr.forEach(walkCuba);
+};
+walkCuba(cuba.geometry.coordinates);
+expect('Cuba reikt tot > 22°N (noord)', cubaMaxLat > 22);
 
 const eilGj89 = JSON.parse(fs.readFileSync('eilanden-midden-amerika.geojson', 'utf8'));
 expect('eilanden-midden-amerika.geojson heeft 6 features', eilGj89.features.length === 6);
