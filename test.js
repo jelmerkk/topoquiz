@@ -2371,6 +2371,146 @@ function makeNearbyDistractors(activeCities, globalPool) {
     !got.some(c => c.name === 'Z'));
 }
 
+// ── SETS — behavior snapshot (regressie-oracle voor #93) ──────────────────────
+//
+// Eén frozen snapshot per set van alle velden die consumenten in index.html
+// lezen. Doel: elke drift tijdens #93 (SETS → discriminated union) is direct
+// zichtbaar als een falende assertion, niet als een subtiele Playwright-miss.
+//
+// Bij commit 1/2/4 (pure refactor) moet deze snapshot onveranderd blijven.
+// Bij commit 3 (clickResult normalisatie) is drift verwacht — snapshot in
+// dezelfde commit expliciet bijwerken.
+
+section('SETS — behavior snapshot (regressie-oracle voor #93)');
+
+// Let op: dit is de GEWENSTE snapshot — embedded literal, geen compute uit
+// SETS. Drift vs huidige SETS = test rood = expliciete review nodig.
+const SETS_BEHAVIOR_SNAPSHOT = {
+  54: { name: '5.4 – Provincies',                    quizTypes: ['province'],                         group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  55: { name: '5.5 – Provinciehoofdsteden',          quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  56: { name: '5.6 – Grote steden',                  quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  57: { name: '5.7 – Wateren',                       quizTypes: ['water'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  58: { name: '5.8 – Onze buren',                    quizTypes: ['country','place'],                  group: 5,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 2 },
+  61: { name: '6.1 – Overijssel',                    quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  62: { name: '6.2 – Zeeland',                       quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  63: { name: '6.3 – Groningen en Drenthe',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  64: { name: '6.4 – Flevoland en Utrecht',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  65: { name: '6.5 – Noord-Brabant en Limburg',      quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  66: { name: '6.6 – Zuid-Holland',                  quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  67: { name: '6.7 – Noord-Holland',                 quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  71: { name: '7.1 – Landen en hoofdsteden',         quizTypes: ['country','place'],                  group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 2 },
+  72: { name: '7.2 – België en Luxemburg',           quizTypes: ['province','place','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 40,  clickCloseKm: 120, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  73: { name: '7.3 – Frankrijk, Spanje en Portugal', quizTypes: ['place','province','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 80,  clickCloseKm: 240, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  74: { name: '7.4 – Duitsland',                     quizTypes: ['place','province','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 60,  clickCloseKm: 180, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  75: { name: '7.5 – Verenigd Koninkrijk en Ierland',quizTypes: ['province','place','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 60,  clickCloseKm: 180, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  76: { name: '7.6 – Midden-Europa en Italië',       quizTypes: ['place','province','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 60,  clickCloseKm: 180, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  77: { name: '7.7 – Oost-Europa',                   quizTypes: ['country','place','province','water'], group: 7,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  78: { name: '7.8 – Noord-Europa',                  quizTypes: ['country','place','province','water'], group: 7,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  79: { name: '7.9 – Zuidoost-Europa',               quizTypes: ['country','place','province','water'], group: 7,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  81: { name: '8.1 – Zuid-Amerika',                  quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  82: { name: '8.2 – Afrika',                        quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  83: { name: '8.3 – Noord- en Midden-Amerika',      quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  84: { name: '8.4 – Midden-Oosten',                 quizTypes: ['country','place','water'],          group: 8,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
+  85: { name: '8.5 – Zuid-Azië',                     quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  86: { name: '8.6 – Oost-Azië',                     quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  87: { name: '8.7 – Zuidoost-Azië',                 quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  88: { name: '8.8 – Australië en Oceanië',          quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 250, clickCloseKm: 700, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  89: { name: '8.9 – Midden-Amerika en Caraïben',    quizTypes: ['country','place','province','water'], group: 8,  fitOnStart: false, hasBounds: true,  clickCorrectKm: 150, clickCloseKm: 400, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 4 },
+  98: { name: '📅 Uitdaging van vandaag',            quizTypes: 'mixed',                              group: null, fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1,    isMixed: true,  isDaily: true,  isBonus: false, phaseCount: 0 },
+  99: { name: 'Bonus: door elkaar',                  quizTypes: 'mixed',                              group: null, fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1,    isMixed: true,  isDaily: false, isBonus: true,  phaseCount: 0 },
+};
+
+function computeSetSnapshot(set) {
+  const quizTypes = set.phases
+    ? set.phases.map(p => p.quizType)
+    : (set.daily || set.bonus)
+      ? 'mixed'
+      : [set.quizType];
+  return {
+    name: set.name,
+    quizTypes,
+    group: set.group ?? null,
+    fitOnStart: !!set.fitOnStart,
+    hasBounds: !!set.bounds,
+    clickCorrectKm: set.clickCorrectKm ?? (set.fitOnStart ? 10 : 20),
+    clickCloseKm:   set.clickCloseKm   ?? (set.fitOnStart ? 30 : 60),
+    mastery: set.mastery ?? null,
+    isMixed: !!(set.daily || set.bonus),
+    isDaily: !!set.daily,
+    isBonus: !!set.bonus,
+    phaseCount: set.phases?.length ?? 0,
+  };
+}
+
+function deepEqual(a, b) {
+  if (a === b) return true;
+  if (typeof a !== typeof b) return false;
+  if (a && b && typeof a === 'object') {
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    const ka = Object.keys(a), kb = Object.keys(b);
+    if (ka.length !== kb.length) return false;
+    return ka.every(k => deepEqual(a[k], b[k]));
+  }
+  return false;
+}
+
+const snapshotKeys = Object.keys(SETS_BEHAVIOR_SNAPSHOT).map(Number);
+const actualKeys = Object.keys(SETS).map(Number).sort((a,b) => a - b);
+const expectedKeys = snapshotKeys.sort((a,b) => a - b);
+
+expect('SETS bevat exact de gesnapshotte set-nummers',
+  deepEqual(actualKeys, expectedKeys),
+  `verwacht [${expectedKeys}], was [${actualKeys}]`);
+
+for (const n of expectedKeys) {
+  const expected = SETS_BEHAVIOR_SNAPSHOT[n];
+  const actual = computeSetSnapshot(SETS[n]);
+  for (const k of Object.keys(expected)) {
+    expect(`set ${n}.${k} matcht snapshot`,
+      deepEqual(actual[k], expected[k]),
+      `verwacht ${JSON.stringify(expected[k])}, was ${JSON.stringify(actual[k])}`);
+  }
+}
+
+// Counts per categorie — vangt per-ongeluk toevoegen/verwijderen van sets.
+const simpleCount  = expectedKeys.filter(n => !SETS_BEHAVIOR_SNAPSHOT[n].isMixed && SETS_BEHAVIOR_SNAPSHOT[n].phaseCount === 0).length;
+const phasedCount  = expectedKeys.filter(n => SETS_BEHAVIOR_SNAPSHOT[n].phaseCount > 0).length;
+const mixedCount   = expectedKeys.filter(n => SETS_BEHAVIOR_SNAPSHOT[n].isMixed).length;
+expect('11 simple sets',     simpleCount === 11, `was ${simpleCount}`);
+expect('19 phased sets',     phasedCount === 19, `was ${phasedCount}`);
+expect('2 dailyBonus sets',  mixedCount === 2,   `was ${mixedCount}`);
+
+// ── clickResult golden — per-set exacte drempels ──────────────────────────────
+//
+// Gaten in bestaande coverage: 55, 56, 57, 62–67, 71, 72, 78, 79, 81–89.
+// Voor elke set 5 boundary-checks: 0 → correct, (correct-1) → correct,
+// correct → close, (close-1) → close, close → wrong. Catcht elke per-set
+// drempel-drift na #93 commit 3 (clickResult normalisatie).
+
+section('clickResult() — golden thresholds per set');
+
+const CLICK_GOLDEN = {
+  54: [20, 60],   55: [20, 60],   56: [20, 60],   57: [20, 60],
+  58: [100, 300],
+  61: [10, 30],   62: [10, 30],   63: [10, 30],   64: [10, 30],
+  65: [10, 30],   66: [10, 30],   67: [10, 30],
+  71: [100, 300], 72: [40, 120],  73: [80, 240],  74: [60, 180],
+  75: [60, 180],  76: [60, 180],  77: [100, 300], 78: [100, 300], 79: [100, 300],
+  81: [250, 700], 82: [250, 700], 83: [250, 700], 84: [250, 700],
+  85: [250, 700], 86: [250, 700], 87: [250, 700], 88: [250, 700],
+  89: [150, 400],
+  98: [20, 60],   99: [20, 60],
+};
+
+for (const [n, [cor, close]] of Object.entries(CLICK_GOLDEN)) {
+  const setNum = Number(n);
+  expect(`set ${n}: 0 km → correct`,            clickResult(0, setNum) === 'correct');
+  expect(`set ${n}: ${cor - 1} km → correct`,   clickResult(cor - 1, setNum) === 'correct');
+  expect(`set ${n}: ${cor} km → close`,         clickResult(cor, setNum) === 'close');
+  expect(`set ${n}: ${close - 1} km → close`,   clickResult(close - 1, setNum) === 'close');
+  expect(`set ${n}: ${close} km → wrong`,       clickResult(close, setNum) === 'wrong');
+}
+
 // ── Samenvatting ──────────────────────────────────────────────
 
 console.log(`\n${'─'.repeat(44)}`);
