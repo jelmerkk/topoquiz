@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.18.7">
+<meta name="version" content="2.18.8">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -908,12 +908,6 @@ function initLevel(setNumber) {
         const saved = JSON.parse(sessionStorage.getItem(`qp_${setNumber}_${gameMode}`));
         if (saved?.bonusCities) {
           items = saved.bonusCities.map(x => {
-            // Backwards-compat: oude opslag was array van strings (alleen steden).
-            if (typeof x === 'string') {
-              const c = ALL_CITIES.find(cc => cc.name === x);
-              if (c) c._itemType = 'place';
-              return c;
-            }
             const pool = poolForType(x._itemType, g);
             const found = pool.find(p => p.name === x.name);
             if (found) found._itemType = x._itemType;
@@ -1651,7 +1645,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.18.7';
+const APP_VERSION = 'v2.18.8';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
