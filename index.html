@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.21.0">
+<meta name="version" content="2.22.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -128,9 +128,12 @@
   <ul id="hard-list"></ul>
 </div>
 
-<!-- Fase-overgangsscherm: toont kort "🎉 Landen af! Nu: Hoofdsteden →" tussen fases -->
-<div id="phase-transition" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,0.95);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-  <div id="phase-transition-text" style="font-size:1.6rem;color:#fff;text-align:center;padding:24px;line-height:1.4"></div>
+<!-- Fase-overgangsscherm (#102 Routekaart-refresh): full-screen intermission met
+     paper-card op zand-bg, Luckiest Guy kop + body-tekst, geen mascotte. -->
+<div id="phase-transition">
+  <div id="phase-transition-card">
+    <div id="phase-transition-text"></div>
+  </div>
 </div>
 
 <div id="end-screen">
@@ -1403,7 +1406,9 @@ function updateScoreboard() {
 function showPhaseTransition(fromPhase, toPhase, onDone) {
   const el   = document.getElementById('phase-transition');
   const text = document.getElementById('phase-transition-text');
-  text.innerHTML = `🎉 <strong>${fromPhase.label}</strong> af!<br>Nu: ${toPhase.label} →`;
+  // #102: nieuwe Routekaart-tekst. <strong> krijgt grass-accent, .pt-next
+  // is de body-regel onder de kop.
+  text.innerHTML = `<strong>${fromPhase.label}</strong> af!<span class="pt-next">Volgende fase: ${toPhase.label}</span>`;
   el.style.display = 'flex';
   setTimeout(() => {
     el.style.display = 'none';
@@ -1589,6 +1594,10 @@ function showEnd() {
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
   applyVisibility('end');
+  // #102: body.on-end → zand-bg + plain title-bar op end-scherm.
+  document.body.classList.remove('on-home');
+  document.body.classList.remove('on-mode-select');
+  document.body.classList.add('on-end');
   const total = cumulativeOk + cumulativeErr;
   const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
@@ -1778,9 +1787,11 @@ function _renderModeSelect(setNumber) {
 
   applyVisibility('mode-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
-  // #99: mode-select gebruikt nog de legacy dark-blue stijl (refresh in #101),
-  // dus body.on-home afzetten → dark-blue bg + zichtbare #title-bar terug.
+  // #114: mode-select in Routekaart-stijl — zand-bg + plain title-bar.
+  // on-home af (dan krijgt title-bar ook de nieuwe plain-look).
   document.body.classList.remove('on-home');
+  document.body.classList.remove('on-end');
+  document.body.classList.add('on-mode-select');
 
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
 
@@ -1834,7 +1845,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.21.0';
+const APP_VERSION = 'v2.22.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1913,6 +1924,8 @@ function _renderStartScreen() {
   closeQuizMenu();
   // #99: body.on-home schakelt zand-bg in en onderdrukt de dark-blue
   // #title-bar — .home-header is nu de visuele titel.
+  document.body.classList.remove('on-mode-select');
+  document.body.classList.remove('on-end');
   document.body.classList.add('on-home');
   _renderLevelSelect();
 }
@@ -1926,8 +1939,11 @@ function showStartScreen() {
 
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
-  // #99: quiz gebruikt nog de legacy dark-blue stijl; on-home afzetten.
+  // Body-scope resetten: quiz gebruikt zijn eigen body.in-quiz (elders
+  // getoggled via applyVisibility). Home- en mode-select-scopes af.
   document.body.classList.remove('on-home');
+  document.body.classList.remove('on-mode-select');
+  document.body.classList.remove('on-end');
   // #94: history-entry schrijft router.navigate('quiz', ...). Inline onclick-
   // handlers op mode-knoppen en dev-menu roepen startQuiz nu via de router;
   // resetQuiz roept direct aan (geen nieuwe entry — zelfde quiz).
@@ -2033,7 +2049,8 @@ async function startQuiz(mode, startPhase = 0) {
     else if (_set.fitOnStart)
       map.fitBounds(L.latLngBounds(activeCities.map(c => [c.lat, c.lon])), { padding: [40, 40], maxZoom: 11 });
     else
-      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
+      // Provincies: +1 zoomlevel (NL past strakker in beeld dan met maxZoom 8).
+      map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: _set.quizType === 'province' ? 9 : 8 });
   });
   // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
   document.getElementById('qtot').textContent = activeCities.length;
