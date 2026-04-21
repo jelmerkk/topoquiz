@@ -27,10 +27,13 @@
 }
 .home-title {
   font-family: var(--font-display);
-  font-size: var(--fs-22);
+  font-size: var(--fs-30);
   letter-spacing: var(--letter-display);
   color: var(--color-ink);
   line-height: 1.0;
+}
+@media (min-width: 768px) {
+  .home-title { font-size: var(--fs-46); }
 }
 .home-subtitle {
   font-family: var(--font-body);
@@ -88,18 +91,17 @@
   overflow: hidden;           /* header-gradient mag niet uit de chunky rand lopen */
   text-align: center;
 }
-/* Body-sections krijgen padding; de header heeft 'm al via .home-header. */
-#level-select > :not(.home-header) {
-  margin-left: 18px;
-  margin-right: 18px;
+/* .home-body bevat alle niet-header-content met nette horizontale padding.
+   Voorkomt het margin+width:100%-overflow-patroon dat ontstond met children
+   die zichzelf 100% breed maken. */
+.home-body {
+  padding: 14px 18px 18px;
 }
-#level-select > .home-intro { margin-top: 14px; }
-#level-select > :last-child { margin-bottom: 18px; }
-#level-select h2 {
-  /* Tests checken 'Topografie Quiz'; visueel vervangen door .home-title in header.
-     h2 zelf staat IN .home-header (text equals) en wordt via .home-title gestyled. */
-  all: unset;                /* reset default h2-styling; .home-title doet de look */
-  display: block;
+#level-select h2.home-title {
+  /* Reset default h2-size/-weight (browser-defaults), de .home-title-regels
+     hieronder bepalen de look. Specificiteit hoger dan #level-select h2. */
+  margin: 0;
+  font-weight: 400;
 }
 .home-intro {
   margin: 12px 0 14px;

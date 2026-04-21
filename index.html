@@ -1679,7 +1679,7 @@ function _trackQuiz(action) {
 
 function _renderLevelSelect() {
   const el = document.getElementById('level-select');
-  // Routekaart-refresh (#99): sky-gradient header met titel + dummy XP-visual.
+  // Routekaart-refresh (#99): sky-gradient header + content-body in één render.
   // XP-bar is puur versiering; echte XP-logica komt in #104.
   // h2-tekst "Topografie Quiz" wordt door Playwright gecheckt (navigation.spec).
   el.innerHTML = `
@@ -1693,7 +1693,9 @@ function _renderLevelSelect() {
         <div class="home-xp-bar"></div>
       </div>
     </div>
+    <div class="home-body"></div>
   `;
+  const body = el.querySelector('.home-body');
 
   // Groep-selectieknoppen
   const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
@@ -1701,7 +1703,7 @@ function _renderLevelSelect() {
     const hint = document.createElement('p');
     hint.className = 'group-hint';
     hint.textContent = 'Kies je groep om te beginnen';
-    el.appendChild(hint);
+    body.appendChild(hint);
   }
   const groupWrap = document.createElement('div');
   groupWrap.className = 'group-select' + (!selectedGroup ? ' no-selection' : '');
@@ -1715,7 +1717,7 @@ function _renderLevelSelect() {
     };
     groupWrap.appendChild(btn);
   });
-  el.appendChild(groupWrap);
+  body.appendChild(groupWrap);
 
   Object.entries(SETS).forEach(([num, set]) => {
     // Daily/bonus (#80): toon alleen als er een format voor de gekozen groep is.
@@ -1729,7 +1731,7 @@ function _renderLevelSelect() {
       btn.className = 'mode-btn ' + (isDaily ? 'daily-btn' : 'bonus-btn');
       btn.textContent = isDaily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
       btn.onclick = () => selectLevel(Number(num));
-      el.appendChild(btn);
+      body.appendChild(btn);
       return;
     }
     // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
@@ -1744,17 +1746,17 @@ function _renderLevelSelect() {
       btn.appendChild(tag);
     }
     btn.onclick = () => selectLevel(Number(num));
-    el.appendChild(btn);
+    body.appendChild(btn);
   });
   // Installeerknop
   const installBtn = document.createElement('button');
   installBtn.id = 'install-btn';
   installBtn.textContent = '📲 Voeg toe aan beginscherm';
   installBtn.onclick = handleInstall;
-  el.appendChild(installBtn);
+  body.appendChild(installBtn);
   const tooltip = document.createElement('div');
   tooltip.id = 'install-tooltip';
-  el.appendChild(tooltip);
+  body.appendChild(tooltip);
   updateInstallButton();
   // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
   // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
@@ -1768,6 +1770,9 @@ function _renderModeSelect(setNumber) {
 
   applyVisibility('mode-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
+  // #99: mode-select gebruikt nog de legacy dark-blue stijl (refresh in #101),
+  // dus body.on-home afzetten → dark-blue bg + zichtbare #title-bar terug.
+  document.body.classList.remove('on-home');
 
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
 
@@ -1898,6 +1903,9 @@ function _renderStartScreen() {
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
   document.getElementById('menu-btn').style.display = 'none';
   closeQuizMenu();
+  // #99: body.on-home schakelt zand-bg in en onderdrukt de dark-blue
+  // #title-bar — .home-header is nu de visuele titel.
+  document.body.classList.add('on-home');
   _renderLevelSelect();
 }
 
@@ -1910,6 +1918,8 @@ function showStartScreen() {
 
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
+  // #99: quiz gebruikt nog de legacy dark-blue stijl; on-home afzetten.
+  document.body.classList.remove('on-home');
   // #94: history-entry schrijft router.navigate('quiz', ...). Inline onclick-
   // handlers op mode-knoppen en dev-menu roepen startQuiz nu via de router;
   // resetQuiz roept direct aan (geen nieuwe entry — zelfde quiz).
