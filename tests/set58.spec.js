@@ -1,8 +1,8 @@
 /**
  * Set 58 — Onze buren (Geobas 5, hoofdstuk 8)
  *
- * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
- * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
+ * Data-assertion (Slovenië polygon) is gemigreerd naar test.js. Alleen de
+ * UI-regressietest voor de zichtbaarheid van de country-laag blijft hier.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -34,19 +34,4 @@ test('set 58 — fase 1: land-polygoon is zichtbaar op de kaart', async ({ page 
   );
   const layerCount = await page.evaluate(() => Object.keys(polygonTypes.country.layers).length);
   expect(layerCount).toBeGreaterThanOrEqual(1);
-});
-
-test('set 58 — Slovenië is een polygoon in landen-europa.geojson', async ({ page }) => {
-  await page.goto('/');
-  const found = await page.evaluate(async () => {
-    const data = await fetch('/landen-europa.geojson').then(r => r.json());
-    const slo = data.features.find(f => f.properties.name === 'Slovenië');
-    if (!slo) return null;
-    const pts = slo.geometry.type === 'MultiPolygon'
-      ? slo.geometry.coordinates.reduce((s, p) => s + p[0].length, 0)
-      : slo.geometry.coordinates[0].length;
-    return { type: slo.geometry.type, pts };
-  });
-  expect(found).not.toBeNull();
-  expect(found.pts).toBeGreaterThan(10);
 });
