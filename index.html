@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.19.4">
+<meta name="version" content="2.20.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1679,7 +1679,23 @@ function _trackQuiz(action) {
 
 function _renderLevelSelect() {
   const el = document.getElementById('level-select');
-  el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
+  // Routekaart-refresh (#99): sky-gradient header + content-body in één render.
+  // XP-bar is puur versiering; echte XP-logica komt in #104.
+  // h2-tekst "Topografie Quiz" wordt door Playwright gecheckt (navigation.spec).
+  el.innerHTML = `
+    <div class="home-header">
+      <div class="home-header-text">
+        <h2 class="home-title"><span class="home-title-emoji" aria-hidden="true">🗺️ </span>Topografie Quiz</h2>
+        <p class="home-subtitle">Oefen in je eigen tempo. Kies hieronder een quiz.</p>
+      </div>
+      <div class="home-xp" aria-hidden="true">
+        <div class="home-xp-row"><span class="home-xp-label">NIVEAU 1</span><span>340 / 500</span></div>
+        <div class="home-xp-bar"></div>
+      </div>
+    </div>
+    <div class="home-body"></div>
+  `;
+  const body = el.querySelector('.home-body');
 
   // Groep-selectieknoppen
   const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
@@ -1687,7 +1703,7 @@ function _renderLevelSelect() {
     const hint = document.createElement('p');
     hint.className = 'group-hint';
     hint.textContent = 'Kies je groep om te beginnen';
-    el.appendChild(hint);
+    body.appendChild(hint);
   }
   const groupWrap = document.createElement('div');
   groupWrap.className = 'group-select' + (!selectedGroup ? ' no-selection' : '');
@@ -1701,7 +1717,7 @@ function _renderLevelSelect() {
     };
     groupWrap.appendChild(btn);
   });
-  el.appendChild(groupWrap);
+  body.appendChild(groupWrap);
 
   Object.entries(SETS).forEach(([num, set]) => {
     // Daily/bonus (#80): toon alleen als er een format voor de gekozen groep is.
@@ -1715,7 +1731,7 @@ function _renderLevelSelect() {
       btn.className = 'mode-btn ' + (isDaily ? 'daily-btn' : 'bonus-btn');
       btn.textContent = isDaily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
       btn.onclick = () => selectLevel(Number(num));
-      el.appendChild(btn);
+      body.appendChild(btn);
       return;
     }
     // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
@@ -1730,17 +1746,17 @@ function _renderLevelSelect() {
       btn.appendChild(tag);
     }
     btn.onclick = () => selectLevel(Number(num));
-    el.appendChild(btn);
+    body.appendChild(btn);
   });
   // Installeerknop
   const installBtn = document.createElement('button');
   installBtn.id = 'install-btn';
   installBtn.textContent = '📲 Voeg toe aan beginscherm';
   installBtn.onclick = handleInstall;
-  el.appendChild(installBtn);
+  body.appendChild(installBtn);
   const tooltip = document.createElement('div');
   tooltip.id = 'install-tooltip';
-  el.appendChild(tooltip);
+  body.appendChild(tooltip);
   updateInstallButton();
   // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
   // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
@@ -1754,6 +1770,9 @@ function _renderModeSelect(setNumber) {
 
   applyVisibility('mode-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
+  // #99: mode-select gebruikt nog de legacy dark-blue stijl (refresh in #101),
+  // dus body.on-home afzetten → dark-blue bg + zichtbare #title-bar terug.
+  document.body.classList.remove('on-home');
 
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
 
@@ -1807,7 +1826,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.19.4';
+const APP_VERSION = 'v2.20.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1884,6 +1903,9 @@ function _renderStartScreen() {
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
   document.getElementById('menu-btn').style.display = 'none';
   closeQuizMenu();
+  // #99: body.on-home schakelt zand-bg in en onderdrukt de dark-blue
+  // #title-bar — .home-header is nu de visuele titel.
+  document.body.classList.add('on-home');
   _renderLevelSelect();
 }
 
@@ -1896,6 +1918,8 @@ function showStartScreen() {
 
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
+  // #99: quiz gebruikt nog de legacy dark-blue stijl; on-home afzetten.
+  document.body.classList.remove('on-home');
   // #94: history-entry schrijft router.navigate('quiz', ...). Inline onclick-
   // handlers op mode-knoppen en dev-menu roepen startQuiz nu via de router;
   // resetQuiz roept direct aan (geen nieuwe entry — zelfde quiz).
