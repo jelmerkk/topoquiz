@@ -827,15 +827,24 @@ let hintRevealed = 0; // aantal tekens van de hint dat getoond is
 let currentPhaseIndex = 0; // actieve fase-index voor sets met phases-array
 
 // Geeft het effectieve quizType terug voor de huidige sessie.
-// - Gefaseerde sets: de quizType van de actieve fase.
-// - Daily/bonus (heterogeen, issue #80): afgeleid van currentCity._itemType.
-// - Overige sets: set.quizType zoals gedefinieerd in cities.js.
+// - 'phased': de quizType van de actieve fase.
+// - 'dailyBonus' (heterogeen, issue #80): afgeleid van currentCity._itemType.
+// - 'simple': set.quizType zoals gedefinieerd in cities.js.
 function currentQuizType() {
   const set = SETS[selectedSet];
-  if ((set.daily || set.bonus) && currentCity?._itemType) {
-    return polygonTypeFor(currentCity._itemType) || 'place';
+  switch (set.kind) {
+    case 'dailyBonus':
+      // Zonder currentCity nog niet te bepalen — matcht oud gedrag
+      // (viel door naar set.quizType = undefined).
+      return currentCity?._itemType
+        ? (polygonTypeFor(currentCity._itemType) || 'place')
+        : undefined;
+    case 'phased':
+      return set.phases[currentPhaseIndex].quizType;
+    case 'simple':
+    default:
+      return set.quizType;
   }
-  return set.phases ? set.phases[currentPhaseIndex].quizType : set.quizType;
 }
 
 // ── Text answer helpers ──────────────────────────────────────
@@ -921,9 +930,9 @@ function initLevel(setNumber) {
   const _set = SETS[setNumber];
 
   // ── Daily/Bonus (issue #80): heterogene pool uit meerdere item-types ─────
-  if (_set.daily || _set.bonus) {
+  if (_set.kind === 'dailyBonus') {
     const g = getSelectedGroup() || 5;
-    if (_set.daily) {
+    if (_set.variant === 'daily') {
       activeCities = dailyPool(todayStr(), g);
       dailyAnswers = {};
     } else {
@@ -1573,12 +1582,14 @@ function showEnd() {
   const total = cumulativeOk + cumulativeErr;
   const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
-  const _endIsMixed = _endSet.daily || _endSet.bonus;
-  const _endQts  = _endSet.phases ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
-  const isProvince = !_endSet.phases && !_endIsMixed && _endSet.quizType === 'province';
-  const isWater    = !_endSet.phases && !_endIsMixed && _endSet.quizType === 'water';
+  const _endIsMixed = _endSet.kind === 'dailyBonus';
+  const _endIsPhased = _endSet.kind === 'phased';
+  const _endIsSimple = _endSet.kind === 'simple';
+  const _endQts  = _endIsPhased ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
+  const isProvince = _endIsSimple && _endSet.quizType === 'province';
+  const isWater    = _endIsSimple && _endSet.quizType === 'water';
 
-  const isDaily = _endSet.daily;
+  const isDaily = _endIsMixed && _endSet.variant === 'daily';
   if (isDaily) {
     const results = activeCities.map(c => dailyAnswers[dailyAnswerKey(c)] === true);
     const correct = results.filter(Boolean).length;
@@ -1598,7 +1609,7 @@ function showEnd() {
     document.getElementById('end-text').innerHTML =
       _endIsMixed
         ? `Je hebt alle <strong>${activeCities.length} items</strong> in de bonus gespeeld! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : _endSet.phases
+        : _endIsPhased
         ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
         : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
   }
@@ -1738,7 +1749,7 @@ function _renderModeSelect(setNumber) {
 
   const _msSet = SETS[setNumber];
   const descs = document.querySelectorAll('#mode-select .mode-desc');
-  if (_msSet.phases) {
+  if (_msSet.kind === 'phased') {
     // Gefaseerde set: generieke beschrijvingen (meerdere typen elementen)
     const labels = _msSet.phases.map(p => p.label).join(', ');
     descs[0].textContent = `Dit level bevat meerdere categorieën (${labels}). Je ziet steeds één element op de kaart en kiest de naam. Goed om te beginnen!`;
@@ -1778,7 +1789,7 @@ function _renderModeSelect(setNumber) {
 function selectLevel(setNumber) {
   // Daily en bonus (#80) draaien altijd in MC — tekst/kaart-klik zijn onhandig
   // bij mixed types (een regio kun je niet "typen" op een schoolniveau).
-  if (SETS[setNumber].daily || SETS[setNumber].bonus) {
+  if (SETS[setNumber].kind === 'dailyBonus') {
     router.navigate('quiz', { set: setNumber, mode: 'mc' });
     return;
   }
@@ -1884,17 +1895,24 @@ async function startQuiz(mode, startPhase = 0) {
   // - Overige sets: het enige set.quizType.
   const _set = SETS[selectedSet];
   let _allQts;
-  if (_set.daily || _set.bonus) {
-    const g = getSelectedGroup() || 5;
-    const fmt = (_set.daily ? DAILY_FORMAT : BONUS_FORMAT)[g] || [];
-    const types = new Set();
-    for (const { type } of fmt) {
-      const pt = polygonTypeFor(type);
-      if (pt) types.add(pt);
+  switch (_set.kind) {
+    case 'dailyBonus': {
+      const g = getSelectedGroup() || 5;
+      const fmt = (_set.variant === 'daily' ? DAILY_FORMAT : BONUS_FORMAT)[g] || [];
+      const types = new Set();
+      for (const { type } of fmt) {
+        const pt = polygonTypeFor(type);
+        if (pt) types.add(pt);
+      }
+      _allQts = Array.from(types);
+      break;
     }
-    _allQts = Array.from(types);
-  } else {
-    _allQts = _set.phases ? _set.phases.map(p => p.quizType) : [_set.quizType];
+    case 'phased':
+      _allQts = _set.phases.map(p => p.quizType);
+      break;
+    case 'simple':
+    default:
+      _allQts = [_set.quizType];
   }
   for (const qt of _allQts) {
     if (!polygonTypes[qt]?.dataPromise) continue;
@@ -1905,7 +1923,7 @@ async function startQuiz(mode, startPhase = 0) {
     }
   }
   // Deep-link mag naar een latere fase springen; valt terug op 0 als buiten bereik.
-  currentPhaseIndex = (_set.phases && startPhase > 0 && startPhase < _set.phases.length)
+  currentPhaseIndex = (_set.kind === 'phased' && startPhase > 0 && startPhase < _set.phases.length)
     ? startPhase : 0;
   initLevel(selectedSet);
 
@@ -1967,7 +1985,7 @@ async function startQuiz(mode, startPhase = 0) {
     // via setHighlightPolygon; place: via setHighlight → map.flyTo). Een
     // NL_BOUNDS-fallback in rAF zou de per-question-zoom racen en Armenië
     // terugpannen naar NL.
-    if (_set.daily || _set.bonus) return;
+    if (_set.kind === 'dailyBonus') return;
     if (_set.bounds)
       map.fitBounds(_set.bounds, { padding: [20, 20], maxZoom: 8 });
     else if (_set.fitOnStart)
