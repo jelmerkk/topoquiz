@@ -80,15 +80,15 @@
   <div id="mode-select" style="display:none">
     <h2 id="start-level-name"></h2>
     <p>Hoe wil jij oefenen?</p>
-    <button class="mode-btn" onclick="startQuiz('mc')">
+    <button class="mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'mc' })">
       🔤 Meerkeuze
       <span class="mode-desc">Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!</span>
     </button>
-    <button class="mode-btn" onclick="startQuiz('text')">
+    <button class="mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'text' })">
       ✏️ Zelf typen
       <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
-    <button class="mode-btn" id="map-mode-btn" onclick="startQuiz('map')">
+    <button class="mode-btn" id="map-mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'map' })">
       📍 Klik op de kaart
       <span class="mode-desc">Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!</span>
     </button>
@@ -1520,15 +1520,14 @@ const router = (() => {
     _writeHistory(screen, params, how);
     if (prev.screen) _emit('leave', prev.screen, { screen, params });
     _current = { screen, params: { ...params } };
-    // Dispatch naar bestaande render-functies. Step 4 vervangt dit pad
-    // door directe calls; voor nu wraps de router ze zodat call-sites
-    // geleidelijk kunnen migreren zonder gedragsverandering.
+    // Dispatch naar bestaande render-functies. `selectedSet` is een globale
+    // die door vrijwel alle render/quiz-paden gelezen wordt — de router is
+    // de enige schrijver voor elk scherm met een set-param.
+    if (typeof params.set === 'number') selectedSet = params.set;
     if (screen === 'level-select') _renderStartScreen();
     else if (screen === 'mode-select') _renderModeSelect(params.set);
-    else if (screen === 'quiz') {
-      selectedSet = params.set;
-      await startQuiz(params.mode, params.phase || 0);
-    } else if (screen === 'end') showEnd();
+    else if (screen === 'quiz') await startQuiz(params.mode, params.phase || 0);
+    else if (screen === 'end') showEnd();
     _emit('enter', screen, params, prev);
   }
 
@@ -1766,16 +1765,13 @@ function _renderModeSelect(setNumber) {
 // ── Publieke navigatiefuncties (met history) ─────────────────
 
 function selectLevel(setNumber) {
-  selectedSet = setNumber;
   // Daily en bonus (#80) draaien altijd in MC — tekst/kaart-klik zijn onhandig
   // bij mixed types (een regio kun je niet "typen" op een schoolniveau).
   if (SETS[setNumber].daily || SETS[setNumber].bonus) {
-    history.pushState({ screen: 'quiz', set: setNumber, mode: 'mc' }, '');
-    startQuiz('mc');
+    router.navigate('quiz', { set: setNumber, mode: 'mc' });
     return;
   }
-  history.pushState({ screen: 'mode-select', set: setNumber }, '');
-  _renderModeSelect(setNumber);
+  router.navigate('mode-select', { set: setNumber });
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
@@ -1863,13 +1859,14 @@ function showStartScreen() {
   // replaceState: terugknop vanuit startscherm verlaat de pagina (zoals verwacht),
   // niet terug naar een verlaten quiz.
   if (quizStartTime) { _trackQuiz('quit'); quizStartTime = null; }
-  history.replaceState({ screen: 'level-select' }, '');
-  _renderStartScreen();
+  router.navigate('level-select', {}, { history: 'replace' });
 }
 
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
-  history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
+  // #94: history-entry schrijft router.navigate('quiz', ...). Inline onclick-
+  // handlers op mode-knoppen en dev-menu roepen startQuiz nu via de router;
+  // resetQuiz roept direct aan (geen nieuwe entry — zelfde quiz).
   // Bepaal welke quizTypes nodig zijn.
   // - Gefaseerde sets: alle fase-quizTypes.
   // - Daily/bonus (#80): alle polygon-types die in het format kunnen voorkomen.
@@ -2025,12 +2022,11 @@ function resetQuiz() {
 window.addEventListener('popstate', e => {
   const s = e.state;
   if (!s || s.screen === 'level-select') {
-    _renderStartScreen();
+    router.navigate('level-select', {}, { history: 'none' });
   } else if (s.screen === 'mode-select' || s.screen === 'quiz') {
     // quiz-state via popstate = gebruiker navigeerde terug vanuit de quiz;
     // toon het moduscherm zodat ze hun voortgang kunnen hervatten.
-    selectedSet = s.set;
-    _renderModeSelect(s.set);
+    router.navigate('mode-select', { set: s.set }, { history: 'none' });
   }
 });
 
@@ -2084,34 +2080,16 @@ async function hardRefresh() {
   location.reload();
 }
 
-// Geef de initiële paginastate een naam zodat popstate correct werkt
-history.replaceState({ screen: 'level-select' }, '');
-
-// Dev deep-link: ?set=73&mode=mc&phase=2 springt direct de quiz in.
-// Alleen bedoeld voor snel testen op dev/preview-builds.
-async function _maybeDeepLink() {
-  const params = new URLSearchParams(location.search);
-  const setParam = params.get('set');
-  if (!setParam) return false;
-  const setNum = parseInt(setParam, 10);
-  if (!SETS[setNum]) return false;
-  selectedSet = setNum;
-
-  const modeParam = params.get('mode');
-  if (!modeParam) {
-    history.replaceState({ screen: 'mode-select', set: setNum }, '');
-    _renderModeSelect(setNum);
-    return true;
-  }
-  if (!['mc', 'text', 'map'].includes(modeParam)) return false;
-
-  const phaseParam = parseInt(params.get('phase') || '0', 10);
-  await startQuiz(modeParam, isNaN(phaseParam) ? 0 : phaseParam);
-  return true;
-}
-
+// Bootstrap: router.fromURL() leest ?set=&mode=&phase=; valt terug op
+// level-select. `history:'replace'` voorkomt een lege initiële entry in
+// de history-stack (anders: één back-press = niets gebeurt).
 (async () => {
-  if (!(await _maybeDeepLink())) showStartScreen();
+  const target = router.fromURL();
+  if (target) {
+    await router.navigate(target.screen, target.params, { history: 'replace' });
+  } else {
+    await router.navigate('level-select', {}, { history: 'replace' });
+  }
 })();
 
 // ── Dev-menu ─────────────────────────────────────────────────
@@ -2220,8 +2198,9 @@ async function _maybeDeepLink() {
     const mode  = panel.querySelector('#dev-mode').value;
     const phase = Number(phaseSel.value) || 0;
     localStorage.setItem('devMenuSet', String(set));
-    selectedSet = set;
-    await startQuiz(mode, phase);
+    // Dev-menu: `history:'replace'` voorkomt dat dev-switches de history
+    // vervuilen (§7.3 #2). De normale back-button blijft consistent.
+    await router.navigate('quiz', { set, mode, phase }, { history: 'replace' });
   });
 })();
 </script>
