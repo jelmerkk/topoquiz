@@ -1,8 +1,8 @@
 /**
  * Set 74 — Duitsland (issue #43)
  *
- * Smoke tests: verschijnt in menu, 3 fases starten correct.
- * Volgorde fases: steden → regio's → rivieren
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -14,46 +14,6 @@ async function openSet74(page) {
   await page.locator('#level-select .mode-btn', { hasText: 'Duitsland' }).click();
   await expect(page.locator('#mode-select')).toBeVisible();
 }
-
-async function startSet74MC(page) {
-  await openSet74(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 74 verschijnt in groep 7', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Duitsland' })).toBeVisible();
-});
-
-test('set 74 — mode-select bereikbaar', async ({ page }) => {
-  await openSet74(page);
-  await expect(page.locator('#mode-select')).toBeVisible();
-});
-
-test('set 74 — fase 1: vraag is "Welke plaats is dit?"', async ({ page }) => {
-  await startSet74MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welke plaats is dit?');
-});
-
-test('set 74 — fase 1: faseslabel toont "Steden"', async ({ page }) => {
-  await startSet74MC(page);
-  await expect(page.locator('#phase-label')).toContainText('Steden');
-});
-
-test('set 74 — fase 1: #qtot toont 18', async ({ page }) => {
-  await startSet74MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(18);
-});
-
-test('set 74 — MC start: kaartzoom geschikt voor DE-viewport', async ({ page }) => {
-  await startSet74MC(page);
-  const zoom = await page.evaluate(() => map.getZoom());
-  expect(zoom).toBeGreaterThanOrEqual(4);
-  expect(zoom).toBeLessThanOrEqual(7);
-});
 
 test('set 74 — Rijn is een LineString die tot in Duitsland loopt', async ({ page }) => {
   await page.goto('/');

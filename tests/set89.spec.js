@@ -1,14 +1,8 @@
 /**
  * Set 89 — Midden-Amerika en Caraïben (issue #57)
  *
- * Fase 1: 11 landen (country) — 4 Caraïbisch + 7 Midden-Amerika in
- *          landen-midden-amerika.geojson.
- * Fase 2: 2 steden (place) — Havana + Willemstad (enige op opdrachtblad).
- * Fase 3: 6 Antillen (province) — Aruba/Curaçao/Bonaire/Sint Maarten als
- *          echte polygoon, Saba + Sint Eustatius als fuzzy ellips.
- * Fase 4: 4 wateren (water) — Caribische Zee + Panamakanaal (hergebruikt uit
- *          set 83), Atlantische Oceaan (nu fuzzy met posBySet), Grote Oceaan
- *          (posBySet-override voor Midden-Amerika perspectief).
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -25,23 +19,6 @@ async function startSet89MC(page) {
   await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
   await page.waitForSelector('#question-text');
 }
-
-test('set 89 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.9' })).toBeVisible();
-});
-
-test('set 89 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet89MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 89 — fase 1: #qtot toont 11', async ({ page }) => {
-  await startSet89MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(11);
-});
 
 test('set 89 — alle 11 landen in landen-midden-amerika.geojson', async ({ page }) => {
   await page.goto('/');

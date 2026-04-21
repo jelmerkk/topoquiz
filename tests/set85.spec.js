@@ -1,13 +1,8 @@
 /**
  * Set 85 — Zuid-Azië (issue #53)
  *
- * Fase 1: 8 landen (country, polygonen uit landen-zuid-azie.geojson)
- * Fase 2: 12 steden (place) — 6 hoofdsteden (Tasjkent, Kabul, Islamabad,
- *          New Delhi, Kathmandu, Dhaka) + 6 niet-hoofdsteden
- * Fase 3: 2 gebieden (province) — Himalaya fuzzy ellips + Mount Everest
- *          als 'peak' shape (driehoek-marker in rood-bruin, nieuw type).
- * Fase 4: 5 wateren (water) — Ganges/Indus LineString + 3 fuzzy zeeën
- *          (Arabische Zee, Golf van Bengalen, Indische Oceaan — gedeeld met 84).
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -18,29 +13,6 @@ async function openSet85(page) {
   await page.locator('#level-select .mode-btn', { hasText: '8.5' }).click();
   await expect(page.locator('#mode-select')).toBeVisible();
 }
-
-async function startSet85MC(page) {
-  await openSet85(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 85 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.5' })).toBeVisible();
-});
-
-test('set 85 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet85MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 85 — fase 1: #qtot toont 8', async ({ page }) => {
-  await startSet85MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(8);
-});
 
 test('set 85 — alle 8 landen in landen-zuid-azie.geojson', async ({ page }) => {
   await page.goto('/');

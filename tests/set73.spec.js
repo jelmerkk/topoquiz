@@ -1,14 +1,9 @@
 /**
  * Set 73 — Frankrijk, Spanje, Portugal (issue #42)
  *
- * Borgt de basisfunctionaliteit van set 7.3:
- *   - Set verschijnt in groep 7 level-select
- *   - MC-modus start en toont de eerste fase (steden)
- *   - #qtot klopt met het aantal steden in set 73
- *   - Gewesten-fase (province) werkt: polygoon-vraag
- *   - Rivieren-fase (water) werkt
- *
- * Tests zijn BEWUST ROOD totdat set 73 geïmplementeerd is.
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies
+ * (multi-fase doorloop).
  */
 
 const { test, expect } = require('@playwright/test');
@@ -37,41 +32,6 @@ async function answerMCCorrectly(page) {
     return opts.length > 0 && !opts[0].disabled;
   }, { timeout: 10000 });
 }
-
-// ── Set zichtbaar in level-select ────────────────────────────────────────────
-
-test('set 73 — verschijnt in groep 7 level-select', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Frankrijk' })).toBeVisible();
-});
-
-// ── Fase 1: Steden ────────────────────────────────────────────────────────────
-
-test('set 73 — MC start: fase-label toont "Steden"', async ({ page }) => {
-  await startSet73MC(page);
-  await expect(page.locator('#phase-label')).toContainText('Steden');
-});
-
-test('set 73 — MC start: #qtot klopt met aantal steden', async ({ page }) => {
-  await startSet73MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  // Parijs, Madrid, Lissabon + set-73 steden = 20 steden totaal
-  expect(Number(tot)).toBeGreaterThanOrEqual(18);
-});
-
-test('set 73 — MC start: vraagtext is "Welke plaats is dit?"', async ({ page }) => {
-  await startSet73MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welke plaats is dit?');
-});
-
-test('set 73 — MC start: kaartzoom geschikt voor FR/ES/PT-viewport', async ({ page }) => {
-  await startSet73MC(page);
-  const zoom = await page.evaluate(() => map.getZoom());
-  // Kaart moet ingezoomd zijn op West-Europa, niet op NL
-  expect(zoom).toBeGreaterThanOrEqual(4);
-  expect(zoom).toBeLessThanOrEqual(7);
-});
 
 // ── Fase 2: Gebieden ──────────────────────────────────────────────────────────
 

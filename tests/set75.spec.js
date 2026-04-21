@@ -1,8 +1,8 @@
 /**
  * Set 75 — VK en Ierland (issue #44)
  *
- * Smoke tests: verschijnt in menu, 3 fases starten correct.
- * Volgorde fases: regio's → steden → wateren
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  * Regio's zijn harde polygonen (géén fuzzy ellipsen), zodat set 7.1 de
  * hele UK als land blijft asken zonder dat de constituents ermee conflicteren.
  */
@@ -21,46 +21,6 @@ async function startSet75MC(page) {
   await openSet75(page);
   await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
   await page.waitForSelector('#question-text');
-}
-
-test('set 75 verschijnt in groep 7', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Verenigd Koninkrijk' })).toBeVisible();
-});
-
-test('set 75 — mode-select bereikbaar', async ({ page }) => {
-  await openSet75(page);
-  await expect(page.locator('#mode-select')).toBeVisible();
-});
-
-test('set 75 — fase 1: vraag is "Welke regio is dit?"', async ({ page }) => {
-  await startSet75MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welke regio is dit?');
-});
-
-test('set 75 — fase 1: faseslabel toont "Regio\'s"', async ({ page }) => {
-  await startSet75MC(page);
-  await expect(page.locator('#phase-label')).toContainText("Regio");
-});
-
-test("set 75 — fase 1: #qtot toont 5", async ({ page }) => {
-  await startSet75MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(5);
-});
-
-test('set 75 — MC start: kaartzoom geschikt voor VK-viewport', async ({ page }) => {
-  await startSet75MC(page);
-  const zoom = await page.evaluate(() => map.getZoom());
-  expect(zoom).toBeGreaterThanOrEqual(4);
-  expect(zoom).toBeLessThanOrEqual(7);
-});
-
-// Helper: flatten arbitrary-depth Leaflet latlng nesting (Polygon or MultiPolygon).
-function flattenLatLngs(x) {
-  if (Array.isArray(x)) return x.flatMap(flattenLatLngs);
-  return [x];
 }
 
 // Regio-polygonen moeten uit OSM komen (real polygons, niet fuzzy ellipse).

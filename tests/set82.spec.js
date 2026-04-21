@@ -1,44 +1,11 @@
 /**
  * Set 82 — Afrika (issue #50)
  *
- * Fase 1: 13 landen (country, polygonen uit landen-afrika.geojson)
- * Fase 2: 15 steden (place)
- * Fase 3: 3 gebieden (province, fuzzy: Sahara, Atlasgebergte, Canarische Eilanden)
- * Fase 4: 7 wateren (water) — rivieren (LineString), Victoriameer (Polygon),
- *         Rode Zee + Straat van Gibraltar (fuzzy, policy)
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet82(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.2' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet82MC(page) {
-  await openSet82(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 82 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.2' })).toBeVisible();
-});
-
-test('set 82 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet82MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 82 — fase 1: #qtot toont 13', async ({ page }) => {
-  await startSet82MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(13);
-});
 
 test('set 82 — alle 13 landen in landen-afrika.geojson', async ({ page }) => {
   await page.goto('/');

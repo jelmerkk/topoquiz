@@ -1,52 +1,11 @@
 /**
  * Set 76 — Midden-Europa en Italië (issue #45)
  *
- * Smoke tests: verschijnt in menu, 3 fases starten correct.
- * Volgorde fases: steden → gebieden → wateren
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-const { waitForPolygonLayer } = require('./helpers');
-
-async function openSet76(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: 'Midden-Europa' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet76MC(page) {
-  await openSet76(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 76 verschijnt in groep 7', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: 'Midden-Europa' })).toBeVisible();
-});
-
-test('set 76 — mode-select bereikbaar', async ({ page }) => {
-  await openSet76(page);
-  await expect(page.locator('#mode-select')).toBeVisible();
-});
-
-test('set 76 — fase 1: vraag bevat stad-vraag', async ({ page }) => {
-  await startSet76MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welke plaats is dit?');
-});
-
-test('set 76 — fase 1: faseslabel toont "Steden"', async ({ page }) => {
-  await startSet76MC(page);
-  await expect(page.locator('#phase-label')).toContainText('Steden');
-});
-
-test('set 76 — fase 1: #qtot toont 22', async ({ page }) => {
-  await startSet76MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(22);
-});
 
 test('set 76 — Donau is een LineString', async ({ page }) => {
   await page.goto('/');

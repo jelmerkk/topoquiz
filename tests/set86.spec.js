@@ -1,48 +1,11 @@
 /**
  * Set 86 — Oost-Azië (issue #54)
  *
- * Fase 1: 7 landen (country, polygonen uit landen-oost-azie.geojson)
- *          Rusland (volledige polygoon, Kaliningrad incluis), Mongolië, China,
- *          Japan, Noord-Korea, Zuid-Korea, Taiwan (als LAND, niet als eiland).
- * Fase 2: 14 steden (place) — 5 hoofdsteden (Ulaanbaatar, Beijing, Tokyo,
- *          Pyongyang, Seoul) + 9 niet-hoofdsteden (Omsk, Novosibirsk, Irkoetsk,
- *          Vladivostok, Harbin, Shanghai, Hongkong, Osaka, Sapporo).
- * Fase 3: 3 gebieden (province) — Tibet, Gobi, Siberië (alle fuzzy ellipsen).
- * Fase 4: 4 wateren (water) — Huang He + Chang Jiang LineString W→O,
- *          Zuid-Chinese Zee + Grote Oceaan als fuzzy zeeën.
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet86(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.6' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet86MC(page) {
-  await openSet86(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 86 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.6' })).toBeVisible();
-});
-
-test('set 86 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet86MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 86 — fase 1: #qtot toont 7', async ({ page }) => {
-  await startSet86MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(7);
-});
 
 test('set 86 — alle 7 landen in landen-oost-azie.geojson', async ({ page }) => {
   await page.goto('/');
