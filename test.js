@@ -1553,7 +1553,13 @@ const SET83_STEDEN = [
   'Los Angeles','San Francisco','Houston','New Orleans','Miami','Detroit',
   'Denver','Mexico-Stad','Monterrey','Havana',
 ];
-const SET83_GEWESTEN_HARD   = ['Alaska','Groenland','Texas','Florida'];
+// Na #110: Alaska/Texas/Florida → 'deelstaat' (US states), Groenland → 'eiland'.
+const SET83_HARD_BY_KIND = {
+  'Alaska':    'deelstaat',
+  'Texas':     'deelstaat',
+  'Florida':   'deelstaat',
+  'Groenland': 'eiland',
+};
 const SET83_GEBIEDEN_FUZZY  = ['Rocky Mountains','Sierra Nevada','Appalachen'];
 const SET83_WATEREN         = ['Mississippi','Rio Grande','Panamakanaal','Caribische Zee'];
 
@@ -1584,10 +1590,10 @@ expect('Set 83 heeft 17 steden', ALL_CITIES.filter(c => c.sets?.includes(83)).le
 const set83Capitals = ALL_CITIES.filter(c => c.sets?.includes(83) && c.capital);
 expect('Set 83 heeft 4 hoofdsteden', set83Capitals.length === 4);
 
-SET83_GEWESTEN_HARD.forEach(naam => {
+Object.entries(SET83_HARD_BY_KIND).forEach(([naam, wantedKind]) => {
   const g = ALL_PROVINCES.find(p => p.name === naam && p.sets?.includes(83));
   expect(`${naam} in ALL_PROVINCES (set 83)`, !!g);
-  expect(`${naam} kind === 'gewest' (set 83)`, g?.kind === 'gewest');
+  expect(`${naam} kind === '${wantedKind}' (set 83)`, g?.kind === wantedKind);
   expect(`${naam} is niet fuzzy (set 83)`, g?.shape !== 'fuzzy');
 });
 
@@ -1598,7 +1604,7 @@ SET83_GEBIEDEN_FUZZY.forEach(naam => {
   expect(`${naam} kind === 'gebied' (set 83)`, r?.kind === 'gebied');
 });
 
-expect('Set 83 heeft 7 regio\'s (4 gewesten + 3 gebieden)',
+expect('Set 83 heeft 7 regio\'s (3 deelstaten + 1 eiland + 3 gebieden)',
   ALL_PROVINCES.filter(p => p.sets?.includes(83)).length === 7);
 
 SET83_WATEREN.forEach(naam => {
@@ -1624,7 +1630,7 @@ expect('Set 83 heeft 4 wateren', ALL_WATERS.filter(w => w.sets?.includes(83)).le
   const fs = require('fs');
   const path = require('path');
   const gj = JSON.parse(fs.readFileSync(path.join(__dirname, 'gewesten.geojson'), 'utf8'));
-  SET83_GEWESTEN_HARD.forEach(naam => {
+  Object.keys(SET83_HARD_BY_KIND).forEach(naam => {
     const f = gj.features.find(x => x.properties.name === naam && x.properties.sets?.includes(83));
     expect(`${naam} polygoon in gewesten.geojson (set 83)`, !!f);
     expect(`${naam} is Polygon/MultiPolygon`,
@@ -2514,6 +2520,78 @@ for (const [n, [cor, close]] of Object.entries(CLICK_GOLDEN)) {
   expect(`set ${n}: ${close - 1} km → close`,   clickResult(close - 1, setNum) === 'close');
   expect(`set ${n}: ${close} km → wrong`,       clickResult(close, setNum) === 'wrong');
 }
+
+// ── Regressie: prompt-mapping voor province-type items (#110) ─────
+// Spiegelt de QUESTION_TEXT.province-functie uit index.html (regel ~1140).
+// Doel: voorkom dat een regio/gebergte/eiland/etc. "Welke provincie/gewest
+// is dit?" krijgt (bug #110: Pyreneeën kreeg "Welk gewest is dit?").
+
+function questionTextForProvince(item) {
+  if (item.shape === 'peak' || item.kind === 'berg') return 'Welke bergtop is dit?';
+  if (item.kind === 'gebergte')  return 'Welk gebergte is dit?';
+  if (item.kind === 'deelstaat') return 'Welke deelstaat is dit?';
+  if (item.kind === 'streek')    return 'Welke streek is dit?';
+  if (item.kind === 'regio')     return 'Welke regio is dit?';
+  if (item.kind === 'gebied')    return 'Welk gebied is dit?';
+  if (item.kind === 'gewest')    return 'Welk gewest is dit?';
+  if (item.kind === 'eiland')    return 'Welk eiland is dit?';
+  return 'Welke provincie is dit?';
+}
+
+section('#110 — prompt-mapping per regio-item');
+
+// Concrete spot-checks op items die vóór de fix een verkeerde prompt hadden.
+const PROMPT_GOLDEN = [
+  // Set 73: gebergten die eerst 'gewest' waren
+  ['Pyreneeën',     'Welk gebergte is dit?'],
+  ['Alpen',         'Welk gebergte is dit?'],   // set 76 (set 73 'Alpen' is een andere entry — beide nu gebergte)
+  ['Centraal Massief', 'Welk gebergte is dit?'],
+  // Set 73: eilanden
+  ['Corsica',       'Welk eiland is dit?'],
+  ['Mallorca',      'Welk eiland is dit?'],
+  // Set 74: deelstaat + gebergten
+  ['Beieren',       'Welke deelstaat is dit?'],
+  ['Zwarte Woud',   'Welk gebergte is dit?'],
+  // Set 76: Apennijnen + eilanden
+  ['Apennijnen',    'Welk gebergte is dit?'],
+  ['Sicilië',       'Welk eiland is dit?'],
+  ['Sardinië',      'Welk eiland is dit?'],
+  // Set 77: gebergten
+  ['Karpaten',      'Welk gebergte is dit?'],
+  ['Balkan',        'Welk gebergte is dit?'],
+  ['Kaukasus',      'Welk gebergte is dit?'],
+  // Set 78: streken
+  ['Lapland',       'Welke streek is dit?'],
+  ['Jutland',       'Welke streek is dit?'],
+  // Set 79: eiland
+  ['Kreta',         'Welk eiland is dit?'],
+  // Set 83: deelstaten + eiland
+  ['Alaska',        'Welke deelstaat is dit?'],
+  ['Texas',         'Welke deelstaat is dit?'],
+  ['Florida',       'Welke deelstaat is dit?'],
+  ['Groenland',     'Welk eiland is dit?'],
+  // Set 72: échte gewesten moeten 'Welk gewest is dit?' blijven
+  ['Vlaanderen',    'Welk gewest is dit?'],
+  ['Wallonië',      'Welk gewest is dit?'],
+  // Everest: shape 'peak' → bergtop (bug-rapport #110 aanvulling)
+  ['Mount Everest', 'Welke bergtop is dit?'],
+];
+
+for (const [name, expected] of PROMPT_GOLDEN) {
+  const item = ALL_PROVINCES.find(p => p.name === name);
+  if (!item) { expect(`${name}: gevonden in ALL_PROVINCES`, false); continue; }
+  const got = questionTextForProvince(item);
+  expect(`${name} → "${expected}"`, got === expected, `kreeg "${got}" (kind=${item.kind}, shape=${item.shape})`);
+}
+
+// Structurele check: alleen set 72 (BE) mag items met kind:'gewest' bevatten.
+const gewestItems = ALL_PROVINCES.filter(p => p.kind === 'gewest');
+const gewestOutsideBE = gewestItems.filter(p => !(p.sets?.length === 1 && p.sets[0] === 72));
+expect(
+  "kind:'gewest' alleen in set 72 (BE)",
+  gewestOutsideBE.length === 0,
+  gewestOutsideBE.map(p => `${p.name} (sets: ${p.sets?.join(',')})`).join(' | ')
+);
 
 // ── Samenvatting ──────────────────────────────────────────────
 
