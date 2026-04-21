@@ -17,5 +17,10 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     serviceWorkers: 'block',
+    // Viewport 1280x900 (i.p.v. Playwright-default 1280x720) zodat de
+    // fit-to-viewport quiz-layout (#map-wrap flex:1) een realistische
+    // desktop-kaart geeft. 720px hoog leidde tot ~280px map en brak
+    // zoom-asserties in regression-baseline + set-smoke.
+    viewport: { width: 1280, height: 900 },
   },
 });
