@@ -472,7 +472,7 @@ function buildPolygonLayer(type) {
         if (item.sets?.length) return fSets.some(s => item.sets.includes(s));
         return fSets.includes(selectedSet);
       }
-      return !SETS[selectedSet].phases;
+      return SETS[selectedSet].kind !== 'phased';
     },
     onEachFeature: (f, layer) => {
       const name = f.properties[t.nameKey];
@@ -495,7 +495,7 @@ function setHighlight(type, item, mapMode = false) {
     // huidige zoom-context valt (bv. vorige vraag was Armenië, nu Tokio), echt
     // inzoomen i.p.v. alleen panTo — anders zie je een puntje op een wereldkaart.
     const _set = SETS[selectedSet];
-    if (_set?.daily || _set?.bonus) {
+    if (_set?.kind === 'dailyBonus') {
       map.flyTo([item.lat, item.lon], 8, { animate: true, duration: 0.6 });
     } else if (!map.getBounds().contains([item.lat, item.lon])) {
       map.panTo([item.lat, item.lon], { animate: true });
@@ -1069,7 +1069,7 @@ function dist(a, b) {
 // zodat een stad nooit als distractor bij een regio-vraag verschijnt.
 function distractorPool() {
   const set = SETS[selectedSet];
-  if ((set.daily || set.bonus) && currentCity?._itemType) {
+  if (set.kind === 'dailyBonus' && currentCity?._itemType) {
     const g = getSelectedGroup() || 5;
     const pool = poolForType(currentCity._itemType, g);
     // Sub-filter voor regio: zelfde kind (Friesland ≠ Sahara qua vraagtekst).
@@ -1090,7 +1090,7 @@ function nearbyDistractors(city, n) {
   // hetzelfde _itemType als de vraag, anders lek je een stad bij een
   // regio-vraag. Kind-filter voor regio (gewest ≠ eiland).
   const set = SETS[selectedSet];
-  const mixed = (set.daily || set.bonus) && city?._itemType;
+  const mixed = set.kind === 'dailyBonus' && city?._itemType;
   let pool = activeCities.filter(c => {
     if (c === city) return false;
     if (!mixed) return true;
@@ -1259,7 +1259,7 @@ function spawnConfetti() {
 }
 
 function recordCorrect(city, fb, close = false) {
-  if (SETS[selectedSet].daily) {
+  if (SETS[selectedSet].variant === 'daily') {
     const k = dailyAnswerKey(city);
     if (!(k in dailyAnswers)) dailyAnswers[k] = !close; // eerste poging: exact = true, close = false
   }
@@ -1287,7 +1287,7 @@ function recordCorrect(city, fb, close = false) {
 }
 
 function recordWrong(city, fb) {
-  if (SETS[selectedSet].daily) {
+  if (SETS[selectedSet].variant === 'daily') {
     const k = dailyAnswerKey(city);
     if (!(k in dailyAnswers)) dailyAnswers[k] = false;
   }
@@ -1369,7 +1369,7 @@ function updateScoreboard() {
   document.getElementById('progress-bar').style.width = Math.round(mc / activeCities.length * 100) + '%';
   const phaseLabel = document.getElementById('phase-label');
   if (phaseLabel) {
-    if (set.phases) {
+    if (set.kind === 'phased') {
       phaseLabel.textContent = set.phases[currentPhaseIndex].label + ' ';
       phaseLabel.style.display = '';
     } else {
@@ -1405,7 +1405,7 @@ function finishAnswer() {
   const mc  = masteredCount();
   const set = SETS[selectedSet];
 
-  if (mc >= activeCities.length && set.phases) {
+  if (mc >= activeCities.length && set.kind === 'phased') {
     const nextIdx = currentPhaseIndex + 1;
     if (nextIdx < set.phases.length) {
       // Volgende fase: transitiescherm tonen na 2s (zodat de feedback zichtbaar blijft)
@@ -1696,14 +1696,15 @@ function _renderLevelSelect() {
 
   Object.entries(SETS).forEach(([num, set]) => {
     // Daily/bonus (#80): toon alleen als er een format voor de gekozen groep is.
-    if (set.daily || set.bonus) {
+    if (set.kind === 'dailyBonus') {
       if (!selectedGroup) return;
       const g = Number(selectedGroup);
-      const fmt = (set.daily ? DAILY_FORMAT : BONUS_FORMAT)[g];
+      const isDaily = set.variant === 'daily';
+      const fmt = (isDaily ? DAILY_FORMAT : BONUS_FORMAT)[g];
       if (!fmt) return;
       const btn = document.createElement('button');
-      btn.className = 'mode-btn ' + (set.daily ? 'daily-btn' : 'bonus-btn');
-      btn.textContent = set.daily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
+      btn.className = 'mode-btn ' + (isDaily ? 'daily-btn' : 'bonus-btn');
+      btn.textContent = isDaily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
       btn.onclick = () => selectLevel(Number(num));
       el.appendChild(btn);
       return;
@@ -2012,7 +2013,7 @@ function saveProgress() {
   // Bonus-sessie: bewaar naam + _itemType zodat mixed-type pool correct hersteld
   // kan worden (issue #80). Oude opslag (string[]) wordt via backwards-compat pad
   // in initLevel gelezen als 'place'.
-  if (SETS[selectedSet].bonus) data.bonusCities = activeCities.map(c => ({ name: c.name, _itemType: c._itemType || 'place' }));
+  if (SETS[selectedSet].variant === 'bonus') data.bonusCities = activeCities.map(c => ({ name: c.name, _itemType: c._itemType || 'place' }));
   try {
     sessionStorage.setItem(`qp_${selectedSet}_${gameMode}`, JSON.stringify(data));
   } catch (_) {}
@@ -2172,7 +2173,7 @@ async function hardRefresh() {
   function refreshPhases() {
     phaseSel.innerHTML = '';
     const set = SETS[Number(setSel.value)];
-    if (set?.phases?.length) {
+    if (set?.kind === 'phased' && set.phases.length) {
       set.phases.forEach((p, i) => {
         const opt = document.createElement('option');
         opt.value = i;
