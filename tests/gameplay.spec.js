@@ -17,7 +17,13 @@ test('antwoord kiezen toont altijd feedback', async ({ page }) => {
 test('ok- en err-teller stijgen samen met 1 na elk antwoord', async ({ page }) => {
   await startQuiz(page, 0);
   await page.locator('.opt').first().click();
-  await page.waitForTimeout(400);
+  // Wacht tot de teller-update van deze click verwerkt is (sync in recordCorrect/Wrong,
+  // maar DOM-flush asynchroon). Geen arbitrary timeout.
+  await page.waitForFunction(() => {
+    const ok  = parseInt(document.getElementById('sc-ok').textContent) || 0;
+    const err = parseInt(document.getElementById('sc-err').textContent) || 0;
+    return ok + err === 1;
+  });
   const ok  = parseInt(await page.locator('#sc-ok').textContent());
   const err = parseInt(await page.locator('#sc-err').textContent());
   expect(ok + err).toBe(1);
@@ -65,7 +71,12 @@ test('progressbalk vordert na correct antwoord', async ({ page }) => {
   // eenvoudiger: controleer dat mastered-teller omhoog gaat na genoeg correcte antwoorden
   // voor nu: controleer dat de balk bestaat en een width heeft na antwoord
   await page.locator('.opt').first().click();
-  await page.waitForTimeout(400);
+  // Wacht tot de score-update door is — dan is ook de progress-bar bijgewerkt.
+  await page.waitForFunction(() => {
+    const ok  = parseInt(document.getElementById('sc-ok').textContent) || 0;
+    const err = parseInt(document.getElementById('sc-err').textContent) || 0;
+    return ok + err === 1;
+  });
   const after = await page.locator('#progress-bar').evaluate(el => el.style.width);
   // balk bestaat — width kan 0% zijn als antwoord fout was, dat is ok
   expect(typeof after).toBe('string');

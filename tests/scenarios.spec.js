@@ -42,7 +42,10 @@ test('voortgang wordt hersteld na terugnavigeren naar modus-keuze', async ({ pag
   await answerCorrectly(page);
   await page.waitForSelector('#city-input:not([disabled])');
   await answerCorrectly(page);
-  await page.waitForTimeout(300); // saveProgress() runs synchronously in recordCorrect
+  // Wacht tot sc-ok === 2 (saveProgress() sync maar DOM-update async).
+  await page.waitForFunction(
+    () => parseInt(document.getElementById('sc-ok').textContent) === 2
+  );
 
   expect(parseInt(await page.locator('#sc-ok').textContent())).toBe(2);
 
@@ -74,7 +77,9 @@ test('reset wist sessietellers en herstart de quiz', async ({ page }) => {
   await startProvinceQuiz(page, 1);
 
   await answerCorrectly(page);
-  await page.waitForTimeout(300);
+  await page.waitForFunction(
+    () => parseInt(document.getElementById('sc-ok').textContent) === 1
+  );
   expect(parseInt(await page.locator('#sc-ok').textContent())).toBe(1);
 
   await page.locator('#menu-btn').click();
