@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.20.0">
+<meta name="version" content="2.21.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1170,9 +1170,10 @@ function renderQuestion() {
     const options = shuffle([currentCity, ...nearbyDistractors(currentCity, 3)]);
     const optDiv = document.getElementById('options');
     optDiv.innerHTML = '';
-    options.forEach(c => {
+    options.forEach((c, i) => {
       const btn = document.createElement('button');
       btn.className = 'opt';
+      btn.dataset.badge = 'ABCD'[i] || '';
       btn.textContent = c.name;
       btn.onclick = () => checkMcAnswer(c, btn);
       optDiv.appendChild(btn);
@@ -1279,13 +1280,13 @@ function recordCorrect(city, fb, close = false) {
   if (mastered) {
     applyMasteredStyle(city.name);
     fb.innerHTML = close
-      ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling. 🌟`
-      : `🌟 Yes! <span style="color:#f0c040">${city.name} zit in je hoofd! ⭐</span>`;
+      ? `Bijna! Het heet <strong>${city.name}</strong> — let op de spelling.`
+      : `Goed gedaan! <strong>${city.name}</strong> zit in je hoofd.`;
     spawnConfetti();
   } else {
     fb.innerHTML = close
-      ? `😊 Bijna! Het heet <strong>${city.name}</strong> — let de volgende keer op de spelling.`
-      : `✅ Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm! 💪`;
+      ? `Bijna! Het heet <strong>${city.name}</strong> — let op de spelling.`
+      : `Goed! Nog ${mastery() - streak[city.name]} keer, dan ken je 'm.`;
   }
   fb.className = close ? 'fb-close' : 'fb-ok';
   fb.classList.add('pop');
@@ -1748,15 +1749,22 @@ function _renderLevelSelect() {
     btn.onclick = () => selectLevel(Number(num));
     body.appendChild(btn);
   });
-  // Installeerknop
+  // Installeerknop — BUITEN #level-select (= buiten de paper-card) in
+  // #start-screen, zodat de PWA-meta-info visueel los staat van het
+  // spelkader. Eerst evt. oude knop weghalen (re-renders).
+  const startScreen = document.getElementById('start-screen');
+  ['install-btn', 'install-tooltip'].forEach(id => {
+    const prev = document.getElementById(id);
+    if (prev && prev.parentNode === startScreen) prev.remove();
+  });
   const installBtn = document.createElement('button');
   installBtn.id = 'install-btn';
   installBtn.textContent = '📲 Voeg toe aan beginscherm';
   installBtn.onclick = handleInstall;
-  body.appendChild(installBtn);
+  startScreen.appendChild(installBtn);
   const tooltip = document.createElement('div');
   tooltip.id = 'install-tooltip';
-  body.appendChild(tooltip);
+  startScreen.appendChild(tooltip);
   updateInstallButton();
   // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
   // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
@@ -1826,7 +1834,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.20.0';
+const APP_VERSION = 'v2.21.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
