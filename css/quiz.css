@@ -136,8 +136,8 @@ body.in-quiz #menu-btn {
   color: var(--color-ink);
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: var(--fs-16);
-  padding: 16px 12px 16px 40px;  /* extra left-padding voor badge */
+  font-size: var(--fs-18);
+  padding: 16px 12px 16px 42px;  /* extra left-padding voor badge */
   min-height: 64px;
   cursor: pointer;
   transition: transform 0.08s, box-shadow 0.08s;

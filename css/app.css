@@ -42,13 +42,11 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 @media (max-width: 480px) {
   body { padding: 6px; gap: 5px; }
   body.in-quiz { height: 100dvh; overflow: hidden; }
+  /* h1 / score-bar / question-box / opt / feedback mobiele-grootte wordt nu
+     door quiz.css geregeld (Routekaart-schaal in tokens). Enkel layout-
+     regels blijven hier. */
   h1 { font-size: 0.82rem; }
-  #score-bar { font-size: 0.78rem; gap: 5px; }
   #map-wrap { flex: 1; min-height: 0; }
   #leaflet-map { height: 100%; }
-  #question-box { padding: 9px 11px; }
-  #question-text { font-size: 0.88rem; margin-bottom: 8px; }
   #options { gap: 6px; margin-bottom: 7px; }
-  .opt { padding: 9px 6px; font-size: 0.82rem; }
-  #feedback { font-size: 0.82rem; min-height: 18px; margin-bottom: 5px; }
 }
