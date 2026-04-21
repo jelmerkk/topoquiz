@@ -1,47 +1,11 @@
 /**
  * Set 87 — Zuidoost-Azië (issue #55)
  *
- * Fase 1: 9 landen (country) — Myanmar, Thailand, Vietnam, Cambodja, Laos,
- *          Maleisië, Singapore, Indonesië, Filipijnen (NE polygonen).
- * Fase 2: 11 steden (place) — 8 hoofdsteden + 3 extra (Yangon niet-hoofd,
- *          Ho Chi Minhstad, Surabaya).
- * Fase 3: 5 eilanden (province) — Kalimantan, Sumatra, Sulawesi, Java,
- *          Molukken als echte polygonen uit OSM place=island relations.
- * Fase 4: 2 wateren (water) — Grote Oceaan + Indische Oceaan hergebruikt
- *          uit sets 86 resp. 84/85 via meervoudige set-tag.
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet87(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.7' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet87MC(page) {
-  await openSet87(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 87 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.7' })).toBeVisible();
-});
-
-test('set 87 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet87MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 87 — fase 1: #qtot toont 9', async ({ page }) => {
-  await startSet87MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(9);
-});
 
 test('set 87 — alle 9 landen in landen-zuidoost-azie.geojson', async ({ page }) => {
   await page.goto('/');

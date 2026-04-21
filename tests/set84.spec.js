@@ -1,45 +1,11 @@
 /**
  * Set 84 — Midden-Oosten (issue #52)
  *
- * Fase 1: 13 landen (country, polygonen uit landen-midden-oosten.geojson)
- * Fase 2: 13 steden (place) — 12 hoofdsteden + Mekka (geen capital)
- * Fase 3: 8 wateren (water) — Eufraat LineString + Suezkanaal (gedeeld met 82)
- *         + 6 fuzzy zeeën (Zwarte/Rode/Perzische Golf/Kaspische/Middellandse/Indische)
- *
- * Geen province-fase — opdrachtblad heeft geen gebieden.
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet84(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.4' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet84MC(page) {
-  await openSet84(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 84 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.4' })).toBeVisible();
-});
-
-test('set 84 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet84MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 84 — fase 1: #qtot toont 13', async ({ page }) => {
-  await startSet84MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(13);
-});
 
 test('set 84 — alle 13 landen in landen-midden-oosten.geojson', async ({ page }) => {
   await page.goto('/');
