@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.18.9">
+<meta name="version" content="2.19.1">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -80,15 +80,15 @@
   <div id="mode-select" style="display:none">
     <h2 id="start-level-name"></h2>
     <p>Hoe wil jij oefenen?</p>
-    <button class="mode-btn" onclick="startQuiz('mc')">
+    <button class="mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'mc' })">
       🔤 Meerkeuze
       <span class="mode-desc">Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!</span>
     </button>
-    <button class="mode-btn" onclick="startQuiz('text')">
+    <button class="mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'text' })">
       ✏️ Zelf typen
       <span class="mode-desc">Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.</span>
     </button>
-    <button class="mode-btn" id="map-mode-btn" onclick="startQuiz('map')">
+    <button class="mode-btn" id="map-mode-btn" onclick="router.navigate('quiz', { set: selectedSet, mode: 'map' })">
       📍 Klik op de kaart
       <span class="mode-desc">Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!</span>
     </button>
@@ -413,10 +413,17 @@ function ensureShapeFeatures() {
   const inject = (pt, source) => {
     if (!pt.featureData) return;
     for (const entry of source) {
-      let feat;
-      if (entry.shape === 'fuzzy')     feat = buildEllipseFeature(entry, selectedSet);
-      else if (entry.shape === 'peak') feat = buildPeakFeature(entry);
-      else continue;
+      if (entry.shape !== 'fuzzy' && entry.shape !== 'peak') continue;
+      // Zelfde naam kan meerdere entries hebben (bv. "Zwarte Zee" = polygon
+      // voor set 77/79, fuzzy voor set 84). Alleen injecteren als activeCities
+      // een item heeft met dezelfde naam én shape — anders zou de fuzzy variant
+      // de polygon-feature uit de geojson overschrijven by-name, en het
+      // set-filter in buildPolygonLayer de feature eruit gooien.
+      const active = activeCities.find(c => c.name === entry.name);
+      if (!active || active.shape !== entry.shape) continue;
+      const feat = entry.shape === 'fuzzy'
+        ? buildEllipseFeature(entry, selectedSet)
+        : buildPeakFeature(entry);
       const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
       if (idx >= 0) pt.featureData.features[idx] = feat;
       else pt.featureData.features.push(feat);
@@ -1402,7 +1409,7 @@ function finishAnswer() {
           document.getElementById('qtot').textContent = activeCities.length;
           updateScoreboard();
           renderQuestion();
-          if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
+          router.emit('phase-change');
         });
       }, 2000);
       return;
@@ -1425,14 +1432,144 @@ function updateHardList() {
 
 // ── Screens ──────────────────────────────────────────────────
 
+// #94 centrale scherm-zichtbaarheid. Eén tabel, één toepasser.
+// Voor elke `screen`-waarde staat hier welke display elke div krijgt;
+// `in-quiz` is de body-class die vroeger inconsistent werd toegevoegd/verwijderd.
+// Alle vier de eerdere ad-hoc `['id'].forEach(...display=none)` lijstjes
+// (showEnd, _renderModeSelect, _renderStartScreen, startQuiz) gaan hierdoor.
+const SCREEN_VISIBILITY = {
+  'level-select': {
+    'start-screen':  'block',
+    'level-select':  'block',
+    'mode-select':   'none',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: false,
+  },
+  'mode-select': {
+    'start-screen':  'block',
+    'level-select':  'none',
+    'mode-select':   'block',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: false,
+  },
+  'quiz': {
+    'start-screen':  'none',
+    'score-bar':     'flex',
+    'map-wrap':      'block',
+    'question-box':  'block',
+    // hard-panel dynamisch door updateHardList; startscreen in quiz-mode = leeg.
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: true,
+  },
+  'end': {
+    'start-screen':  'none',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'block',
+    __inQuiz: false,
+  },
+};
+
+function applyVisibility(screen) {
+  const conf = SCREEN_VISIBILITY[screen];
+  if (!conf) { console.warn('applyVisibility: unknown screen', screen); return; }
+  for (const [id, display] of Object.entries(conf)) {
+    if (id.startsWith('__')) continue;
+    const el = document.getElementById(id);
+    if (el) el.style.display = display;
+  }
+  document.body.classList.toggle('in-quiz', !!conf.__inQuiz);
+}
+
+// ── Router (#94) ──────────────────────────────────────────────
+// Authoritative scherm-switcher. Wrapt history-writes + dispatch naar
+// render-functies. Call-sites blijven in Step 3 ongewijzigd — `router`
+// wordt in Step 4 per locatie ingewisseld zodat elke stap atomair is.
+// screen ∈ { 'level-select', 'mode-select', 'quiz', 'end' }
+// params: mode-select/quiz/end verwachten `set`; quiz extra `mode`/`phase`.
+// opts.history ∈ { 'push' | 'replace' | 'none' } — 'none' voor popstate.
+const router = (() => {
+  let _current = { screen: null, params: {} };
+  const _listeners = { enter: new Map(), leave: new Map(), event: new Map() };
+
+  function _on(bucket, key, cb) {
+    if (!_listeners[bucket].has(key)) _listeners[bucket].set(key, []);
+    _listeners[bucket].get(key).push(cb);
+  }
+  function _emit(bucket, key, ...args) {
+    const cbs = _listeners[bucket].get(key);
+    if (cbs) for (const cb of cbs) { try { cb(...args); } catch (e) { console.error(e); } }
+  }
+
+  function _writeHistory(screen, params, how) {
+    if (how === 'none') return;
+    const state = { screen, ...params };
+    if (how === 'replace') history.replaceState(state, '');
+    else history.pushState(state, '');
+  }
+
+  async function navigate(screen, params = {}, opts = {}) {
+    const how = opts.history || 'push';
+    const prev = _current;
+    // Zet history-entry eerst zodat popstate tijdens een async dispatch
+    // (bv. startQuiz awaitet data) niet een entry-mismatch oplevert.
+    _writeHistory(screen, params, how);
+    if (prev.screen) _emit('leave', prev.screen, { screen, params });
+    _current = { screen, params: { ...params } };
+    // Dispatch naar bestaande render-functies. `selectedSet` is een globale
+    // die door vrijwel alle render/quiz-paden gelezen wordt — de router is
+    // de enige schrijver voor elk scherm met een set-param.
+    if (typeof params.set === 'number') selectedSet = params.set;
+    if (screen === 'level-select') _renderStartScreen();
+    else if (screen === 'mode-select') _renderModeSelect(params.set);
+    else if (screen === 'quiz') await startQuiz(params.mode, params.phase || 0);
+    else if (screen === 'end') showEnd();
+    _emit('enter', screen, params, prev);
+  }
+
+  function fromURL() {
+    const qs = new URLSearchParams(location.search);
+    const setStr = qs.get('set');
+    if (!setStr) return null;
+    const set = Number(setStr);
+    if (!SETS[set]) return null;
+    const mode = qs.get('mode');
+    if (mode && ['mc','text','map'].includes(mode)) {
+      const phase = Number(qs.get('phase') || 0);
+      return { screen: 'quiz', params: { set, mode, phase } };
+    }
+    return { screen: 'mode-select', params: { set } };
+  }
+
+  return {
+    navigate,
+    fromURL,
+    onEnter: (s, cb) => _on('enter', s, cb),
+    onLeave: (s, cb) => _on('leave', s, cb),
+    // Generic event bus: dev-menu gebruikt dit voor phase-change events die
+    // geen scherm-transitie zijn maar wel een sync moeten triggeren.
+    on:   (ev, cb) => _on('event', ev, cb),
+    emit: (ev, ...args) => _emit('event', ev, ...args),
+    current: () => ({ ..._current }),
+  };
+})();
+
 function showEnd() {
   _trackQuiz('complete');
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
-  document.body.classList.remove('in-quiz');
-  ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('end-screen').style.display = 'block';
+  applyVisibility('end');
   const total = cumulativeOk + cumulativeErr;
   const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
@@ -1584,8 +1721,8 @@ function _renderLevelSelect() {
   tooltip.id = 'install-tooltip';
   el.appendChild(tooltip);
   updateInstallButton();
-  document.getElementById('level-select').style.display = 'block';
-  document.getElementById('mode-select').style.display  = 'none';
+  // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
+  // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
 }
 
 function _renderModeSelect(setNumber) {
@@ -1594,14 +1731,10 @@ function _renderModeSelect(setNumber) {
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
 
-  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('start-screen').style.display = 'block';
+  applyVisibility('mode-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
 
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
-  document.getElementById('level-select').style.display = 'none';
-  document.getElementById('mode-select').style.display  = 'block';
 
   const _msSet = SETS[setNumber];
   const descs = document.querySelectorAll('#mode-select .mode-desc');
@@ -1643,20 +1776,17 @@ function _renderModeSelect(setNumber) {
 // ── Publieke navigatiefuncties (met history) ─────────────────
 
 function selectLevel(setNumber) {
-  selectedSet = setNumber;
   // Daily en bonus (#80) draaien altijd in MC — tekst/kaart-klik zijn onhandig
   // bij mixed types (een regio kun je niet "typen" op een schoolniveau).
   if (SETS[setNumber].daily || SETS[setNumber].bonus) {
-    history.pushState({ screen: 'quiz', set: setNumber, mode: 'mc' }, '');
-    startQuiz('mc');
+    router.navigate('quiz', { set: setNumber, mode: 'mc' });
     return;
   }
-  history.pushState({ screen: 'mode-select', set: setNumber }, '');
-  _renderModeSelect(setNumber);
+  router.navigate('mode-select', { set: setNumber });
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.18.9';
+const APP_VERSION = 'v2.19.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1721,7 +1851,6 @@ function submitFeedback() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
 function _renderStartScreen() {
-  document.body.classList.remove('in-quiz');
   map.off('click', handleMapClick);
   document.getElementById('map-wrap').classList.remove('map-click-mode');
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
@@ -1730,9 +1859,7 @@ function _renderStartScreen() {
   clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
-  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('start-screen').style.display = 'block';
+  applyVisibility('level-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
   document.getElementById('menu-btn').style.display = 'none';
   closeQuizMenu();
@@ -1743,13 +1870,14 @@ function showStartScreen() {
   // replaceState: terugknop vanuit startscherm verlaat de pagina (zoals verwacht),
   // niet terug naar een verlaten quiz.
   if (quizStartTime) { _trackQuiz('quit'); quizStartTime = null; }
-  history.replaceState({ screen: 'level-select' }, '');
-  _renderStartScreen();
+  router.navigate('level-select', {}, { history: 'replace' });
 }
 
 async function startQuiz(mode, startPhase = 0) {
   gameMode = mode;
-  history.pushState({ screen: 'quiz', set: selectedSet, mode }, '');
+  // #94: history-entry schrijft router.navigate('quiz', ...). Inline onclick-
+  // handlers op mode-knoppen en dev-menu roepen startQuiz nu via de router;
+  // resetQuiz roept direct aan (geen nieuwe entry — zelfde quiz).
   // Bepaal welke quizTypes nodig zijn.
   // - Gefaseerde sets: alle fase-quizTypes.
   // - Daily/bonus (#80): alle polygon-types die in het format kunnen voorkomen.
@@ -1802,8 +1930,7 @@ async function startQuiz(mode, startPhase = 0) {
   const restored = restoreProgress();
   quizStartTime = Date.now();
   _trackQuiz(restored ? 'resume' : 'start');
-  // Dev-menu synchroniseren met zojuist gestarte set/modus/fase
-  if (typeof window.__devMenuSync === 'function') window.__devMenuSync();
+  // Dev-menu sync loopt via router.onEnter('quiz', …) — hier niets nodig.
   if (!restored) {
     initStreak();
     sessionOk = sessionErr = consecutiveCorrect = 0;
@@ -1826,11 +1953,7 @@ async function startQuiz(mode, startPhase = 0) {
   document.getElementById('progress-bar').style.width =
     Math.round(masteredCount() / activeCities.length * 100) + '%';
 
-  document.body.classList.add('in-quiz');
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('end-screen').style.display   = 'none';
-  document.getElementById('hard-panel').style.display   = 'none';
-  document.getElementById('map-wrap').style.display     = 'block';
+  applyVisibility('quiz');
   // Verberg NL-provinciegrenzen bij EU/wereld-sets (heeft bounds-veld)
   if (provinceBorderLayer) {
     if (SETS[selectedSet].bounds) provinceBorderLayer.remove();
@@ -1852,8 +1975,7 @@ async function startQuiz(mode, startPhase = 0) {
     else
       map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
   });
-  document.getElementById('question-box').style.display = 'block';
-  document.getElementById('score-bar').style.display    = 'flex';
+  // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
   document.getElementById('qtot').textContent = activeCities.length;
   document.querySelector('h1').textContent = `🗺️ ${SETS[selectedSet].name}`;
   document.getElementById('menu-btn').style.display = 'inline-block';
@@ -1910,12 +2032,11 @@ function resetQuiz() {
 window.addEventListener('popstate', e => {
   const s = e.state;
   if (!s || s.screen === 'level-select') {
-    _renderStartScreen();
+    router.navigate('level-select', {}, { history: 'none' });
   } else if (s.screen === 'mode-select' || s.screen === 'quiz') {
     // quiz-state via popstate = gebruiker navigeerde terug vanuit de quiz;
     // toon het moduscherm zodat ze hun voortgang kunnen hervatten.
-    selectedSet = s.set;
-    _renderModeSelect(s.set);
+    router.navigate('mode-select', { set: s.set }, { history: 'none' });
   }
 });
 
@@ -1969,34 +2090,16 @@ async function hardRefresh() {
   location.reload();
 }
 
-// Geef de initiële paginastate een naam zodat popstate correct werkt
-history.replaceState({ screen: 'level-select' }, '');
-
-// Dev deep-link: ?set=73&mode=mc&phase=2 springt direct de quiz in.
-// Alleen bedoeld voor snel testen op dev/preview-builds.
-async function _maybeDeepLink() {
-  const params = new URLSearchParams(location.search);
-  const setParam = params.get('set');
-  if (!setParam) return false;
-  const setNum = parseInt(setParam, 10);
-  if (!SETS[setNum]) return false;
-  selectedSet = setNum;
-
-  const modeParam = params.get('mode');
-  if (!modeParam) {
-    history.replaceState({ screen: 'mode-select', set: setNum }, '');
-    _renderModeSelect(setNum);
-    return true;
-  }
-  if (!['mc', 'text', 'map'].includes(modeParam)) return false;
-
-  const phaseParam = parseInt(params.get('phase') || '0', 10);
-  await startQuiz(modeParam, isNaN(phaseParam) ? 0 : phaseParam);
-  return true;
-}
-
+// Bootstrap: eerst level-select als base-entry (replace de initiële
+// browser-state), daarna push de deep-link erbovenop. Zo zet een
+// back-press de gebruiker altijd terug op level-select en niet op een
+// lege pagina — ook bij diep-gelinkte ?set=…&mode=… URL's.
 (async () => {
-  if (!(await _maybeDeepLink())) showStartScreen();
+  const target = router.fromURL();
+  await router.navigate('level-select', {}, { history: 'replace' });
+  if (target) {
+    await router.navigate(target.screen, target.params, { history: 'push' });
+  }
 })();
 
 // ── Dev-menu ─────────────────────────────────────────────────
@@ -2090,9 +2193,10 @@ async function _maybeDeepLink() {
       if (phaseOpt) phaseSel.value = String(currentPhaseIndex);
     }
   }
-  // Expose globaal zodat de game-loop na startQuiz / fase-wissel kan
-  // resyncen zonder een harde koppeling te maken.
-  window.__devMenuSync = syncToLive;
+  // Sync bij quiz-entry (via router) en bij fase-wissel (via event bus).
+  // Geen global meer — alles door de router.
+  router.onEnter('quiz', syncToLive);
+  router.on('phase-change', syncToLive);
 
   panel.querySelector('.head').addEventListener('click', () => {
     const wasCollapsed = panel.classList.contains('collapsed');
@@ -2105,8 +2209,9 @@ async function _maybeDeepLink() {
     const mode  = panel.querySelector('#dev-mode').value;
     const phase = Number(phaseSel.value) || 0;
     localStorage.setItem('devMenuSet', String(set));
-    selectedSet = set;
-    await startQuiz(mode, phase);
+    // Dev-menu: `history:'replace'` voorkomt dat dev-switches de history
+    // vervuilen (§7.3 #2). De normale back-button blijft consistent.
+    await router.navigate('quiz', { set, mode, phase }, { history: 'replace' });
   });
 })();
 </script>
