@@ -1,0 +1,181 @@
+/* ── Start-scherm + level-select (#98 CSS-extractie) ─────────────────
+   Mode-buttons, group-select, daily-btn, quiz-menu en install-knop. */
+
+#start-screen {
+  display: none;
+  background: #243060;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 680px;
+  width: 100%;
+}
+#start-screen h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }
+#start-screen p  { color: #8ab4f8; font-size: 0.9rem; margin-bottom: 22px; }
+.mode-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+}
+@media (hover: hover) { .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; } }
+.mode-btn.bonus-btn { border-color: #f0c040; }
+@media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
+.level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
+.beta-label { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em; background: #f0a500; color: #1a1a2e; padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+
+.group-select {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+}
+.group-btn {
+  flex: 1;
+  padding: 10px 4px;
+  background: #1a2540;
+  border: 2px solid #3b5280;
+  color: #8ab4f8;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+@media (hover: hover) { .group-btn:hover { background: #1e2e50; border-color: #5880c8; color: #fff; } }
+.group-btn.active {
+  background: #1a3f8a;
+  border-color: #4a90d9;
+  color: #fff;
+}
+/* Prominente stijl als nog geen groep geselecteerd is */
+.group-select.no-selection .group-btn {
+  padding: 14px 4px;
+  background: #1e2e50;
+  border-color: #4a90d9;
+  color: #c8d8ff;
+  font-size: 1rem;
+  animation: pulse-group 1.8s ease-in-out infinite;
+}
+.group-select.no-selection .group-btn:nth-child(2) { animation-delay: 0.15s; }
+.group-select.no-selection .group-btn:nth-child(3) { animation-delay: 0.30s; }
+.group-select.no-selection .group-btn:nth-child(4) { animation-delay: 0.45s; }
+@keyframes pulse-group {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 144, 217, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.35); }
+}
+.group-hint {
+  font-size: 0.82rem;
+  color: #8ab4f8;
+  margin: 0 0 6px;
+  text-align: center;
+}
+.daily-btn {
+  display: block; width: 100%; padding: 16px; margin-bottom: 18px;
+  background: #1a3a1a; border: 2px solid #58CC02; color: #fff;
+  border-radius: 12px; font-size: 1rem; font-weight: 700;
+  cursor: pointer; text-align: left; transition: all 0.12s;
+}
+@media (hover: hover) { .daily-btn:hover { background: #254025; border-color: #7aee22; } }
+.daily-btn.done { opacity: 0.65; cursor: default; }
+.daily-btn .daily-sub { display: block; font-size: 0.8rem; font-weight: 400; color: #8dcc6a; margin-top: 3px; }
+.daily-emoji { font-size: 1.3rem; letter-spacing: 2px; margin: 12px 0 4px; }
+#daily-share-wrap { margin: 16px 0; }
+#share-btn {
+  padding: 11px 24px; background: #58CC02; border: none; color: #fff;
+  border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
+}
+@media (hover: hover) { #share-btn:hover { background: #46a802; } }
+.mode-btn .mode-desc {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #8ab4f8;
+  margin-top: 3px;
+}
+#back-btn {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  color: #8ab4f8;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+@media (hover: hover) { #back-btn:hover { color: #fff; } }
+#menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.15rem;
+  cursor: pointer;
+  opacity: 0.55;
+  padding: 0 4px;
+  line-height: 1;
+  color: #8ab4f8;
+  position: relative;
+}
+@media (hover: hover) { #menu-btn:hover { opacity: 1; } }
+#quiz-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #1a2744;
+  border: 1px solid #2c3d6e;
+  border-radius: 10px;
+  padding: 6px 0;
+  z-index: 900;
+  min-width: 190px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+#quiz-menu.open { display: block; }
+#quiz-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #c8d8f8;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9rem;
+  padding: 9px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+@media (hover: hover) { #quiz-menu button:hover { background: #2c3d6e; } }
+
+#install-btn {
+  display: none;
+  background: none;
+  border: 1px solid #3a4f88;
+  color: #8ab4f8;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  margin: 12px auto 0;
+  font-family: inherit;
+}
+@media (hover: hover) { #install-btn:hover { border-color: #6080cc; color: #fff; } }
+#install-tooltip {
+  display: none;
+  background: #243060;
+  border: 1px solid #3a4f88;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  color: #8ab4f8;
+  line-height: 1.5;
+  margin: 8px auto 0;
+  max-width: 320px;
+  text-align: left;
+}

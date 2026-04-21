@@ -1,0 +1,80 @@
+/* ── Feedback-modal (#98 CSS-extractie) ──────────────────────────────
+   Overlay + formulier voor bug/suggestie. .fb-open-btn--end staat in
+   end.css omdat die variant alleen daar voorkomt. */
+
+#fb-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+}
+#fb-overlay.open { display: flex; }
+#fb-modal {
+  background: #243060;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: min(460px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#fb-modal h3 { color: #f0c040; font-size: 1.05rem; }
+#fb-modal > p { color: #8ab4f8; font-size: 0.83rem; line-height: 1.5; }
+.fb-type-row { display: flex; gap: 8px; }
+.fb-type-btn {
+  flex: 1;
+  padding: 10px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  color: #fff;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.fb-type-btn.selected { border-color: #f0c040; background: #2c3d6e; }
+#fb-desc, #fb-name {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a2744;
+  border: 2px solid #3a4f88;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 0.92rem;
+  font-family: inherit;
+}
+#fb-desc { resize: vertical; min-height: 80px; }
+#fb-desc:focus, #fb-name:focus { outline: none; border-color: #6080cc; }
+#fb-name::placeholder, #fb-desc::placeholder { color: #4a5a80; }
+.fb-btn-row { display: flex; gap: 8px; justify-content: flex-end; }
+#fb-cancel {
+  padding: 9px 18px;
+  background: none;
+  border: 2px solid #3a4f88;
+  color: #8ab4f8;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#fb-submit {
+  padding: 9px 20px;
+  background: #f0c040;
+  color: #1a2744;
+  border: none;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+#fb-submit:disabled { opacity: 0.5; cursor: default; }
+#fb-thanks { display: none; text-align: center; padding: 12px 0; color: #58CC02; font-weight: 600; }
+.fb-open-btn {
+  background: none; border: none;
+  color: #3a4f88; font-size: 0.78rem;
+  cursor: pointer; text-decoration: underline;
+  display: block; margin: 8px auto 0;
+}
+@media (hover: hover) { .fb-open-btn:hover { color: #8ab4f8; } }

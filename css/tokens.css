@@ -1,0 +1,67 @@
+/* ── Design-tokens (#89 REFINE Brok 1) ────────────────────────────────
+   Canonical bron: HANDOFF.md / routekaart_handoff.jsx `RkTokens`.
+   Nog niets gebruikt deze tokens — gestileerd in losse brokken (#98+).
+   Naming-conventie: --token-<category>-<variant>, lowercase kebab. */
+:root {
+  /* Kleuren — paper/bg/ink-stack */
+  --color-paper:      #fffdf5;
+  --color-bg:         #f7f4e8;
+  --color-ink:        #20232e;
+  --color-ink-soft:   #4a4a52;
+  --color-ink-muted:  #8a8779;
+
+  /* Kleuren — accent */
+  --color-red:        #d8403a;
+  --color-red-dark:   #a82a24;
+  --color-yellow:     #f5c518;
+  --color-yellow-dark:#c39a00;
+  --color-blue:       #3a7fd6;
+  --color-blue-dark:  #1e5aa8;
+  --color-grass:      #6bbd4a;
+  --color-grass-dark: #3f8a28;
+  --color-sky:        #bfe5f0;
+  --color-sky-deep:   #7fc4dc;
+  --color-badge-fire: #ea8f2a;
+
+  /* Kaart-kleuren (voor Leaflet-layers straks) */
+  --color-map-sea:    #bfe5f0;
+  --color-map-land:   #c9e6a8;
+
+  /* Typografie */
+  --font-display: 'Luckiest Guy', 'Fredoka', 'Nunito', sans-serif;
+  --font-body:    'Fredoka', 'Nunito', 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* Type-scale (in px, via var in calc() of direct) */
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-22: 22px;
+  --fs-30: 30px;
+  --fs-46: 46px;
+  --fs-86: 86px;
+
+  /* Letterspacing */
+  --letter-display: 0.3px;
+  --letter-mono-caps: 1.5px;
+
+  /* Borders (chunky, altijd ink-kleur) */
+  --border-thin:  2px solid var(--color-ink);
+  --border-med:   2.5px solid var(--color-ink);
+  --border-thick: 3px solid var(--color-ink);
+  --border-hero:  4px solid var(--color-ink);
+
+  /* Radii — chunky only */
+  --radius-6:  6px;
+  --radius-8:  8px;
+  --radius-10: 10px;
+  --radius-12: 12px;
+  --radius-14: 14px;
+
+  /* Shadows — hard offset, géén blur */
+  --shadow-sm: 0 2px 0 var(--color-ink);
+  --shadow:    0 4px 0 var(--color-ink);
+  --shadow-lg: 0 5px 0 var(--color-ink);
+}

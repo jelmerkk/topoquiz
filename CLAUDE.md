@@ -10,14 +10,18 @@ Projectspecifieke werkafspraken voor Claude. Voor architectuur, datastructuren e
 Elke commit eindigt met: `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`
 
 ## Branch-strategie
-- `dev` — actieve ontwikkeling. Alle nieuwe features en fixes starten hier of op een feature-branch die naar `dev` mergt.
-- `feature/*` — voor grotere multi-step features; Cloudflare Pages publiceert automatisch een preview-URL zodat de gebruiker ze kan testen vóór merge naar `dev`.
+- `dev` — **default werkbranch**. Elke push krijgt een CF-preview. Alle nieuwe features en fixes gaan hier direct heen, tenzij user expliciet om een feature-branch vraagt.
+- `feature/*` — **uitzondering, niet de regel**. Alleen gebruiken als:
+  - de gebruiker er expliciet om vraagt, **of**
+  - er meerdere parallele lijnen tegelijk moeten leven (zeldzaam in dit solo-dev project).
+
+  Bij twijfel: push naar `dev`. De CF-preview op de dev-URL is genoeg voor visuele verificatie vóór de staging-push.
 - `staging` — CI gate. Push naar staging triggert E2E + rsync-deploy naar main → productie.
 - `main` — productie. Nooit direct op committen.
 
 **Regels:**
 - NOOIT direct op `staging` of `main` committen of pushen.
-- Geen GitHub PRs aanmaken — de gebruiker reviewt via Cloudflare preview en geeft mondeling akkoord, daarna `git merge --no-ff` op `dev`.
+- Geen GitHub PRs aanmaken — de gebruiker reviewt via Cloudflare preview en geeft mondeling akkoord vóór staging-push.
 - Risicovolle acties (force push, reset --hard, merge naar staging/main) altijd eerst vragen.
 
 ## Deploy
