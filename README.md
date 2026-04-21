@@ -60,37 +60,69 @@ Voor wateren: `sets`-veld aanwezig = set-specifiek (bijv. rivieren in set 7.3); 
 
 ### 2. De set registreren in `SETS`
 
-**Enkelvoudige set** (één elementtype):
+Sinds issue #93 wordt elke set aangemaakt via een van drie factory-functies
+die een `kind`-discriminator stempelen. Consumenten in `index.html`
+switchen op `set.kind` — geen ad-hoc null-checks meer op `phases`/`daily`.
+
+**Enkelvoudige set** — `simpleSet({ … })` — één quizType voor de hele sessie:
 ```js
-67: { name: '6.7 – Noord-Holland', quizType: 'place', fitOnStart: true, group: 6 },
+67: simpleSet({ name: '6.7 – Noord-Holland', quizType: 'place', fitOnStart: true, group: 6,
+                clickCorrectKm: 10, clickCloseKm: 30 }),
 ```
 
-**Meerfasige set** (meerdere elementtypen sequentieel):
+**Meerfasige set** — `phasedSet({ … })` — fases sequentieel doorlopen:
 ```js
-73: { name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,
-      bounds: [[35, -12], [52, 10]],
-      clickCorrectKm: 80, clickCloseKm: 240,
-      phases: [
-        { id: 'cities',  label: 'Steden',   quizType: 'place'    },
-        { id: 'regions', label: 'Gebieden', quizType: 'province' },
-        { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
-      ] },
+73: phasedSet({ name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,
+                bounds: [[35, -12], [52, 10]],
+                clickCorrectKm: 80, clickCloseKm: 240,
+                phases: [
+                  { id: 'cities',  label: 'Steden',   quizType: 'place'    },
+                  { id: 'regions', label: 'Gebieden', quizType: 'province' },
+                  { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
+                ] }),
 ```
 
-| Veld | Uitleg |
-|------|--------|
-| `name` | Weergavenaam in het menu |
-| `quizType` | `'place'` / `'province'` / `'water'` / `'country'` (enkelvoudige sets) |
-| `phases` | Array van fases voor sequentiële multi-type quiz (overschrijft `quizType`) |
-| `group` | Groepsnummer (5–8); bepaalt in welke groep het level verschijnt |
-| `fitOnStart` | `true` = zoom in op de actieve plaatsen; `false` = heel Nederland |
-| `bounds` | `[[lat,lon],[lat,lon]]` — viewport voor EU/wereld-sets |
-| `clickCorrectKm` / `clickCloseKm` | Klik-drempels (overschrijven globale standaard 20/60 km) |
-| `mastery` | Optioneel: overschrijft `MASTERY_MC`/`MASTERY_TEXT` voor deze set |
-| `bonus` | `true` = per-groep willekeurige mixed pool (zie *Dagelijkse uitdaging & bonus* onder) |
-| `daily` | `true` = per-groep datum-geseedde mixed pool, bypast mode-selectiescherm |
+**Daily/bonus** — `dailyBonusSet({ … })` — heterogene pool, variant bepaalt
+daily vs bonus:
+```js
+98: dailyBonusSet({ name: '📅 Uitdaging van vandaag', variant: 'daily', mastery: 1 }),
+99: dailyBonusSet({ name: 'Bonus: door elkaar',       variant: 'bonus', mastery: 1 }),
+```
 
-**Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, 70 → test-level, enz.
+**`simpleSet`** velden:
+
+| Veld | Verplicht | Uitleg |
+|------|-----------|--------|
+| `name` | ✓ | Weergavenaam in het menu |
+| `quizType` | ✓ | `'place'` / `'province'` / `'water'` / `'country'` |
+| `group` | ✓ | Groepsnummer (5–8) — bepaalt in welke groep het level verschijnt |
+| `fitOnStart` | | `true` = zoom in op de actieve items; `false` (default) = heel Nederland |
+| `clickCorrectKm` / `clickCloseKm` | | Klik-drempels in km (default 20/60) |
+
+**`phasedSet`** velden:
+
+| Veld | Verplicht | Uitleg |
+|------|-----------|--------|
+| `name` | ✓ | Weergavenaam in het menu |
+| `group` | ✓ | Groepsnummer (5–8) |
+| `phases` | ✓ | Array `{ id, label, quizType }` — sequentieel doorlopen |
+| `bounds` | | `[[lat,lon],[lat,lon]]` — viewport voor EU/wereld-sets |
+| `clickCorrectKm` / `clickCloseKm` | | Klik-drempels in km (default 20/60) |
+| `mastery` | | Default `1`; overschrijft `MASTERY_MC`/`MASTERY_TEXT` |
+
+**`dailyBonusSet`** velden:
+
+| Veld | Verplicht | Uitleg |
+|------|-----------|--------|
+| `name` | ✓ | Weergavenaam in het menu |
+| `variant` | ✓ | `'daily'` (datum-geseed) of `'bonus'` (shuffle op eerste open) |
+| `mastery` | | Default `1` |
+| `fitOnStart` | | Default `false` — daily/bonus laat de kaart per vraag zoomen |
+
+De factory stempelt automatisch `kind: 'simple' \| 'phased' \| 'dailyBonus'`.
+Consumenten branchen op `kind` (en bij dailyBonus op `variant`).
+
+**Set-nummering** volgt de Geobas-hoofdstuknummers: 54 → 5.4, 61 → 6.1, 98 → daily, 99 → bonus.
 
 ---
 
