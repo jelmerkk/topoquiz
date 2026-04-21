@@ -1485,6 +1485,76 @@ function applyVisibility(screen) {
   document.body.classList.toggle('in-quiz', !!conf.__inQuiz);
 }
 
+// ── Router (#94) ──────────────────────────────────────────────
+// Authoritative scherm-switcher. Wrapt history-writes + dispatch naar
+// render-functies. Call-sites blijven in Step 3 ongewijzigd — `router`
+// wordt in Step 4 per locatie ingewisseld zodat elke stap atomair is.
+// screen ∈ { 'level-select', 'mode-select', 'quiz', 'end' }
+// params: mode-select/quiz/end verwachten `set`; quiz extra `mode`/`phase`.
+// opts.history ∈ { 'push' | 'replace' | 'none' } — 'none' voor popstate.
+const router = (() => {
+  let _current = { screen: null, params: {} };
+  const _listeners = { enter: new Map(), leave: new Map() };
+
+  function _on(bucket, screen, cb) {
+    if (!_listeners[bucket].has(screen)) _listeners[bucket].set(screen, []);
+    _listeners[bucket].get(screen).push(cb);
+  }
+  function _emit(bucket, screen, ...args) {
+    const cbs = _listeners[bucket].get(screen);
+    if (cbs) for (const cb of cbs) { try { cb(...args); } catch (e) { console.error(e); } }
+  }
+
+  function _writeHistory(screen, params, how) {
+    if (how === 'none') return;
+    const state = { screen, ...params };
+    if (how === 'replace') history.replaceState(state, '');
+    else history.pushState(state, '');
+  }
+
+  async function navigate(screen, params = {}, opts = {}) {
+    const how = opts.history || 'push';
+    const prev = _current;
+    // Zet history-entry eerst zodat popstate tijdens een async dispatch
+    // (bv. startQuiz awaitet data) niet een entry-mismatch oplevert.
+    _writeHistory(screen, params, how);
+    if (prev.screen) _emit('leave', prev.screen, { screen, params });
+    _current = { screen, params: { ...params } };
+    // Dispatch naar bestaande render-functies. Step 4 vervangt dit pad
+    // door directe calls; voor nu wraps de router ze zodat call-sites
+    // geleidelijk kunnen migreren zonder gedragsverandering.
+    if (screen === 'level-select') _renderStartScreen();
+    else if (screen === 'mode-select') _renderModeSelect(params.set);
+    else if (screen === 'quiz') {
+      selectedSet = params.set;
+      await startQuiz(params.mode, params.phase || 0);
+    } else if (screen === 'end') showEnd();
+    _emit('enter', screen, params, prev);
+  }
+
+  function fromURL() {
+    const qs = new URLSearchParams(location.search);
+    const setStr = qs.get('set');
+    if (!setStr) return null;
+    const set = Number(setStr);
+    if (!SETS[set]) return null;
+    const mode = qs.get('mode');
+    if (mode && ['mc','text','map'].includes(mode)) {
+      const phase = Number(qs.get('phase') || 0);
+      return { screen: 'quiz', params: { set, mode, phase } };
+    }
+    return { screen: 'mode-select', params: { set } };
+  }
+
+  return {
+    navigate,
+    fromURL,
+    onEnter: (s, cb) => _on('enter', s, cb),
+    onLeave: (s, cb) => _on('leave', s, cb),
+    current: () => ({ ..._current }),
+  };
+})();
+
 function showEnd() {
   _trackQuiz('complete');
   quizStartTime = null;
