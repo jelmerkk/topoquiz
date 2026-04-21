@@ -28,7 +28,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 /* Container-breedtes: base = mobile (680), desktop-override (900) staat in de 768+ media-query hieronder.
    Moet hier en niet in de scherm-specifieke CSS-files (map.css/start.css/…) staan — anders overrijdt
    een later geladen file de media-query (zelfde specificiteit, source-order wint). */
-#map-wrap, #question-box, #score-bar, #hard-panel, #end-screen, #start-screen { max-width: 680px; }
+#title-bar, #map-wrap, #question-box, #score-bar, #hard-panel, #end-screen, #start-screen { max-width: 680px; }
 #map-wrap { width: 100%; }
 #leaflet-map { height: clamp(300px, 52dvh, 580px); }
 
@@ -36,7 +36,7 @@ h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 @media (min-width: 768px) {
   body { padding: 14px; gap: 12px; }
   h1 { font-size: 1.3rem; }
-  #map-wrap, #question-box, #score-bar, #hard-panel, #end-screen, #start-screen { max-width: 900px; }
+  #title-bar, #map-wrap, #question-box, #score-bar, #hard-panel, #end-screen, #start-screen { max-width: 900px; }
   #leaflet-map { height: clamp(500px, 66dvh, 740px); }
 }
 @media (max-width: 480px) {
