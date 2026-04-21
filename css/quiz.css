@@ -9,36 +9,9 @@ body.in-quiz {
   color: var(--color-ink);
 }
 
-/* Title-bar tijdens quiz — géén eigen kader (te druk tussen de
-   frame-score-bar, frame-map en frame-vraag-box). Plain titel in
-   display-font op de zand-bg, hamburger rechts. Scope via
-   body.in-quiz zodat mode-select / end-screen hun legacy stijl
-   behouden tot hun eigen refresh-tickets. */
-body.in-quiz #title-bar {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 4px 4px;
-  gap: 8px;
-}
-body.in-quiz #title-bar h1 {
-  font-family: var(--font-display);
-  font-size: var(--fs-22);
-  letter-spacing: var(--letter-display);
-  color: var(--color-ink);
-  font-weight: 400;
-  line-height: 1.0;
-  text-align: center;
-}
-@media (min-width: 768px) {
-  body.in-quiz #title-bar h1 { font-size: var(--fs-30); }
-}
-body.in-quiz #menu-btn {
-  color: var(--color-ink);
-  opacity: 1;
-  font-size: var(--fs-22);
-  font-weight: 700;
-}
+/* Title-bar styling tijdens quiz zit in app.css (gedeeld met
+   body.on-mode-select). Alleen de body-scope voor bg + ink kleur
+   hierboven voor de rest van de quiz-elementen. */
 
 /* ── Score-bar (top-bar met HP/XP-indicatoren) ── */
 #score-bar {

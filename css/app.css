@@ -17,11 +17,49 @@ body {
    dark-blue title-bar (h1 + nog-verborgen hamburger) wordt onderdrukt —
    de nieuwe .home-header is visueel de titel. De title-bar blijft
    functioneel tijdens quiz/end-screens waar de hamburger wél nodig is. */
-body.on-home {
+body.on-home,
+body.on-mode-select,
+body.on-end {
   background: var(--color-bg);
   color: var(--color-ink);
 }
 body.on-home #title-bar { display: none; }
+
+/* Title-bar op mode-select + quiz + end: plain Luckiest Guy titel op
+   zand-bg, géén eigen kader (shared rule). */
+body.on-mode-select #title-bar,
+body.on-end #title-bar,
+body.in-quiz #title-bar {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 4px 4px;
+  gap: 8px;
+}
+body.on-mode-select #title-bar h1,
+body.on-end #title-bar h1,
+body.in-quiz #title-bar h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  letter-spacing: var(--letter-display);
+  color: var(--color-ink);
+  font-weight: 400;
+  line-height: 1.0;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  body.on-mode-select #title-bar h1,
+  body.on-end #title-bar h1,
+  body.in-quiz #title-bar h1 { font-size: var(--fs-30); }
+}
+body.on-mode-select #menu-btn,
+body.on-end #menu-btn,
+body.in-quiz #menu-btn {
+  color: var(--color-ink);
+  opacity: 1;
+  font-size: var(--fs-22);
+  font-weight: 700;
+}
 h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 #title-bar { display: flex; align-items: center; width: 100%; max-width: 680px; position: relative; }
 

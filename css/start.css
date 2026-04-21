@@ -242,10 +242,13 @@
 /* mode-desc: kleine omschrijving ónder de mode-knop (alléén mode-select) */
 .mode-btn .mode-desc {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: #8ab4f8;
-  margin-top: 3px;
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  margin-top: 4px;
+  line-height: 1.35;
+  letter-spacing: 0;
 }
 
 /* Daily-share & emoji-grid (na afronden dagelijkse uitdaging) */
@@ -273,49 +276,78 @@
   #share-btn:hover { background: var(--color-grass-dark); }
 }
 
-/* ── Mode-select: legacy-styling (wordt #101) ──────────────────────── */
-/* Mode-select blijft tot #101 in de oude donkerblauwe look. Buttons
-   moeten daar leesbaar blijven; alleen binnen #mode-select activeren. */
+/* ── Mode-select (#114 Routekaart-refresh) ──────────────────────────
+   Paper-card met Luckiest Guy titel + chunky route-node mode-knoppen,
+   consistent met Home (#99) en Quiz (#101). */
 #mode-select {
-  background: #243060;
-  border-radius: 14px;
-  padding: 24px 20px;
-  color: #fff;
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-14);
+  box-shadow: var(--shadow-lg);
+  padding: 20px 18px 16px;
+  color: var(--color-ink);
   text-align: center;
 }
-#mode-select h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }
-#mode-select p  { color: #8ab4f8; font-size: 0.9rem; margin-bottom: 16px; }
+#mode-select h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  letter-spacing: var(--letter-display);
+  color: var(--color-ink);
+  font-weight: 400;
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+@media (min-width: 768px) {
+  #mode-select h2 { font-size: var(--fs-30); }
+}
+#mode-select p {
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  color: var(--color-ink-soft);
+  margin-bottom: 16px;
+}
 #mode-select .mode-btn {
   display: block;
   width: 100%;
   padding: 14px 16px;
   margin-bottom: 10px;
-  background: #1a2744;
-  border: 2px solid #3a4f88;
-  color: #fff;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 700;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: var(--border-hero);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+  letter-spacing: var(--letter-display);
+  font-weight: 400;
   cursor: pointer;
   text-align: left;
-  transition: all 0.12s;
-  font-family: inherit;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 @media (hover: hover) {
-  #mode-select .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; }
+  #mode-select .mode-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--color-ink);
+  }
+}
+#mode-select .mode-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--color-ink);
 }
 
 /* ── Terug-knop + hamburger-menu + install ─────────────────────────── */
 #back-btn {
-  margin-top: 6px;
+  margin-top: 8px;
   background: none;
   border: none;
-  color: #8ab4f8;
-  font-size: 0.85rem;
+  color: var(--color-ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
 }
-@media (hover: hover) { #back-btn:hover { color: #fff; } }
+@media (hover: hover) { #back-btn:hover { color: var(--color-ink); } }
 #menu-btn {
   background: none;
   border: none;

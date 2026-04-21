@@ -1,52 +1,110 @@
-/* ── End-scherm (#98 CSS-extractie) ──────────────────────────────────
-   Restart-knop, rating, sterren-animatie en de externe feedback-knop
-   die op dit scherm zichtbaar is. */
+/* ── End-scherm (#102 Routekaart-refresh) ────────────────────────────
+   Paper-card met chunky shadow, Luckiest Guy titel, chunky rating-
+   buttons, grass restart-knop. Geen Piep-mascotte (zie #109). */
 
 #end-screen {
   /* max-width zit in app.css. */
   display: none;
-  background: #243060;
-  border-radius: 16px;
-  padding: 36px 28px;
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-14);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 24px 22px;
   text-align: center;
   width: 100%;
+  color: var(--color-ink);
 }
-#end-screen h2 { font-size: 2rem; color: #f0c040; margin-bottom: 12px; }
-#end-screen p  { color: #8ab4f8; margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; }
-#rating-wrap { margin-bottom: 24px; }
-#rating-question { margin-bottom: 12px; }
-#rating-btns { display: flex; justify-content: center; gap: 12px; }
+#end-screen h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-30);
+  letter-spacing: var(--letter-display);
+  color: var(--color-ink);
+  font-weight: 400;
+  margin-bottom: 10px;
+  line-height: 1.1;
+}
+@media (min-width: 768px) {
+  #end-screen h2 { font-size: var(--fs-46); }
+}
+#end-screen p {
+  font-family: var(--font-body);
+  color: var(--color-ink-soft);
+  margin-bottom: 20px;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+#rating-wrap { margin-bottom: 20px; }
+#rating-question {
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: 12px;
+  font-size: var(--fs-14);
+}
+#rating-btns { display: flex; justify-content: center; gap: 10px; }
 #rating-btns button {
-  background: #1a2744;
-  border: 2px solid #2c3d6e;
-  border-radius: 12px;
-  color: #c8d8f8;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.9rem;
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-10);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-14);
   cursor: pointer;
-  padding: 10px 18px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  transition: border-color 0.15s, background 0.15s;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
-#rating-btns button span { font-size: 0.75rem; opacity: 0.7; }
-@media (hover: hover) { #rating-btns button:hover { background: #2c3d6e; border-color: #6080cc; } }
-#rating-thanks { color: #58CC02; font-weight: 700; margin-bottom: 0; }
-#restart-btn {
-  padding: 13px 30px;
-  background: #f0c040;
-  color: #1a2744;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.05rem;
+#rating-btns button span {
+  font-family: var(--font-body);
+  font-size: var(--fs-11);
+  font-weight: 500;
+  color: var(--color-ink-soft);
+}
+@media (hover: hover) {
+  #rating-btns button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--color-ink);
+  }
+}
+#rating-btns button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--color-ink); }
+#rating-thanks {
+  color: var(--color-grass-dark);
   font-weight: 700;
-  cursor: pointer;
+  margin-bottom: 0;
+  font-family: var(--font-body);
 }
 
-/* ── Eindscherm sterren ── */
-#end-stars { font-size: 2.8rem; margin-bottom: 10px; letter-spacing: 6px; }
+#restart-btn {
+  padding: 14px 32px;
+  background: var(--color-grass);
+  color: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow);
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  letter-spacing: var(--letter-display);
+  font-weight: 400;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+  text-shadow: 1px 1px 0 var(--color-grass-dark);
+}
+@media (hover: hover) {
+  #restart-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 var(--color-ink);
+  }
+}
+#restart-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--color-ink); }
+
+/* ── End-scherm sterren ── */
+#end-stars { font-size: var(--fs-46); margin-bottom: 10px; letter-spacing: 6px; line-height: 1; }
 #end-stars span { display: inline-block; opacity: 0; }
 @keyframes star-pop {
   0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
@@ -54,10 +112,83 @@
   100% { transform: scale(1)   rotate(0deg); opacity: 1; }
 }
 
-/* Feedback-knop variant die op end-scherm staat */
+/* Feedback-knop variant op end-scherm: subtiele paper-link. */
 .fb-open-btn--end {
-  font-size: 0.95rem; color: #8ab4f8; text-decoration: none;
-  background: #1a2744; border: 1px solid #3a4f88; border-radius: 10px;
-  padding: 10px 20px; margin-top: 16px;
+  background: var(--color-paper);
+  border: var(--border-thin);
+  border-radius: var(--radius-10);
+  color: var(--color-ink-soft);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--fs-12);
+  text-decoration: none;
+  padding: 8px 16px;
+  margin-top: 14px;
+  cursor: pointer;
+  transition: background 0.12s;
 }
-@media (hover: hover) { .fb-open-btn--end:hover { background: #2c3d6e; border-color: #6080cc; } }
+@media (hover: hover) {
+  .fb-open-btn--end:hover {
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+}
+
+/* ── Phase-transition (#102 Routekaart-refresh) ──────────────────────
+   Full-screen intermission op zand-bg met paper-card, Luckiest Guy
+   kop. Geen mascotte (zie #109). Verschijnt ~1.8s tussen fases. */
+#phase-transition {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: phase-fade-in 0.25s ease-out;
+}
+#phase-transition-card {
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-14);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 26px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  animation: phase-card-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#phase-transition-text {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  letter-spacing: var(--letter-display);
+  color: var(--color-ink);
+  line-height: 1.2;
+  font-weight: 400;
+}
+@media (min-width: 768px) {
+  #phase-transition-text { font-size: var(--fs-30); }
+}
+#phase-transition-text strong {
+  color: var(--color-grass-dark);
+  font-weight: 400;
+}
+#phase-transition-text .pt-next {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-14);
+  letter-spacing: 0;
+  color: var(--color-ink-soft);
+  font-weight: 700;
+}
+@keyframes phase-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes phase-card-pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
