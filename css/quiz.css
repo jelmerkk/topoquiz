@@ -4,11 +4,11 @@
 
 /* ── Score bar ── */
 #score-bar {
+  /* max-width zit in app.css (mobile-base + 768+ override). */
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 680px;
   font-size: 0.9rem;
   color: #8ab4f8;
   gap: 8px;
@@ -33,11 +33,11 @@
 
 /* ── Question box ── */
 #question-box {
+  /* max-width zit in app.css. */
   background: #243060;
   border-radius: 12px;
   padding: 14px 18px;
   width: 100%;
-  max-width: 680px;
   text-align: center;
 }
 #question-text {
@@ -121,12 +121,12 @@
 
 /* ── Hard panel ── */
 #hard-panel {
+  /* max-width zit in app.css. */
   display: none;
   background: #243060;
   border-radius: 10px;
   padding: 10px 14px;
   width: 100%;
-  max-width: 680px;
 }
 #hard-panel h3 { color: #f0c040; font-size: 0.85rem; margin-bottom: 6px; }
 #hard-list { list-style: none; display: flex; flex-wrap: wrap; gap: 5px; }
