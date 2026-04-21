@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.19.0">
+<meta name="version" content="2.19.1">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -413,10 +413,17 @@ function ensureShapeFeatures() {
   const inject = (pt, source) => {
     if (!pt.featureData) return;
     for (const entry of source) {
-      let feat;
-      if (entry.shape === 'fuzzy')     feat = buildEllipseFeature(entry, selectedSet);
-      else if (entry.shape === 'peak') feat = buildPeakFeature(entry);
-      else continue;
+      if (entry.shape !== 'fuzzy' && entry.shape !== 'peak') continue;
+      // Zelfde naam kan meerdere entries hebben (bv. "Zwarte Zee" = polygon
+      // voor set 77/79, fuzzy voor set 84). Alleen injecteren als activeCities
+      // een item heeft met dezelfde naam én shape — anders zou de fuzzy variant
+      // de polygon-feature uit de geojson overschrijven by-name, en het
+      // set-filter in buildPolygonLayer de feature eruit gooien.
+      const active = activeCities.find(c => c.name === entry.name);
+      if (!active || active.shape !== entry.shape) continue;
+      const feat = entry.shape === 'fuzzy'
+        ? buildEllipseFeature(entry, selectedSet)
+        : buildPeakFeature(entry);
       const idx = pt.featureData.features.findIndex(f => f.properties.name === entry.name);
       if (idx >= 0) pt.featureData.features[idx] = feat;
       else pt.featureData.features.push(feat);
@@ -1779,7 +1786,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.19.0';
+const APP_VERSION = 'v2.19.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
