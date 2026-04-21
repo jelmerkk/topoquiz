@@ -35,6 +35,10 @@
 @media (min-width: 768px) {
   .home-title { font-size: var(--fs-46); }
 }
+/* Emoji in titel zit in de weg op smalle schermen — verberg ≤480px. */
+@media (max-width: 480px) {
+  .home-title-emoji { display: none; }
+}
 .home-subtitle {
   font-family: var(--font-body);
   font-size: var(--fs-11);
