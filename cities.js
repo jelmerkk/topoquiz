@@ -644,7 +644,10 @@ const ALL_WATERS = [
   { name: 'Sont',               lat: 55.80, lon: 12.70, sets: [78], aliases: ['Øresund', 'Oresund'] },
   { name: 'Botnische Golf',     lat: 62.00, lon: 20.00, sets: [78], aliases: ['Gulf of Bothnia', 'Pohjanlahti'] },
   { name: 'Finse Golf',         lat: 59.70, lon: 25.00, sets: [78], aliases: ['Gulf of Finland', 'Suomenlahti'] },
-  { name: 'Barentszzee',        lat: 71.50, lon: 37.00, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
+  // Barentszzee: fuzzy ellips (conform seas-use-fuzzy beleid). Centraal tussen
+  // Noord-Noorwegen (zuid), Spitsbergen (noord) en Nova Zembla (oost). Ruime
+  // landmarge aan alle kanten zodat de ellips nergens tegen kust aanligt.
+  { name: 'Barentszzee',        lat: 72.00, lon: 38.00, shape: 'fuzzy', rx: 7.0, ry: 2.8, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
   // Atlantische Oceaan: voorheen hard polygon in wateren.geojson (set 78).
   // Omgezet naar fuzzy ellips met posBySet — set 78 NW-Europa perspectief
   // (west van Ierland/Noorwegen), set 89 Caraïbisch perspectief (oostelijk
@@ -898,83 +901,101 @@ const WORLD_BOUNDS = [[-60, -180], [75, 180]];
 //             false → toon heel Nederland
 // bounds: optioneel [[lat,lon],[lat,lon]] — overschrijft NL_BOUNDS bij laden en terugkeer
 // clickCorrectKm / clickCloseKm: optioneel — overschrijft globale drempelwaarden
+//
+// ── Factory-functies (#93 discriminated union) ───────────────────────────────
+// Drie varianten: simple (1 quizType), phased (2–4 fases), dailyBonus (mixed).
+// `kind` wordt door de factory gestempeld; consumenten switchen op `kind`
+// i.p.v. ad-hoc null-checks op `phases`/`daily`/`bonus`. DailyBonus onderscheidt
+// daily vs bonus via `variant: 'daily' | 'bonus'`.
+function simpleSet({ name, quizType, group, fitOnStart = false, clickCorrectKm, clickCloseKm }) {
+  return { kind: 'simple', name, quizType, fitOnStart, group, clickCorrectKm, clickCloseKm };
+}
+function phasedSet({ name, group, bounds, clickCorrectKm, clickCloseKm, mastery = 1, phases }) {
+  return { kind: 'phased', name, group, bounds, clickCorrectKm, clickCloseKm, mastery, phases };
+}
+function dailyBonusSet({ name, variant, mastery = 1, fitOnStart = false }) {
+  return { kind: 'dailyBonus', name, variant, mastery, fitOnStart };
+}
+
 const SETS = {
-   54: { name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false, group: 5 },
-   57: { name: '5.7 – Wateren',              quizType: 'water',    fitOnStart: false, group: 5 },
-   55: { name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false, group: 5 },
-   56: { name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false, group: 5 },
+   54: simpleSet({ name: '5.4 – Provincies',            quizType: 'province', fitOnStart: false, group: 5 }),
+   57: simpleSet({ name: '5.7 – Wateren',               quizType: 'water',    fitOnStart: false, group: 5 }),
+   55: simpleSet({ name: '5.5 – Provinciehoofdsteden',  quizType: 'place',    fitOnStart: false, group: 5 }),
+   56: simpleSet({ name: '5.6 – Grote steden',          quizType: 'place',    fitOnStart: false, group: 5 }),
    // Set 5.8: Onze buren — 2 fases: landen (country) + hoofdsteden (place)
-   58: { name: '5.8 – Onze buren', group: 5, mastery: 1,
+   58: phasedSet({ name: '5.8 – Onze buren', group: 5,
          bounds: [[36, -12], [65, 20]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
-         ] },
-   61: { name: '6.1 – Overijssel',            quizType: 'place',    fitOnStart: true,  group: 6 },
-   62: { name: '6.2 – Zeeland',               quizType: 'place',    fitOnStart: true,  group: 6 },
-   63: { name: '6.3 – Groningen en Drenthe',  quizType: 'place',    fitOnStart: true,  group: 6 },
-   64: { name: '6.4 – Flevoland en Utrecht',  quizType: 'place',    fitOnStart: true,  group: 6 },
-   65: { name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true,  group: 6 },
-   66: { name: '6.6 – Zuid-Holland',          quizType: 'place',    fitOnStart: true,  group: 6 },
-   67: { name: '6.7 – Noord-Holland',         quizType: 'place',    fitOnStart: true,  group: 6 },
+         ] }),
+   // NL-provincie-sets: striktere klik-drempels (10/30 km) passend bij de
+   // ingezoomde kaart — voorheen impliciet via `fitOnStart ? /2 : X` in clickResult.
+   61: simpleSet({ name: '6.1 – Overijssel',               quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   62: simpleSet({ name: '6.2 – Zeeland',                  quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   63: simpleSet({ name: '6.3 – Groningen en Drenthe',     quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   64: simpleSet({ name: '6.4 – Flevoland en Utrecht',     quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   65: simpleSet({ name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   66: simpleSet({ name: '6.6 – Zuid-Holland',             quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   67: simpleSet({ name: '6.7 – Noord-Holland',            quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
    // Set 7.1: Landen van Europa — 2 fases: landen (country) + hoofdsteden (place)
-   71: { name: '7.1 – Landen en hoofdsteden', group: 7, mastery: 1,
+   71: phasedSet({ name: '7.1 – Landen en hoofdsteden', group: 7,
          bounds: [[ 34, -25], [72, 32]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
-         ] },
+         ] }),
    // Set 7.2: België en Luxemburg — 3 fases: gewesten + Luxemburg, steden, wateren
-   72: { name: '7.2 – België en Luxemburg', group: 7, mastery: 1,
+   72: phasedSet({ name: '7.2 – België en Luxemburg', group: 7,
          bounds: [[49.4, 2.3], [51.8, 6.6]],
          clickCorrectKm: 40, clickCloseKm: 120,
          phases: [
            { id: 'regions', label: 'Gewesten', quizType: 'province' },
            { id: 'cities',  label: 'Steden',   quizType: 'place'    },
            { id: 'waters',  label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.3: Frankrijk, Spanje en Portugal — 3 fases: steden, gebieden, rivieren
-   73: { name: '7.3 – Frankrijk, Spanje en Portugal', group: 7, mastery: 1,
+   73: phasedSet({ name: '7.3 – Frankrijk, Spanje en Portugal', group: 7,
          bounds: [[35, -12], [52, 10]],
          clickCorrectKm: 80, clickCloseKm: 240,
          phases: [
            { id: 'cities',   label: 'Steden',   quizType: 'place'    },
            { id: 'regions',  label: 'Gebieden', quizType: 'province' },
            { id: 'rivers',   label: 'Rivieren', quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.4: Duitsland — 3 fases: steden, regio's, rivieren
-   74: { name: '7.4 – Duitsland', group: 7, mastery: 1,
+   74: phasedSet({ name: '7.4 – Duitsland', group: 7,
          bounds: [[46.5, 5.0], [55.5, 15.5]],
          clickCorrectKm: 60, clickCloseKm: 180,
          phases: [
            { id: 'cities',  label: 'Steden',   quizType: 'place'    },
            { id: 'regions', label: "Regio's",  quizType: 'province' },
            { id: 'rivers',  label: 'Rivieren', quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.5: VK en Ierland — 3 fases: regio's, steden, wateren
-   75: { name: '7.5 – Verenigd Koninkrijk en Ierland', group: 7, mastery: 1,
+   75: phasedSet({ name: '7.5 – Verenigd Koninkrijk en Ierland', group: 7,
          bounds: [[49.5, -11.0], [61.0, 2.0]],
          clickCorrectKm: 60, clickCloseKm: 180,
          phases: [
            { id: 'regions', label: "Regio's", quizType: 'province' },
            { id: 'cities',  label: 'Steden',  quizType: 'place'    },
            { id: 'waters',  label: 'Wateren', quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.6: Midden-Europa en Italië — 3 fases: steden, gebieden, wateren
-   76: { name: '7.6 – Midden-Europa en Italië', group: 7, mastery: 1,
+   76: phasedSet({ name: '7.6 – Midden-Europa en Italië', group: 7,
          bounds: [[36, 5], [52, 22]],
          clickCorrectKm: 60, clickCloseKm: 180,
          phases: [
            { id: 'cities',   label: 'Steden',   quizType: 'place'    },
            { id: 'regions',  label: 'Gebieden',  quizType: 'province' },
            { id: 'waters',   label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.7: Oost-Europa — 4 fases: landen, steden, gebergten, wateren.
    // Grotere klikdrempels (100/300) omdat de schaal van Oost-Europa veel groter
    // is dan Italië/Midden-Europa (vgl. 5.8 Onze buren, ook 100/300).
-   77: { name: '7.7 – Oost-Europa', group: 7, mastery: 1,
+   77: phasedSet({ name: '7.7 – Oost-Europa', group: 7,
          bounds: [[40, 14], [67, 50]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
@@ -982,11 +1003,11 @@ const SETS = {
            { id: 'cities',    label: 'Steden',    quizType: 'place'    },
            { id: 'mountains', label: 'Gebergten', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',   quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.8: Noord-Europa — Scandinavië en de Baltische regio.
    // Bounds omvatten Noord-Noorwegen (Hammerfest ~71°N) en Denemarken (~54°N),
    // en van IJslandzee/Groenlandzee (-5°E) tot Barentszzee (40°E).
-   78: { name: '7.8 – Noord-Europa', group: 7, mastery: 1,
+   78: phasedSet({ name: '7.8 – Noord-Europa', group: 7,
          bounds: [[54, -5], [72, 40]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
@@ -994,9 +1015,9 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // Set 7.9: Zuidoost-Europa — Balkan + Turkije + Griekenland + Cyprus.
-   79: { name: '7.9 – Zuidoost-Europa', group: 7, mastery: 1,
+   79: phasedSet({ name: '7.9 – Zuidoost-Europa', group: 7,
          bounds: [[34, 13], [49, 45]],
          clickCorrectKm: 100, clickCloseKm: 300,
          phases: [
@@ -1004,12 +1025,12 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // Set 8.1: Zuid-Amerika — 11 landen, 19 steden, 2 gebieden (Andes + Vuurland), 1 rivier (Amazone).
    // Continentale schaal → ruimere klikdrempels dan EU-sets (150/400 i.p.v. 100/300).
    // Bounds ruim om het hele continent (incl. Caribische kust Venezuela/Colombia
    // en Kaap Hoorn) prominent in beeld te laten komen op mobiel én desktop.
-   81: { name: '8.1 – Zuid-Amerika', group: 8, mastery: 1,
+   81: phasedSet({ name: '8.1 – Zuid-Amerika', group: 8,
          bounds: [[-58, -85], [15, -32]],
          // Continent-zoom: span ~73° lat × 53° lon. Europese sets bij 29° span
          // gebruiken 100/300; schaal proportioneel + marge voor cities die
@@ -1020,11 +1041,11 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 82: Afrika (8.2) — continent, 13 landen, 15 steden, 3 gebieden, 7 wateren ─
    // Bounds sluiten Kaap Verdische Eilanden, Somalië, Kaap de Goede Hoop en de
    // Middellandse Zee in. Klikdrempels 250/700 conform 8.1 (vergelijkbare continent-zoom).
-   82: { name: '8.2 – Afrika', group: 8, mastery: 1,
+   82: phasedSet({ name: '8.2 – Afrika', group: 8,
          bounds: [[-36, -20], [38, 55]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1032,12 +1053,12 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 83: Noord- en Midden-Amerika (8.3) — 7 landen, 17 steden, 7 gebieden, 4 wateren ─
    // Bounds ruim genoeg voor volledige Aleoeten (tot -172°W) én Groenland-
    // noordkaap (tot 83.6°N). Eerder [[5,-170],[75,-10]] sneed beide af.
    // Panama (~5°N) is de zuidgrens. Klikdrempels 250/700 conform 8.1/8.2.
-   83: { name: '8.3 – Noord- en Midden-Amerika', group: 8, mastery: 1,
+   83: phasedSet({ name: '8.3 – Noord- en Midden-Amerika', group: 8,
          bounds: [[5, -175], [85, -10]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1045,26 +1066,26 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 84: Midden-Oosten (8.4) — 13 landen, 13 steden, 8 wateren ─────────
    // Opdrachtblad: geen gebieden-fase (afwijking van 8.1/8.2/8.3).
    // Bounds ruim: Jemen zuid (~12°N) tot Georgië/Kaspische Zee noord (~47°N);
    // Middellandse Zee west (~22°E) tot Iran oost (~65°E).
    // Klikdrempels 250/700 conform 8.1/8.2/8.3.
-   84: { name: '8.4 – Midden-Oosten', group: 8, mastery: 1,
+   84: phasedSet({ name: '8.4 – Midden-Oosten', group: 8,
          bounds: [[10, 22], [47, 65]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
            { id: 'countries', label: 'Landen',  quizType: 'country' },
            { id: 'cities',    label: 'Steden',  quizType: 'place'   },
            { id: 'waters',    label: 'Wateren', quizType: 'water'   },
-         ] },
+         ] }),
    // ── Set 85: Zuid-Azië (8.5) — 8 landen, 12 steden, 2 gebieden, 5 wateren ──
    // Gebieden-fase bevat Himalaya (fuzzy) + Mount Everest (nieuw shape 'peak',
    // driehoek-marker in rood-bruin). Bounds: Sri Lanka zuid (~5°N) tot
    // Kazachstan noord (~56°N); Arabische Zee west (~55°E) tot Bangladesh oost
    // (~95°E). Klikdrempels 250/700 conform 8.1–8.4.
-   85: { name: '8.5 – Zuid-Azië', group: 8, mastery: 1,
+   85: phasedSet({ name: '8.5 – Zuid-Azië', group: 8,
          bounds: [[5, 55], [56, 95]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1072,14 +1093,14 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 86: Oost-Azië (8.6) — 7 landen, 14 steden, 3 gebieden, 4 wateren ──
    // Rusland volledig (ook Kaliningrad), ondanks dat viewport-bounds westelijk
    // afkappen. Bounds: kern Oost-Azië (Taiwan zuid ~18°N tot zuid-Siberië ~55°N;
    // west-China ~95°E tot Japan oost ~150°E). Rusland strekt verder uit maar
    // feature-centrering neemt over zodra Rusland de vraag is. Klikdrempels
    // 250/700 conform 8.1–8.5.
-   86: { name: '8.6 – Oost-Azië', group: 8, mastery: 1,
+   86: phasedSet({ name: '8.6 – Oost-Azië', group: 8,
          bounds: [[18, 95], [55, 150]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1087,14 +1108,14 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 87: Zuidoost-Azië (8.7) — 9 landen, 11 steden, 5 eilanden, 2 wateren ─
    // Eilanden zijn echte polygonen uit OSM place=island relations (file
    // eilanden-zuidoost-azie.geojson) — niet fuzzy. Wateren zijn Grote Oceaan
    // + Indische Oceaan, hergebruikt uit sets 86/84-85 via meervoudige set-tag.
    // Bounds: Sumatra-west (~95°E) tot Papoea-oost (~142°E); Sumba/Timor
    // (~-11°S) tot Myanmar-noord (~28°N). Klikdrempels 250/700 conform 8.1–8.6.
-   87: { name: '8.7 – Zuidoost-Azië', group: 8, mastery: 1,
+   87: phasedSet({ name: '8.7 – Zuidoost-Azië', group: 8,
          bounds: [[-11, 92], [28, 142]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1102,12 +1123,12 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Eilanden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 88: Australië en Oceanië (8.8) — 3 landen, 10 steden, 3 gebieden, 2 wateren
    // Bounds: AU-west (~113°E) tot NZ-oost (~178°E), zuidgrens -50° (Antarctica-
    // continent komt niet volledig in beeld maar feature-centrering pakt over bij
    // de Antarctica-vraag). PNG noord ~-1°S. Klikdrempels 250/700 conform 8.1–8.7.
-   88: { name: '8.8 – Australië en Oceanië', group: 8, mastery: 1,
+   88: phasedSet({ name: '8.8 – Australië en Oceanië', group: 8,
          bounds: [[-50, 108], [5, 185]],
          clickCorrectKm: 250, clickCloseKm: 700,
          phases: [
@@ -1115,14 +1136,14 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Gebieden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // ── Set 89: Midden-Amerika en Caraïben (8.9) — 11 landen, 2 steden,
    // 6 eilanden (ABC + SXM real polygon, Saba + Sint Eustatius fuzzy), 4 wateren
    // (Caribische Zee + Panamakanaal hergebruikt uit 83; Atlantische + Grote
    // Oceaan via posBySet). Bounds: Guatemala-west (~-92°) tot Dom Rep-oost
    // (~-68°), Panama-zuid (~7°N) tot Cuba-noord (~23°N). Klikdrempels 150/400
    // (tussen EU-schaal 100/300 en continent-schaal 250/700).
-   89: { name: '8.9 – Midden-Amerika en Caraïben', group: 8, mastery: 1,
+   89: phasedSet({ name: '8.9 – Midden-Amerika en Caraïben', group: 8,
          bounds: [[5, -95], [28, -60]],
          clickCorrectKm: 150, clickCloseKm: 400,
          phases: [
@@ -1130,13 +1151,13 @@ const SETS = {
            { id: 'cities',    label: 'Steden',   quizType: 'place'    },
            { id: 'regions',   label: 'Eilanden', quizType: 'province' },
            { id: 'waters',    label: 'Wateren',  quizType: 'water'    },
-         ] },
+         ] }),
    // Dagelijkse uitdaging: datum-geseedde mix per groep, 1× goed = gememoreerd.
    // Mix wordt bepaald door DAILY_FORMAT[selectedGroup] — 10 items, meerdere types.
-   98: { name: '📅 Uitdaging van vandaag', fitOnStart: false, mastery: 1, daily: true },
+   98: dailyBonusSet({ name: '📅 Uitdaging van vandaag', variant: 'daily' }),
    // Bonus: groep-specifieke mix van items door elkaar, 1× goed = gememoreerd.
    // Omvang + verhouding uit BONUS_FORMAT[selectedGroup].
-   99: { name: 'Bonus: door elkaar', fitOnStart: false, mastery: 1, bonus: true },
+   99: dailyBonusSet({ name: 'Bonus: door elkaar', variant: 'bonus' }),
 };
 
 // ── Daily/Bonus format — issue #80 ───────────────────────────────────────────
