@@ -716,8 +716,11 @@ function distanceToFeature(lat, lon, name, type) {
 
 function clickResult(distKm, setNumber) {
   const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
-  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
-  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
+  // Alle sets die striktere drempels willen (NL-ingezoomd) zetten die nu
+  // expliciet in cities.js. Voorheen leidde clickResult ze af uit fitOnStart;
+  // dat was impliciet en breekte bij phased sets met fitOnStart:false + NL bounds.
+  const correctKm = set.clickCorrectKm ?? CLICK_CORRECT_KM;
+  const closeKm   = set.clickCloseKm   ?? CLICK_CLOSE_KM;
   if (distKm < correctKm) return 'correct';
   if (distKm < closeKm)   return 'close';
   return 'wrong';

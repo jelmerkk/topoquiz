@@ -115,8 +115,8 @@ section('ALL_CITIES — set-dekking');
 Object.entries(SETS).forEach(([num, set]) => {
   if (set.quizType === 'province') return; // provincies gebruiken ALL_PROVINCES
   if (set.quizType === 'water') return;    // wateren gebruiken ALL_WATERS
-  if (set.bonus || set.daily) return;      // runtime-sampling, geen vaste set-filter
-  if (set.phases) return;                  // gefaseerde sets: elke fase heeft eigen pool
+  if (set.kind === 'dailyBonus') return;   // runtime-sampling, geen vaste set-filter
+  if (set.kind === 'phased') return;       // gefaseerde sets: elke fase heeft eigen pool
   const count = ALL_CITIES.filter(c => c.sets.includes(Number(num))).length;
   expect(`Set ${set.name} heeft ≥ 4 steden (voor meerkeuze-afleiders)`, count >= 4,
     `heeft er ${count}`);
@@ -158,8 +158,8 @@ expect('Er zijn sets gedefinieerd', setEntries.length > 0);
 const VALID_QUIZ_TYPES = ['place', 'province', 'water', 'country'];
 const invalidQuizTypes = setEntries.filter(([, s]) => {
   // Daily/bonus: heterogeen — geen enkel vast quizType (zie DAILY_FORMAT).
-  if (s.daily || s.bonus) return false;
-  if (s.phases) return !s.phases.every(p => VALID_QUIZ_TYPES.includes(p.quizType));
+  if (s.kind === 'dailyBonus') return false;
+  if (s.kind === 'phased') return !s.phases.every(p => VALID_QUIZ_TYPES.includes(p.quizType));
   return !VALID_QUIZ_TYPES.includes(s.quizType);
 });
 expect('Alle sets hebben een geldig quizType (place, province, water of country)',
@@ -2421,24 +2421,28 @@ const SETS_BEHAVIOR_SNAPSHOT = {
 };
 
 function computeSetSnapshot(set) {
-  const quizTypes = set.phases
-    ? set.phases.map(p => p.quizType)
-    : (set.daily || set.bonus)
-      ? 'mixed'
-      : [set.quizType];
+  let quizTypes;
+  switch (set.kind) {
+    case 'phased':     quizTypes = set.phases.map(p => p.quizType); break;
+    case 'dailyBonus': quizTypes = 'mixed'; break;
+    case 'simple':
+    default:           quizTypes = [set.quizType];
+  }
   return {
     name: set.name,
     quizTypes,
     group: set.group ?? null,
     fitOnStart: !!set.fitOnStart,
     hasBounds: !!set.bounds,
-    clickCorrectKm: set.clickCorrectKm ?? (set.fitOnStart ? 10 : 20),
-    clickCloseKm:   set.clickCloseKm   ?? (set.fitOnStart ? 30 : 60),
+    // Sinds commit 4: geen impliciete fitOnStart-halving meer. Sets 61-67
+    // hebben expliciete 10/30, overige sets vallen op de globale defaults terug.
+    clickCorrectKm: set.clickCorrectKm ?? 20,
+    clickCloseKm:   set.clickCloseKm   ?? 60,
     mastery: set.mastery ?? null,
-    isMixed: !!(set.daily || set.bonus),
-    isDaily: !!set.daily,
-    isBonus: !!set.bonus,
-    phaseCount: set.phases?.length ?? 0,
+    isMixed: set.kind === 'dailyBonus',
+    isDaily: set.kind === 'dailyBonus' && set.variant === 'daily',
+    isBonus: set.kind === 'dailyBonus' && set.variant === 'bonus',
+    phaseCount: set.kind === 'phased' ? set.phases.length : 0,
   };
 }
 

@@ -902,27 +902,16 @@ const WORLD_BOUNDS = [[-60, -180], [75, 180]];
 // ── Factory-functies (#93 discriminated union) ───────────────────────────────
 // Drie varianten: simple (1 quizType), phased (2–4 fases), dailyBonus (mixed).
 // `kind` wordt door de factory gestempeld; consumenten switchen op `kind`
-// i.p.v. ad-hoc null-checks op `phases`/`daily`/`bonus`.
-// Factories zijn additief — alle bestaande velden blijven 1:1 aanwezig, dus
-// oudere reads (`set.phases`, `set.quizType`, `set.daily`) blijven werken
-// tot commit 4 die ze opruimt.
-function simpleSet({ name, quizType, group, fitOnStart = false }) {
-  return { kind: 'simple', name, quizType, fitOnStart, group };
+// i.p.v. ad-hoc null-checks op `phases`/`daily`/`bonus`. DailyBonus onderscheidt
+// daily vs bonus via `variant: 'daily' | 'bonus'`.
+function simpleSet({ name, quizType, group, fitOnStart = false, clickCorrectKm, clickCloseKm }) {
+  return { kind: 'simple', name, quizType, fitOnStart, group, clickCorrectKm, clickCloseKm };
 }
 function phasedSet({ name, group, bounds, clickCorrectKm, clickCloseKm, mastery = 1, phases }) {
   return { kind: 'phased', name, group, bounds, clickCorrectKm, clickCloseKm, mastery, phases };
 }
 function dailyBonusSet({ name, variant, mastery = 1, fitOnStart = false }) {
-  // `daily`/`bonus` flags behouden zodat bestaande consumenten blijven werken;
-  // commit 4 vervangt ze door `variant` alleen.
-  return {
-    kind: 'dailyBonus',
-    name,
-    variant,
-    mastery,
-    fitOnStart,
-    [variant]: true,
-  };
+  return { kind: 'dailyBonus', name, variant, mastery, fitOnStart };
 }
 
 const SETS = {
@@ -938,13 +927,15 @@ const SETS = {
            { id: 'countries', label: 'Landen',      quizType: 'country' },
            { id: 'capitals',  label: 'Hoofdsteden', quizType: 'place'   },
          ] }),
-   61: simpleSet({ name: '6.1 – Overijssel',               quizType: 'place', fitOnStart: true, group: 6 }),
-   62: simpleSet({ name: '6.2 – Zeeland',                  quizType: 'place', fitOnStart: true, group: 6 }),
-   63: simpleSet({ name: '6.3 – Groningen en Drenthe',     quizType: 'place', fitOnStart: true, group: 6 }),
-   64: simpleSet({ name: '6.4 – Flevoland en Utrecht',     quizType: 'place', fitOnStart: true, group: 6 }),
-   65: simpleSet({ name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true, group: 6 }),
-   66: simpleSet({ name: '6.6 – Zuid-Holland',             quizType: 'place', fitOnStart: true, group: 6 }),
-   67: simpleSet({ name: '6.7 – Noord-Holland',            quizType: 'place', fitOnStart: true, group: 6 }),
+   // NL-provincie-sets: striktere klik-drempels (10/30 km) passend bij de
+   // ingezoomde kaart — voorheen impliciet via `fitOnStart ? /2 : X` in clickResult.
+   61: simpleSet({ name: '6.1 – Overijssel',               quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   62: simpleSet({ name: '6.2 – Zeeland',                  quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   63: simpleSet({ name: '6.3 – Groningen en Drenthe',     quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   64: simpleSet({ name: '6.4 – Flevoland en Utrecht',     quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   65: simpleSet({ name: '6.5 – Noord-Brabant en Limburg', quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   66: simpleSet({ name: '6.6 – Zuid-Holland',             quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
+   67: simpleSet({ name: '6.7 – Noord-Holland',            quizType: 'place', fitOnStart: true, group: 6, clickCorrectKm: 10, clickCloseKm: 30 }),
    // Set 7.1: Landen van Europa — 2 fases: landen (country) + hoofdsteden (place)
    71: phasedSet({ name: '7.1 – Landen en hoofdsteden', group: 7,
          bounds: [[ 34, -25], [72, 32]],
