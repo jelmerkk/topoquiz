@@ -750,26 +750,26 @@ const ALL_PROVINCES = [
   // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
   // shape: 'fuzzy' + rx/ry (in graden) → gerenderd als stippel-ellips, niet als hardbegrensd polygoon.
   // Bedoeld voor gebergtes, kuststroken en historische gebieden zonder scherpe bestuurlijke grens.
-  { name: 'Bretagne',         lat: 48.20, lon: -2.93, kind: 'gewest', sets: [73] },
-  { name: 'Normandië',        lat: 49.00, lon:  0.40, kind: 'gewest', sets: [73] },
-  { name: 'Corsica',          lat: 42.15, lon:  9.10, kind: 'gewest', sets: [73] },
-  { name: 'Mallorca',         lat: 39.70, lon:  3.00, kind: 'gewest', sets: [73] },
-  { name: 'Andorra',          lat: 42.55, lon:  1.60, kind: 'gewest', sets: [73] },
-  { name: 'Elzas',            lat: 48.30, lon:  7.45, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.85, sets: [73] },
-  { name: 'Centraal Massief', lat: 45.20, lon:  3.45, kind: 'gewest', shape: 'fuzzy', rx: 1.50, ry: 1.25, sets: [73] },
-  { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gewest', shape: 'fuzzy', rx: 2.60, ry: 0.55, sets: [73] },
-  { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
-  { name: 'Alpen',            lat: 45.00, lon:  6.90, kind: 'gewest', shape: 'fuzzy', rx: 0.90, ry: 1.40, sets: [73] },
+  { name: 'Bretagne',         lat: 48.20, lon: -2.93, kind: 'regio', sets: [73] },
+  { name: 'Normandië',        lat: 49.00, lon:  0.40, kind: 'regio', sets: [73] },
+  { name: 'Corsica',          lat: 42.15, lon:  9.10, kind: 'eiland', sets: [73] },
+  { name: 'Mallorca',         lat: 39.70, lon:  3.00, kind: 'eiland', sets: [73] },
+  { name: 'Andorra',          lat: 42.55, lon:  1.60, kind: 'regio', sets: [73] },
+  { name: 'Elzas',            lat: 48.30, lon:  7.45, kind: 'streek', shape: 'fuzzy', rx: 0.55, ry: 0.85, sets: [73] },
+  { name: 'Centraal Massief', lat: 45.20, lon:  3.45, kind: 'gebergte', shape: 'fuzzy', rx: 1.50, ry: 1.25, sets: [73] },
+  { name: 'Pyreneeën',        lat: 42.80, lon:  0.50, kind: 'gebergte', shape: 'fuzzy', rx: 2.60, ry: 0.55, sets: [73] },
+  { name: 'Costa Blanca',     lat: 38.40, lon: -0.40, kind: 'streek', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [73] },
+  { name: 'Alpen',            lat: 45.00, lon:  6.90, kind: 'gebergte', shape: 'fuzzy', rx: 0.90, ry: 1.40, sets: [73] },
   // ── Set 74: Duitsland (7.4) ───────────────────────────────────────────────
   // Duitse regio's zijn overwegend fuzzy ellipsen — kinderen leren ze als globale
   // streken, niet als bestuurlijke grenzen. Uitzondering: Beieren (Bundesland met
   // exacte admin-grens; polygoon uit OSM — zie #81).
-  { name: 'Ruhrgebied',   lat: 51.47, lon:  7.30, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.22, sets: [74] },
-  { name: 'Beieren',      lat: 48.90, lon: 11.50, kind: 'gewest', sets: [74], aliases: ['Bavaria'] },
-  { name: 'Sauerland',    lat: 51.25, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.40, sets: [74] },
-  { name: 'Eifel',        lat: 50.30, lon:  6.70, kind: 'gewest', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [74] },
-  { name: 'Zwarte Woud',  lat: 48.30, lon:  8.20, kind: 'gewest', shape: 'fuzzy', rx: 0.35, ry: 0.80, sets: [74], aliases: ['Schwarzwald', 'Black Forest'] },
-  { name: 'Harz',         lat: 51.80, lon: 10.60, kind: 'gewest', shape: 'fuzzy', rx: 0.45, ry: 0.22, sets: [74] },
+  { name: 'Ruhrgebied',   lat: 51.47, lon:  7.30, kind: 'gebied', shape: 'fuzzy', rx: 0.55, ry: 0.22, sets: [74] },
+  { name: 'Beieren',      lat: 48.90, lon: 11.50, kind: 'deelstaat', sets: [74], aliases: ['Bavaria'] },
+  { name: 'Sauerland',    lat: 51.25, lon:  8.20, kind: 'gebergte', shape: 'fuzzy', rx: 0.55, ry: 0.40, sets: [74] },
+  { name: 'Eifel',        lat: 50.30, lon:  6.70, kind: 'gebergte', shape: 'fuzzy', rx: 0.55, ry: 0.55, sets: [74] },
+  { name: 'Zwarte Woud',  lat: 48.30, lon:  8.20, kind: 'gebergte', shape: 'fuzzy', rx: 0.35, ry: 0.80, sets: [74], aliases: ['Schwarzwald', 'Black Forest'] },
+  { name: 'Harz',         lat: 51.80, lon: 10.60, kind: 'gebergte', shape: 'fuzzy', rx: 0.45, ry: 0.22, sets: [74] },
   // ── Set 75: VK en Ierland (7.5) — harde polygonen uit OSM admin-grenzen ─────
   // Namen moeten overeenkomen met de 'name'-property in gewesten.geojson
   { name: 'Engeland',      lat: 52.50, lon: -1.50, kind: 'regio', sets: [75], aliases: ['England'] },
@@ -780,29 +780,29 @@ const ALL_PROVINCES = [
   // ── Set 76: Midden-Europa en Italië (7.6) ────────────────────────────────────
   // Alpen: bredere ellips dan set 73 (daar alleen westelijke Alpen bij Frankrijk).
   // Centrum over Zwitserland/Oostenrijk, boog van Mont Blanc tot Slovenië.
-  { name: 'Alpen',       lat: 47.00, lon: 11.00, kind: 'gewest', shape: 'fuzzy', rx: 5.00, ry: 1.20, sets: [76], aliases: ['Alps'] },
+  { name: 'Alpen',       lat: 47.00, lon: 11.00, kind: 'gebergte', shape: 'fuzzy', rx: 5.00, ry: 1.20, sets: [76], aliases: ['Alps'] },
   // Apennijnen lopen diagonaal NW→SE van Emilia (44,11) tot Calabrië (39,16).
   // rot=25° (CCW, CCW met cos(lat)-compensatie in buildEllipseFeature) kantelt de
   // lange as evenwijdig aan de bergrug; center zit midden op de laars.
-  { name: 'Apennijnen',  lat: 42.00, lon: 13.50, kind: 'gewest', shape: 'fuzzy', rx: 0.70, ry: 2.80, rot: 25, sets: [76], aliases: ['Apennines', 'Appennini'] },
+  { name: 'Apennijnen',  lat: 42.00, lon: 13.50, kind: 'gebergte', shape: 'fuzzy', rx: 0.70, ry: 2.80, rot: 25, sets: [76], aliases: ['Apennines', 'Appennini'] },
   // Sicilië en Sardinië: harde polygonen uit Natural Earth (gewesten.geojson)
-  { name: 'Sicilië',     lat: 37.60, lon: 14.00, kind: 'gewest', sets: [76], aliases: ['Sicilia', 'Sicily'] },
-  { name: 'Sardinië',    lat: 40.00, lon:  9.10, kind: 'gewest', sets: [76], aliases: ['Sardegna', 'Sardinia'] },
+  { name: 'Sicilië',     lat: 37.60, lon: 14.00, kind: 'eiland', sets: [76], aliases: ['Sicilia', 'Sicily'] },
+  { name: 'Sardinië',    lat: 40.00, lon:  9.10, kind: 'eiland', sets: [76], aliases: ['Sardegna', 'Sardinia'] },
   // ── Set 77: Oost-Europa (7.7) — gebergten als fuzzy ellipsen ─────────────────
   // Karpaten: boog door Slowakije, zuid-Polen, west-Oekraïne tot de Transsylvanische Alpen.
   //   Ellips kan geen boog volgen — compromis: wijde ry zodat hij de hele boog dekt.
   // Balkan (Stara Planina): oost-west door centraal Bulgarije, smal en langgerekt.
   // Kaukasus: WNW-OZO tussen Zwarte Zee en Kaspische Zee, grens Rusland/Georgië.
-  { name: 'Karpaten', lat: 47.50, lon: 24.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 2.00, sets: [77], aliases: ['Carpathians', 'Carpați', 'Karpaty'] },
-  { name: 'Balkan',   lat: 42.75, lon: 25.00, kind: 'gewest', shape: 'fuzzy', rx: 2.50, ry: 0.35, sets: [77], aliases: ['Stara Planina', 'Balkangebergte'] },
-  { name: 'Kaukasus', lat: 42.80, lon: 44.00, kind: 'gewest', shape: 'fuzzy', rx: 3.50, ry: 0.55, sets: [77], aliases: ['Caucasus', 'Kavkaz'] },
+  { name: 'Karpaten', lat: 47.50, lon: 24.00, kind: 'gebergte', shape: 'fuzzy', rx: 3.50, ry: 2.00, sets: [77], aliases: ['Carpathians', 'Carpați', 'Karpaty'] },
+  { name: 'Balkan',   lat: 42.75, lon: 25.00, kind: 'gebergte', shape: 'fuzzy', rx: 2.50, ry: 0.35, sets: [77], aliases: ['Stara Planina', 'Balkangebergte'] },
+  { name: 'Kaukasus', lat: 42.80, lon: 44.00, kind: 'gebergte', shape: 'fuzzy', rx: 3.50, ry: 0.55, sets: [77], aliases: ['Caucasus', 'Kavkaz'] },
   // ── Set 78: Noord-Europa (7.8) — fuzzy gebieden ─────────────────────────────
   // Lapland: noordelijk Scandinavië, boven de poolcirkel — ruim gebied over NO/SE/FI.
   // Jutland: Deens schiereiland, N-Z lang smal — centrum rond Viborg.
-  { name: 'Lapland', lat: 68.00, lon: 22.00, kind: 'gewest', shape: 'fuzzy', rx: 6.00, ry: 2.20, sets: [78], aliases: ['Lappi', 'Sápmi'] },
-  { name: 'Jutland', lat: 56.30, lon:  9.30, kind: 'gewest', shape: 'fuzzy', rx: 0.80, ry: 1.80, sets: [78], aliases: ['Jylland'] },
+  { name: 'Lapland', lat: 68.00, lon: 22.00, kind: 'streek', shape: 'fuzzy', rx: 6.00, ry: 2.20, sets: [78], aliases: ['Lappi', 'Sápmi'] },
+  { name: 'Jutland', lat: 56.30, lon:  9.30, kind: 'streek', shape: 'fuzzy', rx: 0.80, ry: 1.80, sets: [78], aliases: ['Jylland'] },
   // ── Set 79: Zuidoost-Europa (7.9) — Kreta als harde polygoon uit Natural Earth ─
-  { name: 'Kreta', lat: 35.20, lon: 24.80, kind: 'gewest', sets: [79], aliases: ['Crete', 'Kriti', 'Κρήτη'] },
+  { name: 'Kreta', lat: 35.20, lon: 24.80, kind: 'eiland', sets: [79], aliases: ['Crete', 'Kriti', 'Κρήτη'] },
   // ── Set 81: Zuid-Amerika (8.1) — fuzzy ellipsen ─────────────────────────────
   // Andes: lange N-Z bergrug door 7 landen (VE → AR/CL). Ellips is per definitie
   // een compromis — ry dekt ~8°N tot ~54°S, rx smal (2°) omdat de keten zelf smal is.
@@ -822,10 +822,10 @@ const ALL_PROVINCES = [
   // Rocky Mountains / Sierra Nevada / Appalachen: fuzzy ellipsen — bergruggen
   // hebben geen bestuurlijke grens, en school-niveau heeft genoeg aan een ruwe
   // markering van het gebied.
-  { name: 'Alaska',          lat:  64.00, lon:-152.00, kind: 'gewest', sets: [83] },
-  { name: 'Groenland',       lat:  72.00, lon: -40.00, kind: 'gewest', sets: [83], aliases: ['Greenland', 'Kalaallit Nunaat'] },
-  { name: 'Texas',           lat:  31.00, lon:-100.00, kind: 'gewest', sets: [83] },
-  { name: 'Florida',         lat:  28.50, lon: -82.00, kind: 'gewest', sets: [83] },
+  { name: 'Alaska',          lat:  64.00, lon:-152.00, kind: 'deelstaat', sets: [83] },
+  { name: 'Groenland',       lat:  72.00, lon: -40.00, kind: 'eiland', sets: [83], aliases: ['Greenland', 'Kalaallit Nunaat'] },
+  { name: 'Texas',           lat:  31.00, lon:-100.00, kind: 'deelstaat', sets: [83] },
+  { name: 'Florida',         lat:  28.50, lon: -82.00, kind: 'deelstaat', sets: [83] },
   // Rocky Mountains: lange N-Z rug van Alaska-zuid tot New Mexico (~60°→32°N,
   // ~-108°W). Centrum op Wyoming/Montana, ry groot.
   { name: 'Rocky Mountains', lat:  45.00, lon:-112.00, kind: 'gebied', shape: 'fuzzy', rx:  3.00, ry: 14.00, sets: [83], aliases: ['Rockies', 'Rocky Mts', 'Rotsgebergte'] },

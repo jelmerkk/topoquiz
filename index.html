@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.19.3">
+<meta name="version" content="2.19.4">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1139,10 +1139,16 @@ function renderQuestion() {
   } else if (isProvince || isWater || isCountry) {
     const QUESTION_TEXT = {
       province: item => {
-        if (item.kind === 'regio')  return 'Welke regio is dit?';
-        if (item.kind === 'gebied') return 'Welk gebied is dit?';
-        if (item.kind === 'gewest') return 'Welk gewest is dit?';
-        if (item.kind === 'eiland') return 'Welk eiland is dit?';
+        // Volgorde: meest specifiek eerst. `shape: 'peak'` is ook een `kind: 'berg'`,
+        // maar de shape-check vangt ook items die (per ongeluk) geen kind hebben.
+        if (item.shape === 'peak' || item.kind === 'berg') return 'Welke bergtop is dit?';
+        if (item.kind === 'gebergte')  return 'Welk gebergte is dit?';
+        if (item.kind === 'deelstaat') return 'Welke deelstaat is dit?';
+        if (item.kind === 'streek')    return 'Welke streek is dit?';
+        if (item.kind === 'regio')     return 'Welke regio is dit?';
+        if (item.kind === 'gebied')    return 'Welk gebied is dit?';
+        if (item.kind === 'gewest')    return 'Welk gewest is dit?';
+        if (item.kind === 'eiland')    return 'Welk eiland is dit?';
         return 'Welke provincie is dit?';
       },
       water:    ()   => 'Welk water is dit?',
@@ -1801,7 +1807,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.19.3';
+const APP_VERSION = 'v2.19.4';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
