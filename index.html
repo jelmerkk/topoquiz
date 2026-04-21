@@ -1425,14 +1425,71 @@ function updateHardList() {
 
 // ── Screens ──────────────────────────────────────────────────
 
+// #94 centrale scherm-zichtbaarheid. Eén tabel, één toepasser.
+// Voor elke `screen`-waarde staat hier welke display elke div krijgt;
+// `in-quiz` is de body-class die vroeger inconsistent werd toegevoegd/verwijderd.
+// Alle vier de eerdere ad-hoc `['id'].forEach(...display=none)` lijstjes
+// (showEnd, _renderModeSelect, _renderStartScreen, startQuiz) gaan hierdoor.
+const SCREEN_VISIBILITY = {
+  'level-select': {
+    'start-screen':  'block',
+    'level-select':  'block',
+    'mode-select':   'none',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: false,
+  },
+  'mode-select': {
+    'start-screen':  'block',
+    'level-select':  'none',
+    'mode-select':   'block',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: false,
+  },
+  'quiz': {
+    'start-screen':  'none',
+    'score-bar':     'flex',
+    'map-wrap':      'block',
+    'question-box':  'block',
+    // hard-panel dynamisch door updateHardList; startscreen in quiz-mode = leeg.
+    'hard-panel':    'none',
+    'end-screen':    'none',
+    __inQuiz: true,
+  },
+  'end': {
+    'start-screen':  'none',
+    'score-bar':     'none',
+    'map-wrap':      'none',
+    'question-box':  'none',
+    'hard-panel':    'none',
+    'end-screen':    'block',
+    __inQuiz: false,
+  },
+};
+
+function applyVisibility(screen) {
+  const conf = SCREEN_VISIBILITY[screen];
+  if (!conf) { console.warn('applyVisibility: unknown screen', screen); return; }
+  for (const [id, display] of Object.entries(conf)) {
+    if (id.startsWith('__')) continue;
+    const el = document.getElementById(id);
+    if (el) el.style.display = display;
+  }
+  document.body.classList.toggle('in-quiz', !!conf.__inQuiz);
+}
+
 function showEnd() {
   _trackQuiz('complete');
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
-  document.body.classList.remove('in-quiz');
-  ['map-wrap','question-box','hard-panel','score-bar'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('end-screen').style.display = 'block';
+  applyVisibility('end');
   const total = cumulativeOk + cumulativeErr;
   const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
   const _endSet  = SETS[selectedSet];
@@ -1584,8 +1641,8 @@ function _renderLevelSelect() {
   tooltip.id = 'install-tooltip';
   el.appendChild(tooltip);
   updateInstallButton();
-  document.getElementById('level-select').style.display = 'block';
-  document.getElementById('mode-select').style.display  = 'none';
+  // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
+  // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
 }
 
 function _renderModeSelect(setNumber) {
@@ -1594,14 +1651,10 @@ function _renderModeSelect(setNumber) {
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
 
-  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('start-screen').style.display = 'block';
+  applyVisibility('mode-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
 
   document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
-  document.getElementById('level-select').style.display = 'none';
-  document.getElementById('mode-select').style.display  = 'block';
 
   const _msSet = SETS[setNumber];
   const descs = document.querySelectorAll('#mode-select .mode-desc');
@@ -1721,7 +1774,6 @@ function submitFeedback() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFeedback(); });
 
 function _renderStartScreen() {
-  document.body.classList.remove('in-quiz');
   map.off('click', handleMapClick);
   document.getElementById('map-wrap').classList.remove('map-click-mode');
   if (mapClickMarker) { map.removeLayer(mapClickMarker); mapClickMarker = null; }
@@ -1730,9 +1782,7 @@ function _renderStartScreen() {
   clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
-  ['end-screen', 'map-wrap', 'question-box', 'score-bar', 'hard-panel'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('start-screen').style.display = 'block';
+  applyVisibility('level-select');
   document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
   document.getElementById('menu-btn').style.display = 'none';
   closeQuizMenu();
@@ -1826,11 +1876,7 @@ async function startQuiz(mode, startPhase = 0) {
   document.getElementById('progress-bar').style.width =
     Math.round(masteredCount() / activeCities.length * 100) + '%';
 
-  document.body.classList.add('in-quiz');
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('end-screen').style.display   = 'none';
-  document.getElementById('hard-panel').style.display   = 'none';
-  document.getElementById('map-wrap').style.display     = 'block';
+  applyVisibility('quiz');
   // Verberg NL-provinciegrenzen bij EU/wereld-sets (heeft bounds-veld)
   if (provinceBorderLayer) {
     if (SETS[selectedSet].bounds) provinceBorderLayer.remove();
@@ -1852,8 +1898,7 @@ async function startQuiz(mode, startPhase = 0) {
     else
       map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: 8 });
   });
-  document.getElementById('question-box').style.display = 'block';
-  document.getElementById('score-bar').style.display    = 'flex';
+  // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
   document.getElementById('qtot').textContent = activeCities.length;
   document.querySelector('h1').textContent = `🗺️ ${SETS[selectedSet].name}`;
   document.getElementById('menu-btn').style.display = 'inline-block';
