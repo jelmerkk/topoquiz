@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.18.6">
+<meta name="version" content="2.18.7">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -446,28 +446,24 @@ function buildPolygonLayer(type) {
   let geoData = t.featureData;
   if (type === 'water') geoData = smoothGeoJSON(geoData);
 
-  const _setDef = SETS[selectedSet] || {};
-  const _isMixed = _setDef.daily || _setDef.bonus;
   t.quizLayer = L.geoJSON(geoData, {
     style: f => styleForFeature(t, f, 'default'),
     interactive: false,
     filter: f => {
+      // Unified filter (#90): één pad voor mixed (#80 daily/bonus) én normale sets.
+      // Match feature tegen het item uit activeCities dat er bij hoort (via naam + type
+      // voor mixed, alleen naam voor normaal) — dan feature-sets tegen item-eigen sets
+      // of selectedSet.
       const name = f.properties[t.nameKey];
       if (!activeNames.has(name)) return false;
+      const item = activeCities.find(c => c.name === name
+        && (!c._itemType || polygonTypeFor(c._itemType) === type));
+      if (!item) return false;
       const fSets = f.properties.sets;
-      if (_isMixed) {
-        // Daily/bonus (#80): activeCities is heterogeen — match feature-sets tegen
-        // item-eigen sets om dubbele namen tussen sets (bv. Maas NL vs Maas BE)
-        // goed te disambigueren.
-        const item = activeCities.find(c => c.name === name && polygonTypeFor(c._itemType) === type);
-        if (!item) return false;
-        if (fSets?.length && item.sets?.length) return fSets.some(s => item.sets.includes(s));
-        return true;
+      if (fSets?.length) {
+        if (item.sets?.length) return fSets.some(s => item.sets.includes(s));
+        return fSets.includes(selectedSet);
       }
-      // Feature-level sets: oplossing voor dubbele namen (bijv. Maas NL vs Maas België)
-      if (fSets?.length) return fSets.includes(selectedSet);
-      // Geen feature-sets: toon alleen als de data-array ook geen set-specificatie heeft
-      // (geeft hetzelfde resultaat als de old isPhased-check: enkel voor niet-gefaseerde sets)
       return !SETS[selectedSet].phases;
     },
     onEachFeature: (f, layer) => {
@@ -1655,7 +1651,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.18.6';
+const APP_VERSION = 'v2.18.7';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
