@@ -1,18 +1,285 @@
-/* ── Start-scherm + level-select (#98 CSS-extractie) ─────────────────
-   Mode-buttons, group-select, daily-btn, quiz-menu en install-knop. */
+/* ── Start-scherm + level-select (#99 Routekaart-refresh) ────────────
+   Visuele herziening naar handoff-stijl: paper-bg, ink-borders, harde
+   drop-shadows, chunky radii. Consumeert tokens uit css/tokens.css.
+   Scope: alléén Home/level-select. Mode-select ondergaat geen refresh
+   tot #101 (Quiz-refresh) zodat de overgang visueel consistent blijft
+   zolang die schermen nog de oude donkerblauwe stijl hebben. */
 
+/* #start-screen is een transparante wrapper — de card-styling zit op de
+   actieve kind-sectie (#level-select óf #mode-select) zodat elk scherm
+   onafhankelijk hergestyled kan worden (refresh van mode-select volgt in #101). */
 #start-screen {
-  /* max-width zit in app.css. */
   display: none;
-  background: #243060;
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
   width: 100%;
+  color: var(--color-ink);
+  font-family: var(--font-body);
 }
-#start-screen h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }
-#start-screen p  { color: #8ab4f8; font-size: 0.9rem; margin-bottom: 22px; }
-.mode-btn {
+
+/* ── Header: sky-gradient met titel + dummy XP-bar ─────────────────── */
+.home-header {
+  background: linear-gradient(180deg, var(--color-sky) 0%, var(--color-sky-deep) 100%);
+  border-bottom: var(--border-thick);
+  padding: 18px 20px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+.home-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  letter-spacing: var(--letter-display);
+  color: var(--color-ink);
+  line-height: 1.0;
+}
+.home-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-11);
+  color: var(--color-ink-soft);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+/* Dummy XP-visual: géén state, puur versiering tot #104 */
+.home-xp {
+  min-width: 110px;
+  background: var(--color-paper);
+  border: var(--border-thick);
+  border-radius: var(--radius-10);
+  box-shadow: var(--shadow-sm);
+  padding: 6px 8px;
+  display: grid;
+  gap: 3px;
+}
+.home-xp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  color: var(--color-ink-soft);
+  letter-spacing: var(--letter-mono-caps);
+}
+.home-xp-label {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  letter-spacing: var(--letter-display);
+}
+.home-xp-bar {
+  height: 10px;
+  background: var(--color-sky-deep);
+  border: var(--border-thin);
+  border-radius: var(--radius-6);
+  overflow: hidden;
+  position: relative;
+}
+.home-xp-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 32% 0 0;          /* 68% gevuld — puur visueel */
+  background: linear-gradient(180deg, var(--color-yellow), var(--color-yellow-dark));
+}
+
+/* ── Body: intro, group-select, sets-lijst ─────────────────────────── */
+#level-select {
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-14);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;           /* header-gradient mag niet uit de chunky rand lopen */
+  text-align: center;
+}
+/* Body-sections krijgen padding; de header heeft 'm al via .home-header. */
+#level-select > :not(.home-header) {
+  margin-left: 18px;
+  margin-right: 18px;
+}
+#level-select > .home-intro { margin-top: 14px; }
+#level-select > :last-child { margin-bottom: 18px; }
+#level-select h2 {
+  /* Tests checken 'Topografie Quiz'; visueel vervangen door .home-title in header.
+     h2 zelf staat IN .home-header (text equals) en wordt via .home-title gestyled. */
+  all: unset;                /* reset default h2-styling; .home-title doet de look */
+  display: block;
+}
+.home-intro {
+  margin: 12px 0 14px;
+  font-size: var(--fs-14);
+  color: var(--color-ink-soft);
+  line-height: 1.4;
+}
+
+/* ── Group-select: chunky knoppen ──────────────────────────────────── */
+.group-hint {
+  font-family: var(--font-display);
+  font-size: var(--fs-12);
+  color: var(--color-ink);
+  letter-spacing: var(--letter-display);
+  margin: 4px 0 8px;
+  text-transform: uppercase;
+}
+.group-select {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 18px;
+}
+.group-btn {
+  flex: 1;
+  padding: 10px 4px;
+  background: var(--color-paper);
+  border: var(--border-thick);
+  border-radius: var(--radius-8);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-14);
+  letter-spacing: var(--letter-display);
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+@media (hover: hover) {
+  .group-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--color-ink);
+  }
+}
+.group-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--color-ink);
+}
+.group-btn.active {
+  background: var(--color-red);
+  color: var(--color-paper);
+  text-shadow: 1px 1px 0 var(--color-red-dark);
+}
+/* Prominente call-to-action als er nog geen groep gekozen is */
+.group-select.no-selection .group-btn {
+  padding: 14px 4px;
+  font-size: var(--fs-16);
+  animation: pulse-group 1.8s ease-in-out infinite;
+}
+.group-select.no-selection .group-btn:nth-child(2) { animation-delay: 0.15s; }
+.group-select.no-selection .group-btn:nth-child(3) { animation-delay: 0.30s; }
+.group-select.no-selection .group-btn:nth-child(4) { animation-delay: 0.45s; }
+@keyframes pulse-group {
+  0%, 100% { box-shadow: var(--shadow-sm); }
+  50%       { box-shadow: 0 2px 0 var(--color-ink), 0 0 0 4px var(--color-yellow); }
+}
+
+/* ── Set-buttons (route-node stijl, platte lijst) ──────────────────── */
+/* Alleen binnen #level-select — mode-select-knoppen behouden nog de
+   oude stijl tot #101 hun eigen refresh krijgt. */
+#level-select .mode-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border: var(--border-hero);
+  border-radius: var(--radius-12);
+  box-shadow: var(--shadow);
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+  letter-spacing: var(--letter-display);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+@media (hover: hover) {
+  #level-select .mode-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 var(--color-ink);
+  }
+}
+#level-select .mode-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--color-ink);
+}
+/* Daily: grass-accent */
+#level-select .mode-btn.daily-btn {
+  background: var(--color-grass);
+  color: var(--color-paper);
+  text-shadow: 1px 1px 0 var(--color-grass-dark);
+}
+#level-select .mode-btn.daily-btn.done { opacity: 0.55; cursor: default; }
+#level-select .mode-btn.daily-btn .daily-sub {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  margin-top: 3px;
+  text-shadow: none;
+  opacity: 0.92;
+}
+/* Bonus: yellow-accent */
+#level-select .mode-btn.bonus-btn {
+  background: var(--color-yellow);
+  color: var(--color-ink);
+  text-shadow: none;
+}
+
+/* BETA-label */
+.beta-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-10);
+  font-weight: 700;
+  letter-spacing: var(--letter-mono-caps);
+  background: var(--color-badge-fire);
+  color: var(--color-paper);
+  padding: 2px 6px;
+  border-radius: var(--radius-6);
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* mode-desc: kleine omschrijving ónder de mode-knop (alléén mode-select) */
+.mode-btn .mode-desc {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #8ab4f8;
+  margin-top: 3px;
+}
+
+/* Daily-share & emoji-grid (na afronden dagelijkse uitdaging) */
+.daily-emoji {
+  font-size: var(--fs-22);
+  letter-spacing: 3px;
+  margin: 14px 0 4px;
+  color: var(--color-ink);
+}
+#daily-share-wrap { margin: 16px 0; }
+#share-btn {
+  padding: 11px 24px;
+  background: var(--color-grass);
+  border: var(--border-thick);
+  border-radius: var(--radius-10);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-paper);
+  font-family: var(--font-display);
+  font-size: var(--fs-14);
+  letter-spacing: var(--letter-display);
+  cursor: pointer;
+  text-shadow: 1px 1px 0 var(--color-grass-dark);
+}
+@media (hover: hover) {
+  #share-btn:hover { background: var(--color-grass-dark); }
+}
+
+/* ── Mode-select: legacy-styling (wordt #101) ──────────────────────── */
+/* Mode-select blijft tot #101 in de oude donkerblauwe look. Buttons
+   moeten daar leesbaar blijven; alleen binnen #mode-select activeren. */
+#mode-select {
+  background: #243060;
+  border-radius: 14px;
+  padding: 24px 20px;
+  color: #fff;
+  text-align: center;
+}
+#mode-select h2 { font-size: 1.4rem; color: #f0c040; margin-bottom: 6px; }
+#mode-select p  { color: #8ab4f8; font-size: 0.9rem; margin-bottom: 16px; }
+#mode-select .mode-btn {
   display: block;
   width: 100%;
   padding: 14px 16px;
@@ -26,81 +293,13 @@
   cursor: pointer;
   text-align: left;
   transition: all 0.12s;
+  font-family: inherit;
 }
-@media (hover: hover) { .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; } }
-.mode-btn.bonus-btn { border-color: #f0c040; }
-@media (hover: hover) { .mode-btn.bonus-btn:hover { border-color: #f0c040; background: #2a2a10; } }
-.level-divider { border: none; border-top: 1px solid #3a4f88; margin: 8px 0 14px; }
-.beta-label { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em; background: #f0a500; color: #1a1a2e; padding: 1px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+@media (hover: hover) {
+  #mode-select .mode-btn:hover { background: #2c3d6e; border-color: #6080cc; }
+}
 
-.group-select {
-  display: flex;
-  gap: 8px;
-  margin: 14px 0 16px;
-}
-.group-btn {
-  flex: 1;
-  padding: 10px 4px;
-  background: #1a2540;
-  border: 2px solid #3b5280;
-  color: #8ab4f8;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-@media (hover: hover) { .group-btn:hover { background: #1e2e50; border-color: #5880c8; color: #fff; } }
-.group-btn.active {
-  background: #1a3f8a;
-  border-color: #4a90d9;
-  color: #fff;
-}
-/* Prominente stijl als nog geen groep geselecteerd is */
-.group-select.no-selection .group-btn {
-  padding: 14px 4px;
-  background: #1e2e50;
-  border-color: #4a90d9;
-  color: #c8d8ff;
-  font-size: 1rem;
-  animation: pulse-group 1.8s ease-in-out infinite;
-}
-.group-select.no-selection .group-btn:nth-child(2) { animation-delay: 0.15s; }
-.group-select.no-selection .group-btn:nth-child(3) { animation-delay: 0.30s; }
-.group-select.no-selection .group-btn:nth-child(4) { animation-delay: 0.45s; }
-@keyframes pulse-group {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 144, 217, 0); }
-  50%       { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.35); }
-}
-.group-hint {
-  font-size: 0.82rem;
-  color: #8ab4f8;
-  margin: 0 0 6px;
-  text-align: center;
-}
-.daily-btn {
-  display: block; width: 100%; padding: 16px; margin-bottom: 18px;
-  background: #1a3a1a; border: 2px solid #58CC02; color: #fff;
-  border-radius: 12px; font-size: 1rem; font-weight: 700;
-  cursor: pointer; text-align: left; transition: all 0.12s;
-}
-@media (hover: hover) { .daily-btn:hover { background: #254025; border-color: #7aee22; } }
-.daily-btn.done { opacity: 0.65; cursor: default; }
-.daily-btn .daily-sub { display: block; font-size: 0.8rem; font-weight: 400; color: #8dcc6a; margin-top: 3px; }
-.daily-emoji { font-size: 1.3rem; letter-spacing: 2px; margin: 12px 0 4px; }
-#daily-share-wrap { margin: 16px 0; }
-#share-btn {
-  padding: 11px 24px; background: #58CC02; border: none; color: #fff;
-  border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
-}
-@media (hover: hover) { #share-btn:hover { background: #46a802; } }
-.mode-btn .mode-desc {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: #8ab4f8;
-  margin-top: 3px;
-}
+/* ── Terug-knop + hamburger-menu + install ─────────────────────────── */
 #back-btn {
   margin-top: 6px;
   background: none;
@@ -155,27 +354,31 @@
 
 #install-btn {
   display: none;
-  background: none;
-  border: 1px solid #3a4f88;
-  color: #8ab4f8;
-  font-size: 0.8rem;
-  border-radius: 8px;
+  background: var(--color-paper);
+  border: var(--border-med);
+  color: var(--color-ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  border-radius: var(--radius-8);
   padding: 7px 14px;
   cursor: pointer;
   margin: 12px auto 0;
-  font-family: inherit;
 }
-@media (hover: hover) { #install-btn:hover { border-color: #6080cc; color: #fff; } }
+@media (hover: hover) { #install-btn:hover { background: var(--color-bg); } }
 #install-tooltip {
   display: none;
-  background: #243060;
-  border: 1px solid #3a4f88;
-  border-radius: 10px;
+  background: var(--color-bg);
+  border: var(--border-med);
+  border-radius: var(--radius-10);
   padding: 12px 16px;
-  font-size: 0.82rem;
-  color: #8ab4f8;
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  color: var(--color-ink-soft);
   line-height: 1.5;
   margin: 8px auto 0;
   max-width: 320px;
   text-align: left;
 }
+
+/* Level-divider: verticale scheider (legacy, nog in DOM, nu onzichtbaar) */
+.level-divider { display: none; }

@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.19.4">
+<meta name="version" content="2.20.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1679,7 +1679,21 @@ function _trackQuiz(action) {
 
 function _renderLevelSelect() {
   const el = document.getElementById('level-select');
-  el.innerHTML = '<h2>🗺️ Topografie Quiz</h2><p>Oefen de topografie van Nederland op je eigen tempo. Kies hieronder de toets waarvoor je wilt oefenen:</p>';
+  // Routekaart-refresh (#99): sky-gradient header met titel + dummy XP-visual.
+  // XP-bar is puur versiering; echte XP-logica komt in #104.
+  // h2-tekst "Topografie Quiz" wordt door Playwright gecheckt (navigation.spec).
+  el.innerHTML = `
+    <div class="home-header">
+      <div class="home-header-text">
+        <h2 class="home-title">🗺️ Topografie Quiz</h2>
+        <p class="home-subtitle">Oefen in je eigen tempo. Kies hieronder een quiz.</p>
+      </div>
+      <div class="home-xp" aria-hidden="true">
+        <div class="home-xp-row"><span class="home-xp-label">NIVEAU 1</span><span>340 / 500</span></div>
+        <div class="home-xp-bar"></div>
+      </div>
+    </div>
+  `;
 
   // Groep-selectieknoppen
   const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
@@ -1807,7 +1821,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.19.4';
+const APP_VERSION = 'v2.20.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
