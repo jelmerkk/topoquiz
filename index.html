@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.20.0">
+<meta name="version" content="2.21.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1170,9 +1170,10 @@ function renderQuestion() {
     const options = shuffle([currentCity, ...nearbyDistractors(currentCity, 3)]);
     const optDiv = document.getElementById('options');
     optDiv.innerHTML = '';
-    options.forEach(c => {
+    options.forEach((c, i) => {
       const btn = document.createElement('button');
       btn.className = 'opt';
+      btn.dataset.badge = 'ABCD'[i] || '';
       btn.textContent = c.name;
       btn.onclick = () => checkMcAnswer(c, btn);
       optDiv.appendChild(btn);
@@ -1826,7 +1827,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.20.0';
+const APP_VERSION = 'v2.21.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
