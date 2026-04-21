@@ -644,7 +644,10 @@ const ALL_WATERS = [
   { name: 'Sont',               lat: 55.80, lon: 12.70, sets: [78], aliases: ['Øresund', 'Oresund'] },
   { name: 'Botnische Golf',     lat: 62.00, lon: 20.00, sets: [78], aliases: ['Gulf of Bothnia', 'Pohjanlahti'] },
   { name: 'Finse Golf',         lat: 59.70, lon: 25.00, sets: [78], aliases: ['Gulf of Finland', 'Suomenlahti'] },
-  { name: 'Barentszzee',        lat: 71.50, lon: 37.00, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
+  // Barentszzee: fuzzy ellips (conform seas-use-fuzzy beleid). Centraal tussen
+  // Noord-Noorwegen (zuid), Spitsbergen (noord) en Nova Zembla (oost). Ruime
+  // landmarge aan alle kanten zodat de ellips nergens tegen kust aanligt.
+  { name: 'Barentszzee',        lat: 72.00, lon: 38.00, shape: 'fuzzy', rx: 7.0, ry: 2.8, sets: [78], aliases: ['Barents Sea', 'Barentsz Zee', 'Barentszee'] },
   // Atlantische Oceaan: voorheen hard polygon in wateren.geojson (set 78).
   // Omgezet naar fuzzy ellips met posBySet — set 78 NW-Europa perspectief
   // (west van Ierland/Noorwegen), set 89 Caraïbisch perspectief (oostelijk
