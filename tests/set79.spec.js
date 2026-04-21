@@ -1,48 +1,11 @@
 /**
  * Set 79 — Zuidoost-Europa (issue #48)
  *
- * Fase 1: 13 landen (country)
- * Fase 2: 15 steden (place)
- * Fase 3: 1 gebied (province, polygoon: Kreta)
- * Fase 4: 2 wateren (water)
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet79(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '7.9' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet79MC(page) {
-  await openSet79(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 79 verschijnt in groep 7', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '7' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '7.9' })).toBeVisible();
-});
-
-test('set 79 — mode-select bereikbaar', async ({ page }) => {
-  await openSet79(page);
-  await expect(page.locator('#mode-select')).toBeVisible();
-});
-
-test('set 79 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet79MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 79 — fase 1: #qtot toont 13', async ({ page }) => {
-  await startSet79MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(13);
-});
 
 test('set 79 — Griekenland bestaat in landen-europa.geojson met set 79', async ({ page }) => {
   await page.goto('/');

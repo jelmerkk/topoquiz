@@ -1,10 +1,8 @@
 /**
  * Set 81 — Zuid-Amerika (issue #49)
  *
- * Fase 1: 11 landen (country, polygonen uit landen-zuidamerika.geojson)
- * Fase 2: 19 steden (place)
- * Fase 3: 2 gebieden (province, fuzzy ellipsen: Andes + Vuurland)
- * Fase 4: 1 water  (water, LineString Amazone uit OSM)
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
@@ -21,28 +19,6 @@ async function startSet81MC(page) {
   await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
   await page.waitForSelector('#question-text');
 }
-
-test('set 81 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.1' })).toBeVisible();
-});
-
-test('set 81 — mode-select bereikbaar', async ({ page }) => {
-  await openSet81(page);
-  await expect(page.locator('#mode-select')).toBeVisible();
-});
-
-test('set 81 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet81MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 81 — fase 1: #qtot toont 11', async ({ page }) => {
-  await startSet81MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(11);
-});
 
 test('set 81 — Brazilië bestaat in landen-zuidamerika.geojson met set 81', async ({ page }) => {
   await page.goto('/');

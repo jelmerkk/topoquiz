@@ -1,47 +1,11 @@
 /**
  * Set 88 — Australië en Oceanië (issue #56)
  *
- * Fase 1: 3 landen (country) — Australië, Nieuw-Zeeland, Papoea-Nieuw-Guinea
- *          als NE-polygonen in landen-oceanie.geojson.
- * Fase 2: 10 steden (place) — 3 hoofdsteden (Canberra/Wellington/Port Moresby)
- *          + 7 grote niet-hoofdsteden.
- * Fase 3: 3 gebieden (province) — Tasmanië (echte polygoon), Grote Victoria-
- *          Woestijn (fuzzy ellips), Antarctica (echte polygoon continent).
- * Fase 4: 2 wateren (water) — Grote Oceaan + Indische Oceaan via posBySet-
- *          override zodat ellipsen voor Oceanie-perspectief gecentreerd staan.
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet88(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.8' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet88MC(page) {
-  await openSet88(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 88 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.8' })).toBeVisible();
-});
-
-test('set 88 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet88MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 88 — fase 1: #qtot toont 3', async ({ page }) => {
-  await startSet88MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(3);
-});
 
 test('set 88 — alle 3 landen in landen-oceanie.geojson', async ({ page }) => {
   await page.goto('/');

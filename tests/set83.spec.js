@@ -1,45 +1,11 @@
 /**
  * Set 83 — Noord- en Midden-Amerika (issue #51)
  *
- * Fase 1: 7 landen (country, polygonen uit landen-noord-midden-amerika.geojson)
- * Fase 2: 17 steden (place) — 4 hoofdsteden (Ottawa, Washington, Mexico-Stad, Havana)
- * Fase 3: 7 gebieden (province): 4 harde gewesten (Alaska, Groenland, Texas, Florida)
- *          + 3 fuzzy gebergten (Rocky Mountains, Sierra Nevada, Appalachen)
- * Fase 4: 4 wateren (water) — Mississippi/Rio Grande/Panamakanaal (LineString),
- *         Caribische Zee (fuzzy, policy)
+ * Common smoke-tests (menu-visible, mode-select, fase-1 vraag/label/qtot/zoom)
+ * zitten in tests/set-smoke.spec.js. Hier alleen set-specifieke regressies.
  */
 
 const { test, expect } = require('@playwright/test');
-
-async function openSet83(page) {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await page.locator('#level-select .mode-btn', { hasText: '8.3' }).click();
-  await expect(page.locator('#mode-select')).toBeVisible();
-}
-
-async function startSet83MC(page) {
-  await openSet83(page);
-  await page.locator('#mode-select .mode-btn', { hasText: 'Meerkeuze' }).click();
-  await page.waitForSelector('#question-text');
-}
-
-test('set 83 verschijnt in groep 8', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('.group-btn', { hasText: '8' }).click();
-  await expect(page.locator('#level-select .mode-btn', { hasText: '8.3' })).toBeVisible();
-});
-
-test('set 83 — fase 1: vraag is "Welk land is dit?"', async ({ page }) => {
-  await startSet83MC(page);
-  await expect(page.locator('#question-text')).toHaveText('Welk land is dit?');
-});
-
-test('set 83 — fase 1: #qtot toont 7', async ({ page }) => {
-  await startSet83MC(page);
-  const tot = await page.locator('#qtot').textContent();
-  expect(Number(tot)).toBe(7);
-});
 
 test('set 83 — alle 7 landen in landen-noord-midden-amerika.geojson', async ({ page }) => {
   await page.goto('/');
