@@ -26,31 +26,9 @@ test('DAILY_FORMAT en BONUS_FORMAT globaal beschikbaar na laden', async ({ page 
   expect(hasConfigs).toBe(true);
 });
 
-test('#80: dailyPool per groep — deterministisch en 10 items', async ({ page }) => {
-  await page.goto('/');
-  const result = await page.evaluate(() => {
-    const r = {};
-    for (const g of [5,6,7,8]) {
-      const a = dailyPool('2026-04-20', g);
-      const b = dailyPool('2026-04-20', g);
-      r[g] = {
-        len: a.len = a.length,
-        stable: a.map(x => x.name).join() === b.map(x => x.name).join(),
-        types: [...new Set(a.map(x => x._itemType))].sort(),
-      };
-    }
-    return r;
-  });
-  for (const g of [5,6,7,8]) {
-    expect(result[g].len).toBe(10);
-    expect(result[g].stable).toBe(true);
-  }
-  // Groep 6: alleen 'place'
-  expect(result[6].types).toEqual(['place']);
-  // Groep 7 + 8: meerdere types
-  expect(result[7].types.length).toBeGreaterThan(1);
-  expect(result[8].types.length).toBeGreaterThan(1);
-});
+// Pure-logic determinisme + counts per groep zitten in test.js
+// (dailyPool/dateSeedG — zie 'dailyPool — deterministisch, mixed, per groep').
+// Hier in Playwright alleen de UI-integratie.
 
 test('#80: daily-knop zichtbaar en werkt voor alle groepen', async ({ page }) => {
   for (const g of [5,6,7,8]) {
@@ -121,13 +99,7 @@ test('#80: distractor-pool filtert per _itemType (geen cross-type)', async ({ pa
   }
 });
 
-test('#80: seed verschilt per groep op dezelfde dag', async ({ page }) => {
-  await page.goto('/');
-  const diff = await page.evaluate(() =>
-    dateSeed('2026-04-20', 7) !== dateSeed('2026-04-20', 8) &&
-    dateSeed('2026-04-20', 5) !== dateSeed('2026-04-20', 6));
-  expect(diff).toBe(true);
-});
+// Seed-determinisme per groep zit in test.js (zie 'dateSeed(date, group)').
 
 // Regressie: bij groep 8 bonus mag de kaart niet op NL blijven hangen bij
 // een Armenië-vraag (startQuiz's rAF-fallback zette NL_BOUNDS na de
