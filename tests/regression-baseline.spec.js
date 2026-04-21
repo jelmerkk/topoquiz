@@ -82,10 +82,12 @@ test('set 61 — fitOnStart: kaart zoomt naar Overijssel (niet heel NL)', async 
   await openSet(page, 'Overijssel', 6);
   await startMode(page, 'Meerkeuze');
 
-  // fitOnStart:true zoomt op de steden van de set → zoomlevel hoger dan default NL-view (zoom 7-8).
+  // fitOnStart:true zoomt op de steden van de set → strakker dan de default NL-view.
   // Fit gebeurt in rAF ná startQuiz; `#question-text` verschijnt synchroon in startQuiz, dus
   // waitForSelector-gate dekt de rAF niet. Poll tot de fit daadwerkelijk heeft doorgewerkt.
-  await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeGreaterThan(8);
+  // Drempel 7 (niet 8): bij de fit-to-viewport map-hoogte past Overijssel op zoom 8, NL-default
+  // zou ~7 zijn — 7 is dus de echte regressie-grens.
+  await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeGreaterThan(7);
 });
 
 test('set 61 — klik-op-kaart: ver klikken geeft afstandsfeedback met "km"', async ({ page }) => {
