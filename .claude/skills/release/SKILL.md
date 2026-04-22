@@ -74,7 +74,7 @@ Als de release user-facing functionaliteit toevoegt: beschrijf de feature in `RE
 
 ### 5. Unit tests draaien — BLOCKER
 ```bash
-node test.js
+node test.mjs
 ```
 Moet volledig groen zijn. Bij falen: **stop**, rapporteer aan de gebruiker, verwerk geen workarounds.
 

@@ -6,7 +6,7 @@ Een topografie-oefentool voor groep 5–8, gebaseerd op de Geobas-methode. Kinde
 
 **Lokaal draaien:** `npx serve .` (vereist een lokale server vanwege GeoJSON-fetch).
 
-**Tests:** `npm run test` — draait unit tests (`node test.js`) én Playwright E2E tests. Altijd uitvoeren voor je pusht.
+**Tests:** `npm run test` — draait unit tests (`node test.mjs`) én Playwright E2E tests. Altijd uitvoeren voor je pusht.
 
 ---
 

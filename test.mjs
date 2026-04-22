@@ -1,8 +1,18 @@
 #!/usr/bin/env node
 // Topografie Quiz — lokale testsuite
-// Gebruik: node test.js
+// Gebruik: node test.mjs
+//
+// ESM-module (#95). cities.js is nog CommonJS (geladen als browser-global
+// via <script src="cities.js">); we lezen 'm in via createRequire. Nieuwe
+// src/game/*.js modules zijn ESM en worden via `import` ingelezen.
 
-'use strict';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const require = createRequire(import.meta.url);
+// ESM kent geen __dirname — zelf recreëren t.b.v. fs.readFileSync-calls verderop.
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
