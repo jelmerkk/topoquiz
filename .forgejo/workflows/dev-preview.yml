@@ -1,0 +1,30 @@
+# Cloudflare Pages preview voor elke push naar dev.
+# Vervangt de CF-Pages Git-integratie (die Codeberg-repos niet ondersteunt).
+#
+# Draait op onze self-hosted runner, niet in een Playwright-image —
+# lichte node:20 is genoeg voor alleen wrangler pages deploy.
+# Geen tests hier: de dev-preview is voor visuele verificatie, niet
+# voor CI-gate. Tests draaien pas op staging (e2e.yml).
+
+name: Dev preview
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  preview:
+    runs-on: self-hosted
+    container:
+      image: node:20-bookworm
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - name: Install wrangler
+        run: npm install -g wrangler@3
+
+      - name: Deploy dev preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler pages deploy . --project-name=topoquiz --branch=dev

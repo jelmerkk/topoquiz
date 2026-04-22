@@ -1,0 +1,147 @@
+# E2E tests + deploy pipeline voor Codeberg / Forgejo Actions.
+# Draait op self-hosted runner (argo-1) — Codeberg heeft geen hosted
+# runners. Label `self-hosted` matcht onze runner-config.
+#
+# Triggers:
+#   - push naar staging: volledige pipeline (test → merge → deploy)
+#   - pull_request naar main: alleen test-job (sanity-check van merges)
+#
+# Deploy-flow: staging-groen → merge naar main → rsync naar Uberspace →
+# wrangler pages deploy naar Cloudflare Pages main-branch.
+
+name: E2E Tests
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: self-hosted
+    container:
+      # Playwright-image die exact matcht met @playwright/test versie in
+      # package.json. Bij bump van Playwright: ook hier de tag aanpassen.
+      image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+
+      - uses: https://code.forgejo.org/actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload test report on failure
+        if: failure()
+        uses: https://code.forgejo.org/actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    # Alleen op staging-push, niet op PR's naar main.
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    container:
+      # Node-image met apt beschikbaar — we installeren rsync + ssh voor
+      # de Uberspace-deploy.
+      image: node:20-bookworm
+    steps:
+      - name: Install deploy tools
+        run: |
+          apt-get update
+          apt-get install -y rsync openssh-client
+
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # PAT met write:repository scope zodat we staging → main kunnen
+          # pushen. Aanmaken op Codeberg: user/settings/applications →
+          # Generate New Token (scopes: write:repository) → opslaan als
+          # Codeberg-secret `CODEBERG_PUSH_TOKEN` op repo-niveau.
+          token: ${{ secrets.CODEBERG_PUSH_TOKEN }}
+
+      - name: Merge staging into main
+        run: |
+          git config user.name "forgejo-runner"
+          git config user.email "ci@topoquiz.local"
+          git checkout main
+          git merge staging --ff-only
+          git push origin main
+
+      - name: SSH setup voor Uberspace
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.UBERSPACE_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ vars.UBERSPACE_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rsync deploy naar Uberspace
+        # Allow-list: expliciet welke files live moeten — voorkomt dat
+        # test-artefacten of build-output per ongeluk naar prod gaan.
+        # Bij nieuw top-level file: hier toevoegen én in .github variant
+        # (tot cutover), anders wordt 't stilzwijgend overgeslagen.
+        run: |
+          rsync -avz --delete \
+            --include='index.html' \
+            --include='cities.js' \
+            --include='sw.js' \
+            --include='manifest.json' \
+            --include='provincie_2023.geojson' \
+            --include='wateren.geojson' \
+            --include='gewesten.geojson' \
+            --include='landen-europa.geojson' \
+            --include='landen-zuidamerika.geojson' \
+            --include='landen-afrika.geojson' \
+            --include='landen-noord-midden-amerika.geojson' \
+            --include='landen-midden-oosten.geojson' \
+            --include='landen-zuid-azie.geojson' \
+            --include='landen-oost-azie.geojson' \
+            --include='landen-zuidoost-azie.geojson' \
+            --include='eilanden-zuidoost-azie.geojson' \
+            --include='landen-oceanie.geojson' \
+            --include='gebieden-oceanie.geojson' \
+            --include='landen-midden-amerika.geojson' \
+            --include='eilanden-midden-amerika.geojson' \
+            --include='sitemap.xml' \
+            --include='icon.svg' \
+            --include='icon-maskable.svg' \
+            --include='icon-192.png' \
+            --include='icon-512.png' \
+            --include='icon-maskable-512.png' \
+            --include='apple-touch-icon.png' \
+            --include='.htaccess' \
+            --include='css/' \
+            --include='css/*.css' \
+            --include='src/' \
+            --include='src/game/' \
+            --include='src/game/*.js' \
+            --include='src/game/package.json' \
+            --include='src/screens/' \
+            --include='src/screens/*.js' \
+            --exclude='*' \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            ./ "${{ vars.UBERSPACE_SSH_USER }}@${{ vars.UBERSPACE_SSH_HOST }}:${{ vars.UBERSPACE_DEPLOY_PATH }}/"
+
+      - name: Cloudflare Pages deploy (main)
+        # Vervangt de CF-Pages git-integration die op Codeberg niet werkt.
+        # wrangler-v3 heeft `pages deploy` (v4 verplaatst naar `wrangler pages`).
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm install -g wrangler@3
+          wrangler pages deploy . --project-name=topoquiz --branch=main
