@@ -4,7 +4,7 @@ Referentie: het volledige plan staat in
 `~/.claude/plans/optimized-finding-taco.md`. Dit bestand is de
 working-tracker: wat is af, wat staat open, hoe verder.
 
-**Laatste update:** 2026-04-22 — Fase 1 + 2 afgerond.
+**Laatste update:** 2026-04-22 — Fase 1 + 2 + 3 + 4 afgerond, klaar voor cutover-weekend.
 
 ## Status per fase
 
@@ -13,9 +13,9 @@ working-tracker: wat is af, wat staat open, hoe verder.
 | 0 — Voorbereiding | ✅ klaar | Codeberg-account, PAT, CF API-token, repo aangemaakt |
 | 1 — Forgejo runner | ✅ klaar | `argo-1` Idle op Codeberg via Ansible |
 | 2 — Repo-import | ✅ klaar | 118 issues, 30 tags, nummers behouden |
-| 3 — Workflow-rewrite | ⏳ niet begonnen | `.forgejo/workflows/*.yml` + secrets |
-| 4 — Skill + docs | ⏳ niet begonnen | `gh` → `tea`, CLAUDE.md, README, package.json |
-| 5 — Cutover | ⏳ niet begonnen | Remote switch, GitHub archive |
+| 3 — Workflow-rewrite | ✅ klaar | `.forgejo/workflows/e2e.yml` + `dev-preview.yml` (commit 8073536) |
+| 4 — Skill + docs | ✅ klaar | `gh` → `tea`, `scripts/forgejo-run-watch.sh`, CLAUDE.md, README, package.json |
+| 5 — Cutover | ⏳ niet begonnen | Remote switch, GitHub archive, CF-Pages git-integration loskoppelen |
 | 6 — Cleanup | ⏳ niet begonnen | Secrets opruimen, allowlist |
 
 ## Wat is werkend
@@ -139,19 +139,24 @@ Eenmalig lokaal (eerste keer):
 npx wrangler pages project create topoquiz --production-branch main
 ```
 
-## Fase 4 — Skill + docs
+## Fase 4 — Skill + docs (✅ klaar)
 
-Bestanden om te herschrijven:
+Uitgevoerd op dev-branch (nog niet in productie tot cutover):
 
-- `.claude/skills/release/SKILL.md` — `gh` → `tea` throughout,
-  `gh run list/watch` → nieuwe `scripts/forgejo-run-watch.sh`.
-- `scripts/forgejo-run-watch.sh` (nieuw) — curl-based pipeline-poller
-  tegen Codeberg API (zie plan).
-- `CLAUDE.md` — links `github.com/jelmerkk` → `codeberg.org/jelmerk`,
-  `gh api` → `curl -H "Authorization: token $CODEBERG_TOKEN"`,
-  `.github/workflows` → `.forgejo/workflows`.
-- `README.md` — repo-links.
-- `package.json` — `repository.url`, `bugs.url`.
+- ✅ `.claude/skills/release/SKILL.md` — `gh` → `tea`, `gh run watch` →
+  `./scripts/forgejo-run-watch.sh staging`, workflow-pad `.github/` →
+  `.forgejo/`, release/issue commands naar Codeberg-repo-slug `jelmerk/topoquiz`.
+- ✅ `scripts/forgejo-run-watch.sh` — bash + curl + jq poller tegen
+  `codeberg.org/api/v1/repos/jelmerk/topoquiz/actions/tasks`. Polt elke 15s,
+  timeout 20 min, exit 0/1/2 voor success/failure/API-fout. Vereist
+  `CODEBERG_TOKEN` env-var (PAT met `read:repository`).
+- ✅ `CLAUDE.md` — alle `gh` commands → `tea` equivalenten, filter-queries
+  met `tea issues --labels` + curl-fallback voor "no:label"-filter,
+  repo-link → codeberg, workflow-pad + nieuwe watcher-script-regel in
+  snelkoppelingen-tabel.
+- ✅ `README.md` — "Issues op GitHub" → Codeberg, Deploy-sectie genoemd
+  Forgejo Actions + `wrangler pages deploy`.
+- ✅ `package.json` — `repository.url`, `bugs.url`, `homepage` → codeberg.
 
 ## Fase 5 — Cutover-weekend
 

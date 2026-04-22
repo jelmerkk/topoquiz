@@ -408,13 +408,13 @@ Modi: `mc` (meerkeuze), `text` (typen), `map` (klik op kaart). Ongeldige of ontb
 
 ## Feedback
 
-Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Google Forms endpoint). Issues worden bijgehouden op [GitHub](https://github.com/jelmerkk/topoquiz/issues).
+Feedback van gebruikers gaat via een ingebouwd formulier naar Google Sheets (Google Forms endpoint). Issues worden bijgehouden op [Codeberg](https://codeberg.org/jelmerk/topoquiz/issues).
 
 ---
 
 ## Deploy & CI
 
 - `feature/*` branches → ontwikkeling van nieuwe features
-- Push naar `staging` triggert GitHub Actions: unit tests + Playwright E2E tests
+- Push naar `staging` triggert Forgejo Actions op Codeberg: unit tests + Playwright E2E tests
 - Bij groene tests wordt `staging` automatisch gemerged naar `main`
-- `main` branch → automatisch gedeployed naar Uberspace via rsync → live op [topoquiz.com](https://www.topoquiz.com)
+- `main` branch → automatisch gedeployed naar Uberspace via rsync + naar Cloudflare Pages (`wrangler pages deploy`) → live op [topoquiz.com](https://www.topoquiz.com)

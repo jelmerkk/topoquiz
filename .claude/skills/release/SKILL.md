@@ -3,7 +3,7 @@ name: release
 description: >
   Gebruik deze skill om een voltooide feature of bugfix op de `dev` branch van topoquiz
   live te krijgen: versie-bump, README, tests, commit, merge-naar-dev, issue sluiten en
-  GitHub release. Triggers: "release", "uitrollen", "afronden", "merge naar dev",
+  Codeberg release. Triggers: "release", "uitrollen", "afronden", "merge naar dev",
   "feature afronden", "/release", "klaar voor merge", "live zetten".
   Voert het volledige ritueel uit in de juiste volgorde — niets overslaan.
 ---
@@ -16,7 +16,7 @@ Volledig afrondingsritueel voor een feature of bugfix. Loopt stap voor stap; elk
 
 - Gebruiker zegt "afronden", "release", "merge dit naar dev", of `/release`.
 - Een feature/fix is inhoudelijk klaar, tests bestaan, code werkt lokaal.
-- Er is een GitHub issue-nummer dat hierbij hoort (bijna altijd — zo niet, vraag erom).
+- Er is een Codeberg issue-nummer dat hierbij hoort (bijna altijd — zo niet, vraag erom).
 
 ## Wat je nodig hebt vóór je start
 
@@ -37,9 +37,9 @@ feature branch (optioneel) ─▶ dev ─▶ (CF preview + user-akkoord) ─▶ 
 
 - **Jij werkt op `dev`** (of een feature-branch die naar `dev` mergt). Elke push triggert een Cloudflare Pages preview.
 - **De gebruiker test functioneel** op de dev-preview en geeft **expliciet groen licht** om de pipeline af te trappen.
-- **Dan pas merge je `dev` → `staging`.** Die push triggert `.github/workflows/e2e.yml`: tests draaien, en bij succes wordt `staging` naar `main` gemerged en gerynct naar Uberspace.
-- **Verifieer dat de pipeline groen is** (`gh run list`/`gh run watch`). Rood = stop, onderzoek, niet doorrollen.
-- **Pas als de pipeline groen is**: GitHub release aanmaken en het issue sluiten met een verwijzing naar de versie.
+- **Dan pas merge je `dev` → `staging`.** Die push triggert `.forgejo/workflows/e2e.yml` op Codeberg: tests draaien, en bij succes wordt `staging` naar `main` gemerged en gerynct naar Uberspace.
+- **Verifieer dat de pipeline groen is** (`./scripts/forgejo-run-watch.sh staging`). Rood = stop, onderzoek, niet doorrollen.
+- **Pas als de pipeline groen is**: Codeberg release aanmaken en het issue sluiten met een verwijzing naar de versie.
 - **Nooit** een release of issue-sluit-comment plaatsen vóór de pipeline groen is — dan verwijs je naar iets wat nog niet in productie staat.
 
 ### Uitzondering: dev als feature-branch (Geobas 7/8 — tot en met set 7.3)
@@ -78,7 +78,7 @@ node test.mjs
 ```
 Moet volledig groen zijn. Bij falen: **stop**, rapporteer aan de gebruiker, verwerk geen workarounds.
 
-**Niet** `npm test` lokaal draaien — die draait ook de Playwright-suite (minuten) en is dan een duplicaat van wat `.github/workflows/e2e.yml` toch al doet zodra je naar `staging` pusht. De pipeline is de waarheid voor end-to-end; lokaal snel je unit-tests checken is genoeg.
+**Niet** `npm test` lokaal draaien — die draait ook de Playwright-suite (minuten) en is dan een duplicaat van wat `.forgejo/workflows/e2e.yml` toch al doet zodra je naar `staging` pusht. De pipeline is de waarheid voor end-to-end; lokaal snel je unit-tests checken is genoeg.
 
 ### 6. Commit
 ```bash
@@ -106,7 +106,7 @@ git checkout dev
 git merge feature/xxx --no-ff
 git push
 ```
-Geen `gh pr create` — de gebruiker wil geen PR-workflow. Direct mergen na preview-goedkeuring.
+Geen `tea pr create` — de gebruiker wil geen PR-workflow. Direct mergen na preview-goedkeuring.
 
 ### 9. Wacht op functioneel groen licht voor de staging-push
 
@@ -121,38 +121,42 @@ git merge dev --no-ff
 git push origin staging
 git checkout dev
 ```
-De push naar `staging` triggert `.github/workflows/e2e.yml`: unit + Playwright + rsync-deploy. Verifieer:
+De push naar `staging` triggert `.forgejo/workflows/e2e.yml` op Codeberg: unit + Playwright + rsync-deploy. Verifieer:
 ```bash
-gh run list --branch staging --limit 1
-gh run watch <run-id>   # of poll gh run view <run-id>
+./scripts/forgejo-run-watch.sh staging
 ```
-- **Groen** → door naar stap 11.
-- **Rood** → **stop**. Rapporteer welke job faalde, onderzoek de oorzaak, fix op `dev`, herhaal stap 5–10. Nooit rood negeren; nooit met `workflow_dispatch` handmatig forceren.
-- **In progress** → wacht af (gebruik een ScheduleWakeup-achtig wachtpatroon of `gh run watch`).
+Het script polt de Forgejo Actions API tot de laatste run op de branch klaar is, exit 0 = success, exit 1 = failure, exit 2 = API/timeout. Vereist `CODEBERG_TOKEN` env-var (PAT met `read:repository`).
 
-### 11. GitHub release + issue sluiten (alleen na groene pipeline)
+- **Groen** (exit 0) → door naar stap 11.
+- **Rood** (exit 1) → **stop**. Open de run op `https://codeberg.org/jelmerk/topoquiz/actions`, rapporteer welke job faalde, onderzoek de oorzaak, fix op `dev`, herhaal stap 5–10. Nooit rood negeren; nooit met `workflow_dispatch` handmatig forceren.
+- **Script draait nog** → wacht af, het blokkeert tot de run klaar is.
+
+### 11. Codeberg release + issue sluiten (alleen na groene pipeline)
 ```bash
-gh release create vX.Y.Z \
+tea release create --repo jelmerk/topoquiz \
+  --tag vX.Y.Z \
   --title "vX.Y.Z — <naam>" \
-  --notes "$(cat <<'EOF'
+  --note "$(cat <<'EOF'
 <release-note uit stap 0>
 
 Closes #<nr>.
 EOF
 )"
 
-gh issue close <nr> --comment "Fixed in vX.Y.Z — <korte uitleg>"
+tea issue close <nr> --repo jelmerk/topoquiz \
+  --comment "Fixed in vX.Y.Z — <korte uitleg>"
 ```
 - **Release eerst, dan issue sluiten** — zodat het close-comment naar een bestaande release kan verwijzen.
 - Altijd een oplossings-comment toevoegen vóór `close`.
 - Issue-body **nooit** bewerken — alleen comments.
+- `tea` gebruikt de login uit `tea login add --name codeberg …` (Fase 0 install). Als `tea` niet bestaat: `brew install tea`.
 
 ## Slot
 
 Rapporteer aan de gebruiker:
 - Nieuwe versie + korte samenvatting van wat er is uitgerold
-- Link naar de release (`gh release view vX.Y.Z --web --json url`)
-- Status van de pipeline (groen, URL naar de run)
+- Link naar de release (`https://codeberg.org/jelmerk/topoquiz/releases/tag/vX.Y.Z`)
+- Status van de pipeline (groen, URL naar de run op `https://codeberg.org/jelmerk/topoquiz/actions`)
 - Als we in de Geobas-uitzondering zaten: expliciet vermelden dat staging/release overgeslagen is en wat er nog wacht op milestone-akkoord.
 
 ## Hard no's
@@ -162,4 +166,4 @@ Rapporteer aan de gebruiker:
 - **Nooit** `git add -A` of `git add .` — altijd expliciete bestanden.
 - **Nooit** issue-body overschrijven.
 - **Nooit** `--no-verify` of `--no-gpg-sign` op `git commit`.
-- **Nooit** `gh pr create` — geen PR-workflow in dit project.
+- **Nooit** `tea pr create` — geen PR-workflow in dit project.
