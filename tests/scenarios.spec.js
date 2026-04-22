@@ -247,3 +247,53 @@ test('#116 — set 54 provincie-quiz: zoom blijft boven 6 ná meerdere vragen', 
   // Smoke: na 3 provincies mag de kaart niet vast staan op zoom 6.
   await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeGreaterThan(6);
 });
+
+// ── Zoom-regressie — #119 ────────────────────────────────────────────────────
+// Tegenovergestelde klacht van #116: provincies werden zó strak ingezoomd dat
+// de randen van de polygoon buiten beeld vielen en er geen context meer was om
+// de vraag mee te beantwoorden. Regel: volledige polygoon zichtbaar + genoeg
+// omliggende context (buurprovincies / NL-grenzen / zee). Bovengrens zoom 9
+// houdt een kleine provincie (Utrecht, Flevoland) in NL-context; grote
+// provincies fitten natuurlijk onder die cap.
+
+test('#119 — set 54 provincie-quiz zoomt niet verder in dan zoom 9 (mobile)', async ({ page }) => {
+  // Mobile viewport: daar is de container zo klein dat Leaflet zonder cap
+  // een kleine provincie naar zoom 10-11 duwt, met als gevolg dat de randen
+  // en de omliggende context verdwijnen.
+  await page.setViewportSize({ width: 414, height: 820 });
+  await startProvinceQuiz(page, 1);
+  // Loop alle 12 vragen door — elke provincie moet onder de zoom-cap blijven.
+  const zooms = [];
+  for (let i = 0; i < 11; i++) {
+    await answerCorrectly(page);
+    await page.waitForSelector('#city-input:not([disabled])');
+    zooms.push(await page.evaluate(() => map.getZoom()));
+  }
+  const maxZoom = Math.max(...zooms);
+  expect(maxZoom, `zooms per vraag: ${zooms.join(',')}`).toBeLessThanOrEqual(9);
+});
+
+test('#119 — set 54 provincie-quiz: zoom-cap houdt ná meerdere vragen (mobile)', async ({ page }) => {
+  await page.setViewportSize({ width: 414, height: 820 });
+  await startProvinceQuiz(page, 1);
+  for (let i = 0; i < 4; i++) await answerCorrectly(page);
+  await page.waitForSelector('#city-input:not([disabled])');
+  // Na 4 vragen zijn er verschillende provincie-groottes langs geweest. Geen
+  // enkele mag boven zoom 9 uitklappen.
+  await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeLessThanOrEqual(9);
+});
+
+test('#119 — set 54 provincie-quiz: zoom-cap houdt op desktop (alle provincies)', async ({ page }) => {
+  // Desktop 1280x900 (default viewport). Kleine provincies (Utrecht, Flevoland,
+  // Zeeland) passen natuurlijk op zoom 9-10 zonder cap. Zonder maxZoom-cap
+  // verdwijnt de context waarmee het kind het antwoord kan afleiden.
+  await startProvinceQuiz(page, 1);
+  const zooms = [];
+  for (let i = 0; i < 11; i++) {
+    await answerCorrectly(page);
+    await page.waitForSelector('#city-input:not([disabled])');
+    zooms.push(await page.evaluate(() => map.getZoom()));
+  }
+  const maxZoom = Math.max(...zooms);
+  expect(maxZoom, `zooms per vraag: ${zooms.join(',')}`).toBeLessThanOrEqual(9);
+});
