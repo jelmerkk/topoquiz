@@ -223,3 +223,27 @@ test('hint-knop onthult beginteken(s) van het antwoord', async ({ page }) => {
   expect(hint).toMatch(/^Hint:/);
   expect(hint).toContain(name[0]);
 });
+
+// ── Zoom-regressie — #116 ────────────────────────────────────────────────────
+// De per-item highlightZoom cap (province:6, country:5, water:10) knalde de
+// kaart na de start-fit terug naar een te ver uitgezoomde view. Provincies
+// passen bij de fit-to-viewport map comfortabel op zoom ≥ 7; een strengere
+// grens houdt de regressie echt dicht zonder flaky te zijn op korte viewports.
+
+test('#116 — set 54 provincie-quiz zoomt op Q2 in op de provincie, niet uit naar zoom 6', async ({ page }) => {
+  await startProvinceQuiz(page, 1); // text mode zodat we correct kunnen antwoorden
+  await answerCorrectly(page); // Q1 → Q2: nu is de rAF-NL_BOUNDS-fit niet meer in beeld,
+                                //           setHighlight is alleen nog verantwoordelijk voor de zoom.
+  await page.waitForSelector('#city-input:not([disabled])');
+  // Vóór de fix: highlightZoom:6 capte hard af, zoom bleef op 6 → NW-Europa in beeld.
+  // Na de fix: fitBounds kiest de natuurlijke zoom (≥ 7 voor elke provincie in de container).
+  await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeGreaterThan(6);
+});
+
+test('#116 — set 54 provincie-quiz: zoom blijft boven 6 ná meerdere vragen', async ({ page }) => {
+  await startProvinceQuiz(page, 1);
+  for (let i = 0; i < 3; i++) await answerCorrectly(page);
+  await page.waitForSelector('#city-input:not([disabled])');
+  // Smoke: na 3 provincies mag de kaart niet vast staan op zoom 6.
+  await expect.poll(() => page.evaluate(() => map.getZoom()), { timeout: 2000 }).toBeGreaterThan(6);
+});

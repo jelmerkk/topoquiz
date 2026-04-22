@@ -23,12 +23,17 @@ const { test, expect } = require('@playwright/test');
 // qtot = exact (toBe); qtotMin = lower-bound (≥, voor sets met dynamische items).
 
 const SETS = [
-  { setId: 58, group: 5, label: 'Onze buren',            q: 'Welk land is dit?',   phaseLabel: 'Landen', qtot: 16, zoom: [3, 7] },
+  // #116: adaptieve highlight-zoom → per-item fit zoomt in op het land.
+  // Kleine landen (Luxemburg, België) zitten rond zoom 8-10; grotere landen
+  // (Frankrijk, Duitsland) rond 5-6. Range verruimd naar [4, 12].
+  { setId: 58, group: 5, label: 'Onze buren',            q: 'Welk land is dit?',   phaseLabel: 'Landen', qtot: 16, zoom: [4, 12] },
   { setId: 71, group: 7, label: 'Landen en hoofdsteden', q: 'Welk land is dit?',   phaseLabel: 'Landen', qtot: 20 },
   { setId: 72, group: 7, label: 'België',                q: 'Welk gewest is dit?',                       qtot: 4 },
   { setId: 73, group: 7, label: 'Frankrijk',             q: 'Welke plaats is dit?', phaseLabel: 'Steden', qtotMin: 18, zoom: [4, 7] },
   { setId: 74, group: 7, label: 'Duitsland',             q: 'Welke plaats is dit?', phaseLabel: 'Steden', qtot: 18, zoom: [4, 7] },
-  { setId: 75, group: 7, label: 'Verenigd Koninkrijk',   q: 'Welke regio is dit?',  phaseLabel: 'Regio', qtot: 5,  zoom: [4, 7] },
+  // #116: regio-fase kan per-item inzoomen als het layer beschikbaar is,
+  // anders wint de _set.bounds-fit (UK+Ierland, zoom ~4). Range verruimd.
+  { setId: 75, group: 7, label: 'Verenigd Koninkrijk',   q: 'Welke regio is dit?',  phaseLabel: 'Regio', qtot: 5,  zoom: [4, 12] },
   { setId: 76, group: 7, label: 'Midden-Europa',         q: 'Welke plaats is dit?', phaseLabel: 'Steden', qtot: 22 },
   { setId: 77, group: 7, label: '7.7',                   q: 'Welk land is dit?',    phaseLabel: 'Landen', qtot: 13 },
   { setId: 78, group: 7, label: '7.8',                   q: 'Welk land is dit?',    phaseLabel: 'Landen', qtot: 4 },
