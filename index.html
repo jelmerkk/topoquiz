@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.25.5">
+<meta name="version" content="2.25.6">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -378,8 +378,11 @@ const polygonTypes = {
     nameKey: 'name',
     // #116: zie province — adaptief fit met safety-cap 12. Oude waarde 10 was
     // vaak prima voor grote rivieren maar capte kleine wateren onnodig uit.
+    // Bij phasedSets met set.bounds skipt de orchestrator de fit; fallbackPan
+    // zorgt dat een kleine rivier buiten beeld alsnog gepand wordt.
     highlightZoom: 12,
     highlightPadding: [60, 60],
+    fallbackPan: true,
   },
   country: {
     featureData: null,
@@ -387,15 +390,13 @@ const polygonTypes = {
     quizLayer: null,
     styles: { default: COUNTRY_DEFAULT, highlight: COUNTRY_HIGHLIGHT, mastered: COUNTRY_MASTERED },
     nameKey: 'name',
-    // #116: adaptief. Kleine landen (België, Nederland in EU-context) konden
-    // niet strakker dan zoom 5 — nu berekent fitBounds zelf de juiste zoom.
-    // Voor grote landen (Rusland) blijft de natuurlijke bounds-fit laag genoeg.
-    highlightZoom: 12,
+    // Bij dailyBonus (geen set.bounds) wordt alsnog gefit — cap op 8 zodat een
+    // klein land niet tot zoom 12 ingezoomd wordt. Bij phasedSets met bounds
+    // skipt de orchestrator de fit sowieso (zie setHighlight).
+    highlightZoom: 8,
     highlightPadding: [80, 80],
     animate: true,
-    // In klik-op-kaart modus niet inzoomen — dan blijft de wereldview behouden
-    // voor de volgende vraag zonder terug-zoom-dans.
-    skipFit: () => gameMode === 'map',
+    fallbackPan: true,
   },
   // Markers i.p.v. layer-styling; setHighlight('place', ...) routet naar
   // pulseIcon + flyTo/panTo. Velden hier zijn placeholders voor het register
@@ -531,10 +532,16 @@ function setHighlight(type, item, mapMode = false) {
       layer.setStyle(streak[name] >= mastery() ? styleForFeature(t, f, 'mastered') : styleForFeature(t, f, 'default'));
     }
   });
-  // Register-gestuurde fitBounds; skipFit-predicate bepaalt of we inzoomen,
-  // fallbackPan zorgt voor panTo zodra het item buiten beeld valt (alleen province).
+  // Register-gestuurde fitBounds. Twee skip-mechanismen:
+  //  1. Sets met `bounds` declareren een regionaal overzicht (5.8, 7.x, 8.x).
+  //     Per-vraag fit zou dat overzicht kapen — klein land/water valt dan
+  //     binnen de viewport zonder zichtbare randen. Kleur-highlight + fallbackPan
+  //     zijn genoeg: pan alleen als item buiten beeld valt.
+  //  2. Per-type skipFit-predicate voor shape-specifieke cases (fuzzy/peak in
+  //     provincie-set 5.4 — geen set.bounds, dus mechanisme 1 grijpt niet).
   const layer = t.layers[item.name];
-  const skip = t.skipFit && t.skipFit(item);
+  const hasOverview = !!SETS[selectedSet]?.bounds;
+  const skip = hasOverview || (t.skipFit && t.skipFit(item));
   if (layer && !skip) {
     layer.bringToFront();
     // Daily/bonus (#80): gemengde pool zonder phase-context. highlightZoom:12
@@ -1499,7 +1506,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.25.5';
+const APP_VERSION = 'v2.25.6';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
