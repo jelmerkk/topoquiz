@@ -16,46 +16,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
-// ── Pure logic (gespiegeld vanuit index.html) ─────────────────
-// Houd synchroon met de implementatie in index.html.
-
-function normalize(s) {
-  return s.toLowerCase().trim().replace(/['\-\s]/g, '');
-}
-
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1]
-        ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function typoThreshold(normalizedName) {
-  const l = normalizedName.length;
-  if (l <= 4) return 0;
-  if (l <= 8) return 1;
-  return 2;
-}
-
-function matchInput(input, city) {
-  const normInput = normalize(input);
-  if (!normInput) return false;
-  const allNames = [city.name, ...(city.aliases || [])];
-  for (const name of allNames) {
-    if (normalize(name) === normInput) return 'exact';
-  }
-  for (const name of allNames) {
-    const normName = normalize(name);
-    const dist = levenshtein(normInput, normName);
-    if (dist <= typoThreshold(normName)) return 'close';
-  }
-  return false;
-}
+// ── Pure logic — direct uit src/game/*.js (geen mirror meer, #95) ────
+import { normalize, levenshtein, typoThreshold, matchInput } from './src/game/text.js';
 
 // ── Test framework ────────────────────────────────────────────
 
