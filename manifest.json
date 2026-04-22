@@ -1,13 +1,16 @@
 {
   "name": "Topografie Quiz",
   "short_name": "TopoQuiz",
-  "description": "Oefen de topografie van Nederland voor groep 5 en 6.",
+  "description": "Oefen de topografie van Nederland en Europa voor groep 5 t/m 8.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a2744",
-  "theme_color": "#1a2744",
+  "background_color": "#f7f4e8",
+  "theme_color": "#fffdf5",
   "lang": "nl",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }
