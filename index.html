@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.25.2">
+<meta name="version" content="2.25.3">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -220,6 +220,14 @@
   import * as daily  from './src/game/daily.js';
   import * as smooth from './src/game/smooth.js';
   import * as shapes from './src/game/shapes.js';
+  import { renderLevelSelect } from './src/screens/levelselect.js';
+  import { renderModeSelect } from './src/screens/modeselect.js';
+  import { showPhaseTransition } from './src/screens/phase-transition.js';
+  import { renderEnd } from './src/screens/end.js';
+  window.renderLevelSelect = renderLevelSelect;
+  window.renderModeSelect = renderModeSelect;
+  window.showPhaseTransition = showPhaseTransition;
+  window.renderEnd = renderEnd;
 
   // Simpele re-exports (zelfde signatuur als inline defs).
   Object.assign(window, text, geo, smooth, shapes, {
@@ -1212,18 +1220,10 @@ function updateScoreboard() {
   updateHardList();
 }
 
-function showPhaseTransition(fromPhase, toPhase, onDone) {
-  const el   = document.getElementById('phase-transition');
-  const text = document.getElementById('phase-transition-text');
-  // #102: nieuwe Routekaart-tekst. <strong> krijgt grass-accent, .pt-next
-  // is de body-regel onder de kop.
-  text.innerHTML = `<strong>${fromPhase.label}</strong> af!<span class="pt-next">Volgende fase: ${toPhase.label}</span>`;
-  el.style.display = 'flex';
-  setTimeout(() => {
-    el.style.display = 'none';
-    onDone();
-  }, 1800);
-}
+// showPhaseTransition is verhuisd naar src/screens/phase-transition.js (#96 increment 3)
+// en hangt als window.showPhaseTransition. Lokale alias zodat bestaande call-sites
+// (finishAnswer) onveranderd blijven.
+const showPhaseTransition = (...args) => window.showPhaseTransition(...args);
 
 function finishAnswer() {
   const mc  = masteredCount();
@@ -1399,66 +1399,31 @@ const router = (() => {
 })();
 
 function showEnd() {
+  // Side-effects blijven hier (state + storage + tracking); pure view-werk
+  // is verhuisd naar src/screens/end.js (#96 increment 4).
   _trackQuiz('complete');
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
-  applyVisibility('end');
-  // #102: body.on-end → zand-bg + plain title-bar op end-scherm.
-  document.body.classList.remove('on-home');
-  document.body.classList.remove('on-mode-select');
-  document.body.classList.add('on-end');
-  const total = cumulativeOk + cumulativeErr;
-  const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
-  const _endSet  = SETS[selectedSet];
-  const _endIsMixed = _endSet.kind === 'dailyBonus';
-  const _endIsPhased = _endSet.kind === 'phased';
-  const _endIsSimple = _endSet.kind === 'simple';
-  const _endQts  = _endIsPhased ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
-  const isProvince = _endIsSimple && _endSet.quizType === 'province';
-  const isWater    = _endIsSimple && _endSet.quizType === 'water';
 
-  const isDaily = _endIsMixed && _endSet.variant === 'daily';
+  const _endSet = SETS[selectedSet];
+  const total   = cumulativeOk + cumulativeErr;
+  const pct     = total ? Math.round(cumulativeOk / total * 100) : 100;
+  const isDaily = _endSet.kind === 'dailyBonus' && _endSet.variant === 'daily';
+
+  let correctDaily = 0;
+  let emojiDaily = '';
   if (isDaily) {
     const results = activeCities.map(c => dailyAnswers[dailyAnswerKey(c)] === true);
-    const correct = results.filter(Boolean).length;
-    const emoji   = dailyResultEmoji(results);
-    try { localStorage.setItem(dailyStorageKey(), emoji); } catch (_) {}
-    // Wording neutraal — daily bevat niet meer alléén steden (issue #80).
-    document.getElementById('end-text').innerHTML =
-      `<strong>${correct} van de ${activeCities.length}</strong> meteen goed geraden! 🗺️`;
-    document.getElementById('daily-emoji').textContent = emoji;
-    document.getElementById('daily-share-wrap').style.display = 'block';
-    document.getElementById('rating-wrap').style.display = 'none';
-    document.getElementById('end-stars').style.display = 'none';
-  } else {
-    document.getElementById('daily-share-wrap').style.display = 'none';
-    document.getElementById('rating-wrap').style.display = '';
-    document.getElementById('end-stars').style.display = '';
-    document.getElementById('end-text').innerHTML =
-      _endIsMixed
-        ? `Je hebt alle <strong>${activeCities.length} items</strong> in de bonus gespeeld! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : _endIsPhased
-        ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
+    correctDaily  = results.filter(Boolean).length;
+    emojiDaily    = dailyResultEmoji(results);
+    try { localStorage.setItem(dailyStorageKey(), emojiDaily); } catch (_) {}
   }
 
-  if (!isDaily) {
-    // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
-    const stars = cumulativeErr === 0 ? 3 : pct >= 80 ? 2 : 1;
-    const starsEl = document.getElementById('end-stars');
-    starsEl.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-      const s = document.createElement('span');
-      s.textContent = i < stars ? '⭐' : '☆';
-      s.style.animationDelay = `${i * 250}ms`;
-      s.style.animation = `star-pop 0.5s ease-out ${i * 250}ms forwards`;
-      starsEl.appendChild(s);
-    }
-    // Reset rating widget
-    document.getElementById('rating-btns').style.display    = 'flex';
-    document.getElementById('rating-question').style.display = 'block';
-    document.getElementById('rating-thanks').style.display   = 'none';
-  }
+  window.renderEnd({
+    set: _endSet, activeCities, total, pct, cumulativeOk, cumulativeErr,
+    isDaily, correctDaily, emojiDaily,
+    applyVisibility,
+  });
 }
 
 function rateQuiz(score) {
@@ -1497,148 +1462,25 @@ function _trackQuiz(action) {
 // ── Internal render helpers (geen history-aanpassingen) ──────
 
 function _renderLevelSelect() {
-  const el = document.getElementById('level-select');
-  // Routekaart-refresh (#99): sky-gradient header + content-body in één render.
-  // XP-bar is puur versiering; echte XP-logica komt in #104.
-  // h2-tekst "Topografie Quiz" wordt door Playwright gecheckt (navigation.spec).
-  el.innerHTML = `
-    <div class="home-header">
-      <div class="home-header-text">
-        <h2 class="home-title"><span class="home-title-emoji" aria-hidden="true">🗺️ </span>Topografie Quiz</h2>
-        <p class="home-subtitle">Oefen in je eigen tempo. Kies hieronder een quiz.</p>
-      </div>
-      <div class="home-xp" aria-hidden="true">
-        <div class="home-xp-row"><span class="home-xp-label">NIVEAU 1</span><span>340 / 500</span></div>
-        <div class="home-xp-bar"></div>
-      </div>
-    </div>
-    <div class="home-body"></div>
-  `;
-  const body = el.querySelector('.home-body');
-
-  // Groep-selectieknoppen
-  const selectedGroup = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
-  if (!selectedGroup) {
-    const hint = document.createElement('p');
-    hint.className = 'group-hint';
-    hint.textContent = 'Kies je groep om te beginnen';
-    body.appendChild(hint);
-  }
-  const groupWrap = document.createElement('div');
-  groupWrap.className = 'group-select' + (!selectedGroup ? ' no-selection' : '');
-  [5, 6, 7, 8].forEach(g => {
-    const btn = document.createElement('button');
-    btn.className = 'group-btn' + (selectedGroup === String(g) ? ' active' : '');
-    btn.textContent = `Groep ${g}`;
-    btn.onclick = () => {
-      try { sessionStorage.setItem('selectedGroup', String(g)); } catch (_) {}
-      _renderLevelSelect();
-    };
-    groupWrap.appendChild(btn);
+  // Extractie #96 increment 1: rendering verhuisd naar src/screens/levelselect.js.
+  // Dit blijft een thin wrapper zodat callers (router, group-btn, init) onveranderd
+  // blijven. Module leest geen globalThis; alle deps komen via deze ctx-object.
+  window.renderLevelSelect({
+    SETS, DAILY_FORMAT, BONUS_FORMAT,
+    selectLevel, handleInstall, updateInstallButton,
+    rerender: _renderLevelSelect,
   });
-  body.appendChild(groupWrap);
-
-  Object.entries(SETS).forEach(([num, set]) => {
-    // Daily/bonus (#80): toon alleen als er een format voor de gekozen groep is.
-    if (set.kind === 'dailyBonus') {
-      if (!selectedGroup) return;
-      const g = Number(selectedGroup);
-      const isDaily = set.variant === 'daily';
-      const fmt = (isDaily ? DAILY_FORMAT : BONUS_FORMAT)[g];
-      if (!fmt) return;
-      const btn = document.createElement('button');
-      btn.className = 'mode-btn ' + (isDaily ? 'daily-btn' : 'bonus-btn');
-      btn.textContent = isDaily ? `📅 Uitdaging van vandaag` : `🎲 Bonus — door elkaar`;
-      btn.onclick = () => selectLevel(Number(num));
-      body.appendChild(btn);
-      return;
-    }
-    // Toon alleen sets van de geselecteerde groep; zonder keuze: niets tonen
-    if (!selectedGroup || set.group !== Number(selectedGroup)) return;
-    const btn = document.createElement('button');
-    btn.className = 'mode-btn';
-    btn.textContent = set.name;
-    if (set.beta) {
-      const tag = document.createElement('span');
-      tag.className = 'beta-label';
-      tag.textContent = 'BETA';
-      btn.appendChild(tag);
-    }
-    btn.onclick = () => selectLevel(Number(num));
-    body.appendChild(btn);
-  });
-  // Installeerknop — BUITEN #level-select (= buiten de paper-card) in
-  // #start-screen, zodat de PWA-meta-info visueel los staat van het
-  // spelkader. Eerst evt. oude knop weghalen (re-renders).
-  const startScreen = document.getElementById('start-screen');
-  ['install-btn', 'install-tooltip'].forEach(id => {
-    const prev = document.getElementById(id);
-    if (prev && prev.parentNode === startScreen) prev.remove();
-  });
-  const installBtn = document.createElement('button');
-  installBtn.id = 'install-btn';
-  installBtn.textContent = '📲 Voeg toe aan beginscherm';
-  installBtn.onclick = handleInstall;
-  startScreen.appendChild(installBtn);
-  const tooltip = document.createElement('div');
-  tooltip.id = 'install-tooltip';
-  startScreen.appendChild(tooltip);
-  updateInstallButton();
-  // level-select + mode-select panel-zichtbaarheid via applyVisibility('level-select')
-  // (SCREEN_VISIBILITY zorgt dat level-select=block, mode-select=none).
 }
 
 function _renderModeSelect(setNumber) {
-  // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt
+  // Ruim kaartlagen op als de gebruiker vanuit een quiz terugkomt.
+  // Deze cleanup blijft in index.html omdat highlightMarker via closure
+  // reassign moet kunnen worden; de module doet alleen view-werk.
   clearPolygonLayers();
   if (highlightMarker)   { map.removeLayer(highlightMarker); highlightMarker = null; }
   markerLayer.clearLayers();
-
-  applyVisibility('mode-select');
-  document.querySelector('h1').textContent = '🗺️ Topografie Quiz';
-  // #114: mode-select in Routekaart-stijl — zand-bg + plain title-bar.
-  // on-home af (dan krijgt title-bar ook de nieuwe plain-look).
-  document.body.classList.remove('on-home');
-  document.body.classList.remove('on-end');
-  document.body.classList.add('on-mode-select');
-
-  document.getElementById('start-level-name').textContent = `🗺️ ${SETS[setNumber].name}`;
-
-  const _msSet = SETS[setNumber];
-  const descs = document.querySelectorAll('#mode-select .mode-desc');
-  if (_msSet.kind === 'phased') {
-    // Gefaseerde set: generieke beschrijvingen (meerdere typen elementen)
-    const labels = _msSet.phases.map(p => p.label).join(', ');
-    descs[0].textContent = `Dit level bevat meerdere categorieën (${labels}). Je ziet steeds één element op de kaart en kiest de naam. Goed om te beginnen!`;
-    descs[1].textContent = `Je typt de naam van elk element zelf in. Hints beschikbaar. Categorieën: ${labels}.`;
-    document.getElementById('map-mode-btn').style.display = '';
-    if (descs[2]) descs[2].textContent = `Je klikt op de kaart waar het gevraagde element ligt. Hoe dichter bij, hoe beter!`;
-  } else {
-    const isProvince = _msSet.quizType === 'province';
-    const isWater    = _msSet.quizType === 'water';
-    const isCountry  = _msSet.quizType === 'country';
-    descs[0].textContent = isProvince
-      ? 'Je ziet een provincie gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
-      : isWater
-      ? 'Je ziet een waterweg gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
-      : isCountry
-      ? 'Je ziet een land gekleurd op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!'
-      : 'Je ziet een stip op de kaart en kiest de juiste naam uit vier opties. Goed om te beginnen!';
-    descs[1].textContent = isProvince
-      ? 'Je typt de naam van de provincie zelf in. Ook de spelling telt — net als op de echte toets!'
-      : isWater
-      ? 'Je typt de naam van de waterweg zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
-      : isCountry
-      ? 'Je typt de naam van het land zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.'
-      : 'Je typt de naam van de plaats zelf in. Ook de spelling telt — net als op de echte toets! Hints beschikbaar.';
-    // Kaart-klik niet beschikbaar voor provincies; wel voor plaatsen, wateren en landen
-    document.getElementById('map-mode-btn').style.display = isProvince ? 'none' : '';
-    if (descs[2]) descs[2].textContent = isWater
-      ? 'Je ziet de naam van een waterweg en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!'
-      : isCountry
-      ? 'Je ziet de naam van een land en klikt op de kaart waar dat land ligt. Klik ín het land voor een perfect antwoord!'
-      : 'Je ziet de naam van een plaats en klikt op de kaart waar die ligt. Hoe dichter bij, hoe beter!';
-  }
+  // Extractie #96 increment 2: view-logica in src/screens/modeselect.js.
+  window.renderModeSelect(setNumber, { SETS, applyVisibility });
 }
 
 // ── Publieke navigatiefuncties (met history) ─────────────────
@@ -1654,7 +1496,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.25.2';
+const APP_VERSION = 'v2.25.3';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
