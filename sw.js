@@ -1,7 +1,7 @@
 // Service worker voor Topografie Quiz
 // Zorgt voor offline gebruik en maakt PWA-installatie mogelijk.
 
-const CACHE = 'topoquiz-v1.6.5';
+const CACHE = 'topoquiz-v2.24.0';
 const ASSETS = ['/', '/index.html', '/cities.js', '/icon.svg', '/manifest.json', '/provincie_2023.geojson'];
 
 self.addEventListener('install', e => {
