@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.24.0">
+<meta name="version" content="2.24.1">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -298,7 +298,11 @@ const polygonTypes = {
       peakDefault:  PEAK_DEFAULT,  peakHighlight:  PEAK_HIGHLIGHT,  peakMastered:  PEAK_MASTERED,
     },
     nameKey: 'name',
-    highlightZoom: 6,
+    // #116: adaptieve fit — geen harde per-type zoom-cap. fitBounds berekent
+    // de optimale zoom voor item-bounds + padding in de huidige container.
+    // Safety-cap 12 voorkomt dat een mini-eiland (Schiermonnikoog als future
+    // item) naar straatniveau zoomt. Oude waarde 6 capte provincies te ver uit.
+    highlightZoom: 12,
     highlightPadding: [60, 60],
     animate: true,
     // Fuzzy/peak (ellips/driehoek) niet strakker inzoomen dan set-default;
@@ -315,7 +319,9 @@ const polygonTypes = {
       fuzzyDefault: FUZZY_WATER_DEFAULT, fuzzyHighlight: FUZZY_WATER_HIGHLIGHT, fuzzyMastered: FUZZY_WATER_MASTERED,
     },
     nameKey: 'name',
-    highlightZoom: 10,
+    // #116: zie province — adaptief fit met safety-cap 12. Oude waarde 10 was
+    // vaak prima voor grote rivieren maar capte kleine wateren onnodig uit.
+    highlightZoom: 12,
     highlightPadding: [60, 60],
   },
   country: {
@@ -324,7 +330,10 @@ const polygonTypes = {
     quizLayer: null,
     styles: { default: COUNTRY_DEFAULT, highlight: COUNTRY_HIGHLIGHT, mastered: COUNTRY_MASTERED },
     nameKey: 'name',
-    highlightZoom: 5,
+    // #116: adaptief. Kleine landen (België, Nederland in EU-context) konden
+    // niet strakker dan zoom 5 — nu berekent fitBounds zelf de juiste zoom.
+    // Voor grote landen (Rusland) blijft de natuurlijke bounds-fit laag genoeg.
+    highlightZoom: 12,
     highlightPadding: [80, 80],
     animate: true,
     // In klik-op-kaart modus niet inzoomen — dan blijft de wereldview behouden
@@ -1871,7 +1880,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.24.0';
+const APP_VERSION = 'v2.24.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
