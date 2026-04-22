@@ -12,10 +12,15 @@ Een topografie-oefentool voor groep 5–8, gebaseerd op de Geobas-methode. Kinde
 
 ## Projectstructuur
 
-| Bestand | Inhoud |
+| Bestand / map | Inhoud |
 |---------|--------|
-| `index.html` | Volledige app: HTML, CSS, JavaScript |
-| `cities.js` | Alle plaatsdata, set-definities, provinciedata |
+| `index.html` | Markup + view-code (~2400 regels). Historisch monoliet; CSS + pure logica worden stap voor stap uitgesplitst. |
+| `css/*.css` | Visuele laag, gesplitst per scherm: `tokens.css` (design-tokens), `start.css` (home + level-select, Routekaart-refresh), `quiz.css`, `end.css`, `feedback.css` (modal-framework + feedback + settings-stub), `map.css`, `app.css` (globaal), `animations.css`. |
+| `src/game/*.js` | Pure-logic ESM-modules, geïmporteerd door `index.html` én `test.mjs` (#95). Nu: `text.js` (fuzzy matching), `geo.js` (afstandshelpers). Wordt uitgebreid — zie issue #95. |
+| `cities.js` | Alle plaatsdata, set-definities, daily/bonus-format-tabellen. Geladen als browser-global én in Node via `createRequire` in `test.mjs`. |
+| `test.mjs` | Unit-suite (ESM). `node test.mjs` — geen mirror-code meer: importeert rechtstreeks uit `src/game/`. |
+| `tests/*.spec.js` | Playwright E2E-suite. |
+| `sw.js` | Service worker — offline cache + PWA-install. Bump `CACHE` bij elke release die een asset wijzigt. |
 
 ---
 
@@ -248,6 +253,18 @@ Bij een typefouten-match krijgt de leerling de melding "Bijna!" maar telt het we
 ## Navigatie & voortgang
 
 De app gebruikt de History API (`pushState`/`popstate`) zodat de browserterugknop werkt. Voortgang per level+modus wordt opgeslagen in `sessionStorage` en automatisch hersteld bij terugnavigeren. Voortgang wordt gewist zodra een quiz volledig is afgerond.
+
+Tijdens een quiz toont de title-bar een hamburger (☰, #112): opnieuw beginnen, andere quiz kiezen, instellingen (settings-stub, #103) en feedback geven. Op het startscherm is de hamburger verborgen — settings zijn daar bewust niet bereikbaar; de UX-aanname is dat instellingen in-quiz relevant zijn, niet op de homepagina.
+
+---
+
+## Visuele stijl — Routekaart-refresh
+
+De v2.20–v2.24 releases hebben de complete UI naar een consistente Routekaart-stijl (handoff v0.3) gebracht: ink-borders, paper-cards met chunky radii en drop-shadows, `Luckiest Guy`-koppen met sky-gradient headers, en zelfde pattern op feedback- en settings-modals (`css/feedback.css`). De design-tokens staan in `css/tokens.css` — één bron voor alle kleuren, radii en schaduwen.
+
+### Adaptieve highlight-zoom
+
+Per vraag zoomt de kaart in op het actieve item via Leaflet's `getBoundsZoom` — kleine landen/provincies worden automatisch dichter bekeken dan grote. De `polygonTypes`-register geeft alleen een veilige bovencap (zoom 12) en padding; de exacte zoom wordt per item berekend vanuit de feature-bounds en de container-grootte (#116).
 
 ---
 
