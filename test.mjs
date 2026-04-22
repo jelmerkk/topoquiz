@@ -191,39 +191,31 @@ expect('Leeg antwoord → false',                     matchInput('', amsterdam) 
 expect('Korte naam (Oss): geen typfouten toegestaan → false bij 1 fout',
   matchInput('Oss', oss) === 'exact' && matchInput('Osl', oss) === false);
 
-// ── Daily Challenge — pure logica (gespiegeld vanuit index.html) ──────────────
+// ── Daily Challenge — pure logica uit src/game/daily.js (#95) ────────────────
+// daily.js exporteert `dateSeed(dateStr, group?)` (2-arg) en `dailyCities`/
+// pool-builders met een expliciete `data`-parameter. Voor lees­baarheid van
+// de bestaande tests binden we `data` hier één keer en leveren we dunne
+// adapters in de oude 1- / 2-arg signatuur.
+import {
+  makeRng,
+  dateSeed as _dateSeed,
+  seededShuffle,
+  poolForType as _poolForType,
+  buildMixedPool as _buildMixedPool,
+  dailyPool as _dailyPool,
+  dailyCities as _dailyCities,
+  dailyResultEmoji,
+} from './src/game/daily.js';
 
-function makeRng(seed) {
-  let s = seed;
-  return function() {
-    s = (s + 0x6D2B79F5) | 0;
-    let t = Math.imul(s ^ s >>> 15, s | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
+const gameData = { ALL_CITIES, ALL_COUNTRIES, ALL_WATERS, ALL_PROVINCES, SETS, DAILY_FORMAT, BONUS_FORMAT };
 
-function dateSeed(dateStr) {
-  return dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
-}
-
-function seededShuffle(arr, rng) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function dailyCities(dateStr) {
-  const rng = makeRng(dateSeed(dateStr));
-  return seededShuffle(ALL_CITIES, rng).slice(0, 10);
-}
-
-function dailyResultEmoji(results) {
-  return results.map(r => r ? '🟢' : '🔴').join('');
-}
+// Legacy 1-arg variant voor de pre-#80 tests.
+function dateSeed(dateStr)          { return _dateSeed(dateStr); }
+function dateSeedG(dateStr, group)  { return _dateSeed(dateStr, group); }
+function poolForType(type, group)   { return _poolForType(type, group, gameData); }
+function buildMixedPool(fmt, group, rng) { return _buildMixedPool(fmt, group, rng, gameData); }
+function dailyPool(dateStr, group)  { return _dailyPool(dateStr, group, gameData); }
+function dailyCities(dateStr)       { return _dailyCities(dateStr, ALL_CITIES); }
 
 section('makeRng() — seeded pseudo-random generator');
 
@@ -268,40 +260,7 @@ expect('Gemengd resultaat klopt',    dailyResultEmoji([true,false,true]) === '�
 expect('10 resultaten → 10 emoji',   dailyResultEmoji(Array(10).fill(true)).length === 20); // 10 × 2-byte emoji
 
 // ── Issue #80: per-groep daily/bonus met mixed types ─────────────────────────
-// Gespiegelde pure-logica implementatie (parallel aan index.html).
-
-function dateSeedG(dateStr, group) {
-  const dNum = dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
-  if (group == null) return dNum;
-  return (dNum * 31 + Number(group)) | 0;
-}
-
-function poolForType(type, group) {
-  const inGroup = item => item.sets?.some(s => SETS[s]?.group === group);
-  if (type === 'place')   return ALL_CITIES.filter(inGroup);
-  if (type === 'country') return ALL_COUNTRIES.filter(inGroup);
-  if (type === 'water')   return ALL_WATERS.filter(inGroup);
-  if (type === 'region')  return ALL_PROVINCES.filter(inGroup);
-  return [];
-}
-
-function buildMixedPool(fmt, group, rng) {
-  const out = [];
-  // Dedupeer over types heen op naam (zie index.html).
-  const usedNames = new Set();
-  for (const { type, count } of fmt) {
-    const pool = poolForType(type, group).filter(p => !usedNames.has(p.name));
-    const picks = seededShuffle(pool, rng).slice(0, count);
-    for (const it of picks) { it._itemType = type; out.push(it); usedNames.add(it.name); }
-  }
-  return seededShuffle(out, rng);
-}
-
-function dailyPool(dateStr, group) {
-  const fmt = DAILY_FORMAT[group];
-  if (!fmt) return [];
-  return buildMixedPool(fmt, group, makeRng(dateSeedG(dateStr, group)));
-}
+// Implementatie in src/game/daily.js; adapters hierboven.
 
 section('DAILY_FORMAT / BONUS_FORMAT — configuratie per groep');
 
