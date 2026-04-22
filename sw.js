@@ -1,7 +1,7 @@
 // Service worker voor Topografie Quiz
 // Zorgt voor offline gebruik en maakt PWA-installatie mogelijk.
 
-const CACHE = 'topoquiz-v2.25.0';
+const CACHE = 'topoquiz-v2.25.1';
 const ASSETS = [
   '/', '/index.html', '/cities.js', '/icon.svg', '/manifest.json', '/provincie_2023.geojson',
   // Pure-logica ESM-modules (#95). Moeten offline beschikbaar zijn,

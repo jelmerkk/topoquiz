@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.25.0">
+<meta name="version" content="2.25.1">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -1654,7 +1654,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.25.0';
+const APP_VERSION = 'v2.25.1';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1874,14 +1874,25 @@ async function startQuiz(mode, startPhase = 0) {
     if (SETS[selectedSet].bounds) provinceBorderLayer.remove();
     else if (!map.hasLayer(provinceBorderLayer)) provinceBorderLayer.addTo(map);
   }
+  // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
+  document.getElementById('qtot').textContent = activeCities.length;
+  document.querySelector('h1').textContent = `🗺️ ${SETS[selectedSet].name}`;
+  document.getElementById('menu-btn').style.display = 'inline-block';
+
+  // Zoom-race (#117). Twee fitBounds vechten om hetzelfde frame:
+  //   1. renderQuestion() → setHighlight.fitBounds op enkele feature
+  //      (provincie, water) = VEEL te ver ingezoomd voor een "welke is
+  //      dit?"-vraag.
+  //   2. rAF → initial-fit op NL_BOUNDS / _set.bounds = overzicht.
+  // Voor reguliere sets wil je #2 winnen (overzicht zodat speler de vorm
+  // kan plaatsen). Voor dailyBonus is er geen zinnig overzicht (mixed
+  // type, items over heel de wereld) → #1 moet winnen. Volgorde:
+  // renderQuestion eerst (sync fit), dan rAF-initial-fit die #1 cancelt
+  // voor reguliere sets; dailyBonus skipt rAF-fit dus #1 blijft staan.
+  renderQuestion();
   requestAnimationFrame(() => {
     map.invalidateSize();
     const _set = SETS[selectedSet];
-    // Daily/bonus (#80): NIET fitBounds hier. renderQuestion() draait al
-    // synchroon daarna en zoomt naar het juiste item (country/water/region:
-    // via setHighlightPolygon; place: via setHighlight → map.flyTo). Een
-    // NL_BOUNDS-fallback in rAF zou de per-question-zoom racen en Armenië
-    // terugpannen naar NL.
     if (_set.kind === 'dailyBonus') return;
     if (_set.bounds)
       map.fitBounds(_set.bounds, { padding: [20, 20], maxZoom: 8 });
@@ -1891,12 +1902,6 @@ async function startQuiz(mode, startPhase = 0) {
       // Provincies: +1 zoomlevel (NL past strakker in beeld dan met maxZoom 8).
       map.fitBounds(NL_BOUNDS, { padding: [4, 4], maxZoom: _set.quizType === 'province' ? 9 : 8 });
   });
-  // question-box + score-bar zichtbaar via applyVisibility('quiz') hierboven.
-  document.getElementById('qtot').textContent = activeCities.length;
-  document.querySelector('h1').textContent = `🗺️ ${SETS[selectedSet].name}`;
-  document.getElementById('menu-btn').style.display = 'inline-block';
-
-  renderQuestion();
 }
 
 // ── Voortgang opslaan in sessionStorage ──────────────────────
