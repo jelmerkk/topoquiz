@@ -222,8 +222,10 @@
   import * as shapes from './src/game/shapes.js';
   import { renderLevelSelect } from './src/screens/levelselect.js';
   import { renderModeSelect } from './src/screens/modeselect.js';
+  import { showPhaseTransition } from './src/screens/phase-transition.js';
   window.renderLevelSelect = renderLevelSelect;
   window.renderModeSelect = renderModeSelect;
+  window.showPhaseTransition = showPhaseTransition;
 
   // Simpele re-exports (zelfde signatuur als inline defs).
   Object.assign(window, text, geo, smooth, shapes, {
@@ -1216,18 +1218,10 @@ function updateScoreboard() {
   updateHardList();
 }
 
-function showPhaseTransition(fromPhase, toPhase, onDone) {
-  const el   = document.getElementById('phase-transition');
-  const text = document.getElementById('phase-transition-text');
-  // #102: nieuwe Routekaart-tekst. <strong> krijgt grass-accent, .pt-next
-  // is de body-regel onder de kop.
-  text.innerHTML = `<strong>${fromPhase.label}</strong> af!<span class="pt-next">Volgende fase: ${toPhase.label}</span>`;
-  el.style.display = 'flex';
-  setTimeout(() => {
-    el.style.display = 'none';
-    onDone();
-  }, 1800);
-}
+// showPhaseTransition is verhuisd naar src/screens/phase-transition.js (#96 increment 3)
+// en hangt als window.showPhaseTransition. Lokale alias zodat bestaande call-sites
+// (finishAnswer) onveranderd blijven.
+const showPhaseTransition = (...args) => window.showPhaseTransition(...args);
 
 function finishAnswer() {
   const mc  = masteredCount();
