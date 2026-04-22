@@ -205,6 +205,52 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="cities.js"></script>
+<!-- Pure-logica ESM-modules (#95): importeert text/geo/click/daily/smooth/shapes
+     en zet de exports op window zodat de classic inline scripts hieronder ze
+     via bare-name lookup vinden. Module-scripts zijn defer-red, draaien dus
+     na de HTML-parse; de bodies van de classic functies hieronder roepen de
+     pure helpers pas bij user-action (na DOMContentLoaded) aan, dus window.x
+     is dan gevuld. poolForType/dailyPool/clickResult krijgen een kleine
+     adapter zodat het bestaande oproep-contract (setNumber, impliciete
+     dataset) blijft werken. -->
+<script type="module">
+  import * as text   from './src/game/text.js';
+  import * as geo    from './src/game/geo.js';
+  import * as click  from './src/game/click.js';
+  import * as daily  from './src/game/daily.js';
+  import * as smooth from './src/game/smooth.js';
+  import * as shapes from './src/game/shapes.js';
+
+  // Simpele re-exports (zelfde signatuur als inline defs).
+  Object.assign(window, text, geo, smooth, shapes, {
+    makeRng: daily.makeRng,
+    dateSeed: daily.dateSeed,
+    seededShuffle: daily.seededShuffle,
+    polygonTypeFor: daily.polygonTypeFor,
+    dailyResultEmoji: daily.dailyResultEmoji,
+  });
+
+  // Data-gebonden adapters — daily.js krijgt de dataset via parameter,
+  // index.html heeft ze als window-globals via cities.js.
+  const gameData = () => ({
+    ALL_CITIES: window.ALL_CITIES,
+    ALL_COUNTRIES: window.ALL_COUNTRIES,
+    ALL_WATERS: window.ALL_WATERS,
+    ALL_PROVINCES: window.ALL_PROVINCES,
+    SETS: window.SETS,
+    DAILY_FORMAT: window.DAILY_FORMAT,
+    BONUS_FORMAT: window.BONUS_FORMAT,
+  });
+  window.poolForType    = (type, group)        => daily.poolForType(type, group, gameData());
+  window.buildMixedPool = (fmt, group, rng)    => daily.buildMixedPool(fmt, group, rng, gameData());
+  window.dailyPool      = (dateStr, group)     => daily.dailyPool(dateStr, group, gameData());
+  window.buildBonusPool = (group)              => daily.buildBonusPool(group, gameData());
+  window.dailyCities    = (dateStr)            => daily.dailyCities(dateStr, window.ALL_CITIES);
+
+  // clickResult: index.html roept 'm met (distKm, setNumber); click.js neemt
+  // de set-config zelf (zodat er geen SETS-lookup in de pure laag zit).
+  window.clickResult = (distKm, setNumber) => click.clickResult(distKm, window.SETS?.[setNumber]);
+</script>
 <script>
 // NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS worden geladen via cities.js
 
@@ -358,88 +404,11 @@ polygonTypes.water.dataPromise = fetch('/wateren.geojson')
   .then(data => { polygonTypes.water.featureData = data; })
   .catch(err => { console.error('Waterdata kon niet geladen worden:', err); });
 
-// Catmull-Rom spline: maakt vloeiende curves van LineString-coördinaten.
-// Voegt tussenliggende punten toe zodat rivieren/kanalen niet hoekig zijn.
-function smoothLine(coords, numPerSeg) {
-  if (coords.length < 3) return coords;
-  const pts = [coords[0], ...coords, coords[coords.length - 1]];
-  const out = [];
-  for (let i = 1; i < pts.length - 2; i++) {
-    const p0 = pts[i - 1], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2];
-    for (let t = 0; t < numPerSeg; t++) {
-      const s = t / numPerSeg;
-      const s2 = s * s, s3 = s2 * s;
-      const x = 0.5 * ((2*p1[0]) + (-p0[0]+p2[0])*s + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*s2 + (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*s3);
-      const y = 0.5 * ((2*p1[1]) + (-p0[1]+p2[1])*s + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*s2 + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*s3);
-      out.push([x, y]);
-    }
-  }
-  out.push(coords[coords.length - 1]);
-  return out;
-}
-
-function smoothGeoJSON(data) {
-  return { ...data, features: data.features.map(f => {
-    if (f.geometry.type !== 'LineString') return f;
-    return { ...f, geometry: { ...f.geometry, coordinates: smoothLine(f.geometry.coordinates, 6) }};
-  })};
-}
+// smoothLine / smoothGeoJSON (Catmull-Rom spline voor LineStrings) → src/game/smooth.js
+// buildEllipseFeature / buildPeakFeature (fuzzy / peak polygon-builders) → src/game/shapes.js
+// Zie #95 — de module-script boven zet ze op window.
 
 // ── Generieke polygon-laagfuncties (vervangen 3× copy-paste per type) ────────
-
-// Genereer een ellipse-polygoon (64 punten) rond (lat,lon) met assen rx,ry in graden.
-// Wordt gebruikt voor ALL_PROVINCES-entries met shape:'fuzzy' — bergketens, historische
-// streken en kuststroken die niet tot op de meter begrensd moeten worden.
-function buildEllipseFeature(entry, activeSet) {
-  // Per-set position override: een gedeeld water/gebied (bv. Grote Oceaan in sets
-  // 86/87/88) kan per set een andere ellips-positie en -grootte krijgen via
-  // entry.posBySet[setNr] = { lat, lon, rx, ry, rot? }. Default = entry zelf.
-  const o = (activeSet != null && entry.posBySet && entry.posBySet[activeSet]) || null;
-  const lat = o?.lat ?? entry.lat;
-  const lon = o?.lon ?? entry.lon;
-  const rx  = o?.rx  ?? entry.rx;
-  const ry  = o?.ry  ?? entry.ry;
-  const rotDeg = o?.rot ?? entry.rot ?? 0;
-  const N = 64;
-  const coords = [];
-  const rot = (rotDeg * Math.PI) / 180;
-  const cosR = Math.cos(rot), sinR = Math.sin(rot);
-  // Mercator rekt lengtegraden uit op basis van breedtegraad. Zonder cos(lat)-
-  // compensatie zou een geroteerde ellips visueel schuin-getrokken zijn.
-  const lonScale = rot === 0 ? 1 : 1 / Math.cos((lat * Math.PI) / 180);
-  for (let i = 0; i <= N; i++) {
-    const a = (i / N) * 2 * Math.PI;
-    const vx = rx * Math.cos(a);
-    const vy = ry * Math.sin(a);
-    const dx = vx * cosR - vy * sinR;
-    const dy = vx * sinR + vy * cosR;
-    coords.push([lon + dx * lonScale, lat + dy]);
-  }
-  return {
-    type: 'Feature',
-    properties: { name: entry.name, sets: entry.sets, shape: 'fuzzy' },
-    geometry: { type: 'Polygon', coordinates: [coords] },
-  };
-}
-
-// Genereer een driehoek-polygon rond (lat,lon) met basis `size` graden — punt
-// omhoog. Voor ALL_PROVINCES-entries met shape:'peak' (bergtoppen, Mount Everest
-// e.d.): punt in de kaart maar herkenbaar als berg-icoon. Lon-scaling via
-// cos(lat) houdt de driehoek op Mercator visueel regelmatig.
-function buildPeakFeature(entry) {
-  const size = entry.size || 1.2;
-  const h = size * 0.866;            // hoogte van gelijkzijdige driehoek
-  const lonScale = 1 / Math.cos((entry.lat * Math.PI) / 180);
-  const cx = entry.lon, cy = entry.lat;
-  const top = [cx, cy + h * 2/3];
-  const bl  = [cx - (size/2) * lonScale, cy - h * 1/3];
-  const br  = [cx + (size/2) * lonScale, cy - h * 1/3];
-  return {
-    type: 'Feature',
-    properties: { name: entry.name, sets: entry.sets, shape: 'peak' },
-    geometry: { type: 'Polygon', coordinates: [[top, bl, br, top]] },
-  };
-}
 
 // Injecteer shape-features in province- én water-featureData zodra die klaar is.
 // Idempotent: vervangt een bestaande feature met dezelfde naam, zodat hot-reloads
@@ -677,181 +646,26 @@ function mastery() {
 }
 
 // ── Kaart-klik modus — pure logica ───────────────────────────
-const CLICK_CORRECT_KM = 20;
-const CLICK_CLOSE_KM   = 60;
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-// Afstand van punt (lat,lon) tot lijnstuk (lat1,lon1)→(lat2,lon2) in km
-function pointToSegmentDist(lat, lon, lat1, lon1, lat2, lon2) {
-  const dx = lat2 - lat1, dy = lon2 - lon1;
-  const lenSq = dx * dx + dy * dy;
-  let t = lenSq === 0 ? 0 : ((lat - lat1) * dx + (lon - lon1) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  return haversine(lat, lon, lat1 + t * dx, lon1 + t * dy);
-}
-
-// Point-in-polygon (ray casting) — coords zijn [lon, lat] (GeoJSON-volgorde)
-function pointInPolygon(lat, lon, coords) {
-  let inside = false;
-  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-    const lon1 = coords[i][0], lat1 = coords[i][1];
-    const lon2 = coords[j][0], lat2 = coords[j][1];
-    if (((lat1 > lat) !== (lat2 > lat)) &&
-        (lon < (lon2 - lon1) * (lat - lat1) / (lat2 - lat1) + lon1)) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
+// haversine / pointToSegmentDist / pointInPolygon → src/game/geo.js
+// clickResult                                     → src/game/click.js
+// Zie #95. `distanceToFeature` hieronder blijft in index.html omdat hij
+// `polygonTypes.featureData` leest (DOM-state); de echte geometrie-afstand
+// zit in geo.js' distanceToFeatureGeometry.
 
 // Afstand van klikpunt tot een polygon- of lijnfeature in km (water, land, provincie)
 function distanceToFeature(lat, lon, name, type) {
-  const featureData = polygonTypes[type]?.featureData;
-  const feature = featureData?.features?.find(f => f.properties.name === name);
-  if (!feature) return Infinity;
-  const geom = feature.geometry;
-  const coords = geom.coordinates;
-  if (geom.type === 'MultiPolygon') {
-    let minDist = Infinity;
-    for (const poly of coords) {
-      if (pointInPolygon(lat, lon, poly[0])) return 0;
-      for (const ring of poly) {
-        for (let i = 0; i < ring.length - 1; i++) {
-          const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-          if (d < minDist) minDist = d;
-        }
-      }
-    }
-    return minDist;
-  }
-  if (geom.type === 'Polygon') {
-    const inOuter = pointInPolygon(lat, lon, coords[0]);
-    const inHole  = coords.length > 1 && coords.slice(1).some(hole => pointInPolygon(lat, lon, hole));
-    if (inOuter && !inHole) return 0;
-    let minDist = Infinity;
-    for (const ring of coords) {
-      for (let i = 0; i < ring.length - 1; i++) {
-        const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-        if (d < minDist) minDist = d;
-      }
-    }
-    return minDist;
-  }
-  if (geom.type === 'LineString') {
-    let minDist = Infinity;
-    for (let i = 0; i < coords.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0]);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-  return Infinity;
-}
-
-function clickResult(distKm, setNumber) {
-  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
-  // Alle sets die striktere drempels willen (NL-ingezoomd) zetten die nu
-  // expliciet in cities.js. Voorheen leidde clickResult ze af uit fitOnStart;
-  // dat was impliciet en breekte bij phased sets met fitOnStart:false + NL bounds.
-  const correctKm = set.clickCorrectKm ?? CLICK_CORRECT_KM;
-  const closeKm   = set.clickCloseKm   ?? CLICK_CLOSE_KM;
-  if (distKm < correctKm) return 'correct';
-  if (distKm < closeKm)   return 'close';
-  return 'wrong';
+  const feature = polygonTypes[type]?.featureData?.features?.find(f => f.properties.name === name);
+  return feature ? distanceToFeatureGeometry(lat, lon, feature) : Infinity;
 }
 
 // ── Daily Challenge — pure logica ────────────────────────────
-function makeRng(seed) {
-  let s = seed;
-  return function() {
-    s = (s + 0x6D2B79F5) | 0;
-    let t = Math.imul(s ^ s >>> 15, s | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-function dateSeed(dateStr, group) {
-  const dNum = dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
-  if (group == null) return dNum;
-  // Multiplicatie met priem + group zorgt voor stabiele maar verschillende
-  // seeds per groep op dezelfde dag (issue #80).
-  return (dNum * 31 + Number(group)) | 0;
-}
-function seededShuffle(arr, rng) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+// makeRng / dateSeed / seededShuffle / poolForType / polygonTypeFor /
+// buildMixedPool / dailyPool / buildBonusPool / dailyCities /
+// dailyResultEmoji → src/game/daily.js (#95). Zie module-script boven.
+
 // Huidige geselecteerde groep uit sessionStorage. Fallback: null.
 function getSelectedGroup() {
   try { const g = sessionStorage.getItem('selectedGroup'); return g ? Number(g) : null; } catch (_) { return null; }
-}
-// Pool van alle items van een bepaald type binnen de geselecteerde groep (issue #80).
-// Types: 'place' → ALL_CITIES, 'country' → ALL_COUNTRIES, 'water' → ALL_WATERS,
-// 'region' → ALL_PROVINCES (alle kinds; distractor-filter splitst op kind).
-function poolForType(type, group) {
-  const inGroup = item => item.sets?.some(s => SETS[s]?.group === group);
-  if (type === 'place')   return ALL_CITIES.filter(inGroup);
-  if (type === 'country') return ALL_COUNTRIES.filter(inGroup);
-  if (type === 'water')   return ALL_WATERS.filter(inGroup);
-  if (type === 'region')  return ALL_PROVINCES.filter(inGroup);
-  return [];
-}
-// _itemType → polygonTypes-key (null voor steden = markers i.p.v. polygonen).
-function polygonTypeFor(itemType) {
-  if (itemType === 'country') return 'country';
-  if (itemType === 'water')   return 'water';
-  if (itemType === 'region')  return 'province';
-  return null;
-}
-// Bouw een heterogene pool volgens een format-specificatie. Elk item krijgt
-// ._itemType zodat currentQuizType/distractorPool/renderQuestion weten welk
-// type ze bekijken. Volgorde wordt daarna doorgeshuffled zodat de types door
-// elkaar lopen tijdens het spelen.
-function buildMixedPool(fmt, group, rng) {
-  const out = [];
-  // Dedupeer over types heen op naam — streak[c.name] en andere maps gebruiken
-  // alleen naam als key. Groep 8 kan bv. "Panama" als land én stad hebben.
-  const usedNames = new Set();
-  for (const { type, count } of fmt) {
-    const pool = poolForType(type, group).filter(p => !usedNames.has(p.name));
-    const picks = seededShuffle(pool, rng).slice(0, count);
-    for (const it of picks) { it._itemType = type; out.push(it); usedNames.add(it.name); }
-  }
-  return seededShuffle(out, rng);
-}
-function dailyPool(dateStr, group) {
-  const fmt = DAILY_FORMAT[group];
-  if (!fmt) return [];
-  return buildMixedPool(fmt, group, makeRng(dateSeed(dateStr, group)));
-}
-function buildBonusPool(group) {
-  const fmt = BONUS_FORMAT[group];
-  if (!fmt) return [];
-  // Bonus is niet datum-deterministisch — iedere klik = nieuwe mix.
-  return buildMixedPool(fmt, group, makeRng((Math.random() * 0x7fffffff) | 0));
-}
-// Backwards-compat: oude dailyCities() nog ergens in de source?
-function dailyCities(dateStr) {
-  // Wordt niet meer direct aangeroepen (vervangen door dailyPool(dateStr, group))
-  // maar we laten hem staan zodat oude sessionStorage-entries niet breken.
-  const rng = makeRng(dateSeed(dateStr));
-  return seededShuffle(ALL_CITIES, rng).slice(0, 10);
-}
-function dailyResultEmoji(results) {
-  return results.map(r => r ? '🟢' : '🔴').join('');
 }
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
@@ -894,53 +708,8 @@ function currentQuizType() {
 }
 
 // ── Text answer helpers ──────────────────────────────────────
-
-// Normaliseer voor vergelijking: lowercase, trim, verwijder '-/'/spaties
-function normalize(s) {
-  return s.toLowerCase().trim().replace(/['\-\s]/g, '');
-}
-
-// Levenshtein afstand tussen twee strings
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1]
-        ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-// Maximaal toegestane typefouten op basis van naamlengte (na normalisatie)
-function typoThreshold(normalizedName) {
-  const l = normalizedName.length;
-  if (l <= 4) return 0;
-  if (l <= 8) return 1;
-  return 2;
-}
-
-// Geeft 'exact', 'close' of false terug
-function matchInput(input, city) {
-  const normInput = normalize(input);
-  if (!normInput) return false;
-
-  // Controleer exacte naam + aliassen
-  const allNames = [city.name, ...(city.aliases || [])];
-  for (const name of allNames) {
-    if (normalize(name) === normInput) return 'exact';
-  }
-
-  // Fuzzy match op naam en aliassen
-  for (const name of allNames) {
-    const normName = normalize(name);
-    const dist = levenshtein(normInput, normName);
-    if (dist <= typoThreshold(normName)) return 'close';
-  }
-
-  return false;
-}
+// normalize / levenshtein / typoThreshold / matchInput → src/game/text.js (#95).
+// Zie module-script boven — ze staan op window voor de classic-script-oproepen.
 
 // ── Hint ────────────────────────────────────────────────────
 
@@ -2241,13 +2010,21 @@ async function hardRefresh() {
 // browser-state), daarna push de deep-link erbovenop. Zo zet een
 // back-press de gebruiker altijd terug op level-select en niet op een
 // lege pagina — ook bij diep-gelinkte ?set=…&mode=… URL's.
-(async () => {
+//
+// #95: pakt DOMContentLoaded i.p.v. direct op parse te draaien, zodat de
+// module-script met pure-logica-imports (boven in <head>/<body>) gegarandeerd
+// al uitgevoerd is voordat een deep-link ?set=98 (daily) `dailyPool` oproept.
+// Module-scripts zijn defer-red → voltooien vóór DOMContentLoaded.
+function _bootstrapRouter() {
   const target = router.fromURL();
-  await router.navigate('level-select', {}, { history: 'replace' });
-  if (target) {
-    await router.navigate(target.screen, target.params, { history: 'push' });
-  }
-})();
+  return router.navigate('level-select', {}, { history: 'replace' })
+    .then(() => target && router.navigate(target.screen, target.params, { history: 'push' }));
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _bootstrapRouter);
+} else {
+  _bootstrapRouter();
+}
 
 // ── Dev-menu ─────────────────────────────────────────────────
 // Zichtbaar op *.workers.dev en bij ?dev=1. Korte shortcut om elke
