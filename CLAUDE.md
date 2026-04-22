@@ -21,11 +21,11 @@ Elke commit eindigt met: `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com
 
 **Regels:**
 - NOOIT direct op `staging` of `main` committen of pushen.
-- Geen GitHub PRs aanmaken — de gebruiker reviewt via Cloudflare preview en geeft mondeling akkoord vóór staging-push.
+- Geen Codeberg PRs aanmaken — de gebruiker reviewt via Cloudflare preview en geeft mondeling akkoord vóór staging-push.
 - Risicovolle acties (force push, reset --hard, merge naar staging/main) altijd eerst vragen.
 
 ## Deploy
-`.github/workflows/e2e.yml` runt op push naar `staging`: tests → merge staging→main → rsync naar Uberspace (kochab). De rsync-include is een allow-list: elk nieuw top-level bestand dat live moet gaan (bijv. een nieuwe `*.geojson`) moet handmatig aan `switches:` worden toegevoegd, anders wordt het stilzwijgend overgeslagen.
+`.forgejo/workflows/e2e.yml` runt op push naar `staging` (via Forgejo Actions op Codeberg): tests → merge staging→main → rsync naar Uberspace (kochab) → `wrangler pages deploy` naar CF Pages main. De rsync-include is een allow-list: elk nieuw top-level bestand dat live moet gaan (bijv. een nieuwe `*.geojson`) moet handmatig aan de `--include=` regels worden toegevoegd, anders wordt het stilzwijgend overgeslagen. `.forgejo/workflows/dev-preview.yml` triggert op push naar `dev` en doet alleen een CF Pages preview-deploy.
 
 ## Verplichte checks vóór commit/push
 1. **`npm test`** moet groen zijn (unit + Playwright). Geen uitzonderingen, ook niet voor CSS-only fixes.
@@ -36,11 +36,41 @@ Elke commit eindigt met: `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com
 3. **README bijwerken** als de feature nieuwe user-facing functionaliteit toevoegt.
 
 ## Na merge naar `dev`
-1. GitHub issue sluiten met verwijzing naar de versie:
-   `gh issue close <nr> --comment "Fixed in vX.Y.Z"`
-2. GitHub release aanmaken:
-   `gh release create vX.Y.Z --title "..." --notes "..."`
+1. Codeberg issue sluiten met verwijzing naar de versie:
+   `tea issue close <nr> --repo jelmerk/topoquiz --comment "Fixed in vX.Y.Z"`
+2. Codeberg release aanmaken:
+   `tea release create --repo jelmerk/topoquiz --tag vX.Y.Z --title "..." --note "..."`
 3. Issue-body **nooit** bewerken — alleen comments toevoegen.
+
+## Issue-hygiëne
+
+Drie labels onderscheiden soort werk. Elke nieuwe issue krijgt er één toegewezen (of geen, bij concrete actionable tickets).
+
+| Label | Betekenis | Voorbeeld |
+|---|---|---|
+| `tracker` | Umbrella/meta — geen directe code-actie, bundelt child-issues | #89 (design overhaul), #104 (features-umbrella) |
+| `blocked` | Wacht op externe voorwaarde (lesmateriaal, scope-akkoord, ander issue) | #85, #107 |
+| `future` | Memo/geparkeerd — geen commitment, niet oppakken tenzij user expliciet aftrapt | #108 |
+
+**Regels:**
+- Geen labels op concrete, direct-actionable tickets (bv. een bug of een feature die nu op de rol staat). Labels zijn er om *niet-actionable* werk te markeren.
+- Parent/tracker-issues krijgen een comment met child-issues-status, **niet** een body-edit. Ververs die comment bij elke milestone.
+- Blocked-issues krijgen een comment "Unblocked when: …" zodat de ontgrendel-voorwaarde expliciet in de timeline staat.
+- Parent sluiten zodra alle children dicht zijn — ook als de parent tekstueel nog "algemener" is.
+- Afgeronde refactor-takken sluiten met een verwijzing naar de versie + korte samenvatting van wat er leeft is gezet.
+
+**Filter-queries die dit mogelijk maakt:**
+- `tea issues --repo jelmerk/topoquiz --state open` → alle open issues (handmatig filteren op label/geen-label)
+- `tea issues --repo jelmerk/topoquiz --labels tracker` → meta-overzicht
+- `tea issues --repo jelmerk/topoquiz --labels blocked` → wat wacht waarop
+- `tea issues --repo jelmerk/topoquiz --labels future` → ideeën-parkeerplaats
+
+Voor "no:label"-filter (niet native in tea): gebruik de API direct:
+```bash
+curl -sH "Authorization: token $CODEBERG_TOKEN" \
+  "https://codeberg.org/api/v1/repos/jelmerk/topoquiz/issues?state=open&type=issues" \
+  | jq '.[] | select(.labels | length == 0) | {number, title}'
+```
 
 ## TDD
 Test-first, zonder uitzonderingen:
@@ -59,9 +89,10 @@ Rode tests door ontbrekende toekomstige features zijn OK — niet met workaround
 | OSM fetch-pipelines | `data/fetch-*.js` (rate-limited Overpass) + `data/process-*.js` (chain + RDP) |
 | Unit tests | `test.mjs` |
 | E2E tests | `tests/*.spec.js` |
-| Deploy-workflow | `.github/workflows/e2e.yml` |
+| Deploy-workflow | `.forgejo/workflows/e2e.yml` + `.forgejo/workflows/dev-preview.yml` |
+| Pipeline-watcher | `scripts/forgejo-run-watch.sh` |
 
 ## Links
 - Productie: https://www.topoquiz.com/
-- Repo: https://github.com/jelmerkk/topoquiz
-- Issues: `gh api repos/jelmerkk/topoquiz/issues`
+- Repo: https://codeberg.org/jelmerk/topoquiz
+- Issues: `tea issues --repo jelmerk/topoquiz` of `curl -H "Authorization: token $CODEBERG_TOKEN" https://codeberg.org/api/v1/repos/jelmerk/topoquiz/issues`

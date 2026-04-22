@@ -11,16 +11,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jelmerkk/topoquiz.git"
+    "url": "git+https://codeberg.org/jelmerk/topoquiz.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/jelmerkk/topoquiz/issues"
+    "url": "https://codeberg.org/jelmerk/topoquiz/issues"
   },
-  "homepage": "https://github.com/jelmerkk/topoquiz#readme",
+  "homepage": "https://codeberg.org/jelmerk/topoquiz#readme",
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "c8": "^10.1.3",
