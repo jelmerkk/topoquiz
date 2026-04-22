@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.23.0">
+<meta name="version" content="2.24.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -67,6 +67,7 @@
     <div id="quiz-menu">
       <button onclick="resetQuiz(); closeQuizMenu()">🔄 Opnieuw beginnen</button>
       <button onclick="showStartScreen(); closeQuizMenu()">🗺️ Andere quiz kiezen</button>
+      <button onclick="openSettings(); closeQuizMenu()">⚙️ Instellingen</button>
       <button onclick="openFeedback(); closeQuizMenu()">💬 Feedback geven</button>
     </div>
   </div>
@@ -161,8 +162,9 @@
 </div>
 
 <!-- Feedback modal -->
-<div id="fb-overlay" onclick="if(event.target===this)closeFeedback()">
-  <div id="fb-modal">
+<!-- Feedback-modal (#103 Routekaart-refresh) -->
+<div id="fb-overlay" class="modal-overlay" onclick="if(event.target===this)closeFeedback()">
+  <div id="fb-modal" class="modal-card">
     <h3>💬 Feedback geven</h3>
     <p>Iets gevonden dat niet klopt, of een idee? Laat het weten!</p>
     <div id="fb-form">
@@ -178,6 +180,26 @@
       </div>
     </div>
     <div id="fb-thanks">✅ Bedankt voor je feedback!</div>
+  </div>
+</div>
+
+<!-- Settings-modal (#103 Brok 6 — tandwiel in header) -->
+<div id="st-overlay" class="modal-overlay" onclick="if(event.target===this)closeSettings()">
+  <div id="st-modal" class="modal-card">
+    <h3>⚙️ Instellingen</h3>
+    <div class="st-section">
+      <h4>Groep</h4>
+      <p>Jouw huidige groep: <span class="st-current" id="st-group-current">—</span></p>
+      <button class="modal-btn-secondary" onclick="changeGroup()">Groep veranderen</button>
+    </div>
+    <div class="st-section">
+      <h4>Voortgang</h4>
+      <p>Wis de opgeslagen voortgang van alle levels op dit apparaat. Hiermee begin je elk level weer schoon.</p>
+      <button class="modal-btn-danger" onclick="resetAllProgress()">Voortgang resetten</button>
+    </div>
+    <div class="fb-btn-row">
+      <button id="st-close" class="modal-btn-secondary" onclick="closeSettings()">Sluiten</button>
+    </div>
   </div>
 </div>
 
@@ -1697,6 +1719,7 @@ function _renderLevelSelect() {
   // h2-tekst "Topografie Quiz" wordt door Playwright gecheckt (navigation.spec).
   el.innerHTML = `
     <div class="home-header">
+      <button class="settings-btn home-settings-btn" aria-label="Instellingen" onclick="openSettings()">⚙️</button>
       <div class="home-header-text">
         <h2 class="home-title"><span class="home-title-emoji" aria-hidden="true">🗺️ </span>Topografie Quiz</h2>
         <p class="home-subtitle">Oefen in je eigen tempo. Kies hieronder een quiz.</p>
@@ -1848,7 +1871,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.23.0';
+const APP_VERSION = 'v2.24.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
@@ -1879,6 +1902,36 @@ function openFeedback() {
 
 function closeFeedback() {
   document.getElementById('fb-overlay').classList.remove('open');
+}
+
+// ── Settings-stub (#103 Brok 6) ─────────────────────────────────────────
+// Twee acties: groep veranderen (wis sessionStorage.selectedGroup en stuur
+// naar home zodat de groep-picker weer verschijnt) en voortgang resetten
+// (wis alle qp_* + daily share-emoji keys).
+function openSettings() {
+  const g = (() => { try { return sessionStorage.getItem('selectedGroup'); } catch (_) { return null; } })();
+  document.getElementById('st-group-current').textContent = g ? `Groep ${g}` : 'Nog niet gekozen';
+  document.getElementById('st-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('st-overlay').classList.remove('open');
+}
+function changeGroup() {
+  try { sessionStorage.removeItem('selectedGroup'); } catch (_) {}
+  closeSettings();
+  showStartScreen();
+}
+function resetAllProgress() {
+  if (!confirm('Weet je zeker dat je alle voortgang wilt wissen? Dit kan niet ongedaan gemaakt worden.')) return;
+  try {
+    // Sessie-voortgang per level (qp_<set>_<mode>)
+    Object.keys(sessionStorage).filter(k => k.startsWith('qp_')).forEach(k => sessionStorage.removeItem(k));
+    // Daily-share emoji's (localStorage, key pattern zie dailyStorageKey)
+    Object.keys(localStorage).filter(k => k.startsWith('tq_daily_')).forEach(k => localStorage.removeItem(k));
+  } catch (_) {}
+  closeSettings();
+  // Feedback: korte bevestiging via de thanks-strip hergebruiken? Simpel: alert.
+  alert('Voortgang gewist.');
 }
 
 function selectFbType(btn, type) {
