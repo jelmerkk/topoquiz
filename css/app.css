@@ -52,14 +52,9 @@ body.in-quiz #title-bar h1 {
   body.on-end #title-bar h1,
   body.in-quiz #title-bar h1 { font-size: var(--fs-30); }
 }
-body.on-mode-select #menu-btn,
-body.on-end #menu-btn,
-body.in-quiz #menu-btn {
-  color: var(--color-ink);
-  opacity: 1;
-  font-size: var(--fs-22);
-  font-weight: 700;
-}
+/* #menu-btn styling staat in start.css (Routekaart-chunky). De body-scope
+   rules waren nodig toen de base-stijl nog dark-blue was; na #113 is de
+   base-stijl zelf Routekaart, dus geen override meer nodig. */
 h1 { font-size: 1rem; color: #f0c040; text-align: center; margin: 0; flex: 1; }
 #title-bar { display: flex; align-items: center; width: 100%; max-width: 680px; position: relative; }
 

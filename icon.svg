@@ -1,4 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1a2744"/>
-  <text x="256" y="360" font-size="320" text-anchor="middle">🗺️</text>
+  <!-- Routekaart-paper achtergrond -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#fffdf5"/>
+  <!-- Ink-frame, chunky binnen-offset zodat maskable-crop hem niet opeet -->
+  <rect x="14" y="14" width="484" height="484" rx="82" ry="82"
+        fill="none" stroke="#20232e" stroke-width="22"/>
+  <!-- Kaart-emoji; geen font-override zodat het OS-emoji wint -->
+  <text x="256" y="372" font-size="300" text-anchor="middle">🗺️</text>
 </svg>

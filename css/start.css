@@ -348,30 +348,45 @@
   text-decoration: underline;
 }
 @media (hover: hover) { #back-btn:hover { color: var(--color-ink); } }
+/* ── Hamburger-menu (#113 + #115 Routekaart-refresh) ─────────────────
+   Chunky ink-button met paper-bg + hard offset-shadow, matchend met de
+   mode-buttons en opt-buttons. Dropdown is een mini paper-card. */
 #menu-btn {
-  background: none;
-  border: none;
-  font-size: 1.15rem;
+  background: var(--color-paper);
+  border: var(--border-thin);
+  color: var(--color-ink);
+  font-size: var(--fs-18);
+  font-weight: 700;
   cursor: pointer;
-  opacity: 0.55;
-  padding: 0 4px;
+  padding: 4px 10px;
   line-height: 1;
-  color: #8ab4f8;
+  border-radius: var(--radius-6);
+  box-shadow: var(--shadow-sm);
   position: relative;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
-@media (hover: hover) { #menu-btn:hover { opacity: 1; } }
+@media (hover: hover) {
+  #menu-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--color-ink);
+  }
+}
+#menu-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 var(--color-ink);
+}
 #quiz-menu {
   display: none;
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
-  background: #1a2744;
-  border: 1px solid #2c3d6e;
-  border-radius: 10px;
-  padding: 6px 0;
+  top: calc(100% + 8px);
+  background: var(--color-paper);
+  border: var(--border-hero);
+  border-radius: var(--radius-10);
+  padding: 6px;
   z-index: 900;
-  min-width: 190px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  min-width: 220px;
+  box-shadow: var(--shadow);
 }
 #quiz-menu.open { display: block; }
 #quiz-menu button {
@@ -379,16 +394,23 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  background: none;
+  background: transparent;
   border: none;
-  color: #c8d8f8;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.9rem;
-  padding: 9px 16px;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-14);
+  padding: 10px 12px;
   cursor: pointer;
   text-align: left;
+  border-radius: var(--radius-6);
+  transition: background 0.12s;
 }
-@media (hover: hover) { #quiz-menu button:hover { background: #2c3d6e; } }
+@media (hover: hover) {
+  #quiz-menu button:hover {
+    background: var(--color-sky);
+  }
+}
 
 /* Install-btn (#111): chunky Routekaart-stijl, consistent met .mode-btn
    maar secundair (font-body ipv display, fs-14 ipv fs-16). */

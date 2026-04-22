@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.22.0">
+<meta name="version" content="2.23.0">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -18,13 +18,16 @@
 <meta property="og:description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta property="og:locale" content="nl_NL">
 
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
 <link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon.svg">
+<!-- iOS apple-touch-icon moet PNG zijn (SVG wordt genegeerd). -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="TopoQuiz">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a2744">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fffdf5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Fonts: Luckiest Guy (display), Fredoka (body), JetBrains Mono (mono) komen uit de #89-redesign;
@@ -1845,7 +1848,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.22.0';
+const APP_VERSION = 'v2.23.0';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
