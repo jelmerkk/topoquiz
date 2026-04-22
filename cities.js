@@ -1192,11 +1192,11 @@ function cityRadius(city) {
   return Math.round(4 + 8 * (Math.log(city.pop) - _POP_LOG_MIN) / (_POP_LOG_MAX - _POP_LOG_MIN));
 }
 
-// Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
-if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
-// Browser: `const` op top-level komt NIET op window terecht (anders dan `var`
-// of een `function` declaratie). De module-script in index.html (#95) leest
-// deze namen via `window.X` om ze aan de pure-logica modules door te geven —
-// daarom hier expliciet hijsen. Tests die `page.evaluate(() => ALL_CITIES)`
-// gebruiken blijven werken (bare-name lookup vindt de const óók, net als nu).
-else Object.assign(globalThis, { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS });
+// `const` op top-level komt niet op window/globalThis terecht (anders dan
+// `var`/`function`). Pure-logica modules in src/game/* (#95) en de tests
+// verwachten deze namen wél op globalThis — dus expliciet hijsen. In Node
+// is globalThis === global; in de browser === window. Geen dead-branch
+// tussen Node en browser, zodat c8-coverage 100% haalt.
+const _exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
+Object.assign(globalThis, _exports);
+if (typeof module !== 'undefined') module.exports = _exports;

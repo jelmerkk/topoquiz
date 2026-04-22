@@ -48,7 +48,11 @@
 }
 /* Dummy XP-visual: géén state, puur versiering tot #104 */
 .home-xp {
-  min-width: 110px;
+  /* #117: was 110px — "NIVEAU 1" + "340 / 500" past niet bij fs-10 +
+     mono-letter-spacing, dus de twee spans kleefden samen ondanks
+     space-between (geen ruimte over voor de gap). 140px geeft net
+     genoeg adem op mobile; desktop-media-query hieronder schaalt verder. */
+  min-width: 140px;
   background: var(--color-paper);
   border: var(--border-thick);
   border-radius: var(--radius-10);
@@ -61,6 +65,9 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  /* #117: minimum-gap tussen label en waarde, zodat ze nooit kleven
+     ook als de card te smal wordt voor space-between om ruimte te maken. */
+  gap: 10px;
   font-family: var(--font-mono);
   font-size: var(--fs-10);
   color: var(--color-ink-soft);
