@@ -18,6 +18,7 @@ const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT
 
 // ── Pure logic — direct uit src/game/*.js (geen mirror meer, #95) ────
 import { normalize, levenshtein, typoThreshold, matchInput } from './src/game/text.js';
+import { haversine, pointToSegmentDist, pointInPolygon, distanceToFeatureGeometry } from './src/game/geo.js';
 
 // ── Test framework ────────────────────────────────────────────
 
@@ -388,16 +389,6 @@ for (const item of dp8full) {
 
 // ── Kaart-klik modus — pure logica (gespiegeld vanuit index.html) ─────────────
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 const CLICK_CORRECT_KM = 20;
 const CLICK_CLOSE_KM   = 60;
 
@@ -555,57 +546,9 @@ const count67 = ALL_CITIES.filter(c => c.sets.includes(67)).length;
 expect(`Set 67 heeft precies ${SET67_VERWACHT.length} steden`, count67 === SET67_VERWACHT.length,
   `heeft er ${count67}`);
 
-// ── distanceToWater — pure logica ────────────────────────────
+// ── distanceToFeatureGeometry — pure logica (src/game/geo.js) ─
 
-// Gespiegel vanuit index.html — houd synchroon met implementatie.
-
-function pointToSegmentDist(lat, lon, lat1, lon1, lat2, lon2) {
-  const dx = lat2 - lat1, dy = lon2 - lon1;
-  const lenSq = dx * dx + dy * dy;
-  let t = lenSq === 0 ? 0 : ((lat - lat1) * dx + (lon - lon1) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  return haversine(lat, lon, lat1 + t * dx, lon1 + t * dy);
-}
-
-function pointInPolygon(lat, lon, coords) {
-  // coords zijn [lon, lat] (GeoJSON-volgorde)
-  let inside = false;
-  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-    const lon1 = coords[i][0], lat1 = coords[i][1];
-    const lon2 = coords[j][0], lat2 = coords[j][1];
-    if (((lat1 > lat) !== (lat2 > lat)) &&
-        (lon < (lon2 - lon1) * (lat - lat1) / (lat2 - lat1) + lon1)) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-function distanceToWaterGeometry(lat, lon, feature) {
-  const geom = feature.geometry;
-  const coords = geom.coordinates;
-  if (geom.type === 'Polygon') {
-    if (pointInPolygon(lat, lon, coords[0])) return 0;
-    let minDist = Infinity;
-    const ring = coords[0];
-    for (let i = 0; i < ring.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-  if (geom.type === 'LineString') {
-    let minDist = Infinity;
-    for (let i = 0; i < coords.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0]);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-  return Infinity;
-}
-
-section('distanceToWaterGeometry() — LineString');
+section('distanceToFeatureGeometry() — LineString');
 
 const waalFeature = {
   geometry: {
@@ -616,13 +559,13 @@ const waalFeature = {
   },
 };
 
-const distOnWaal = distanceToWaterGeometry(51.85, 5.30, waalFeature);
+const distOnWaal = distanceToFeatureGeometry(51.85, 5.30, waalFeature);
 expect('Punt op de Waal → < 5 km', distOnWaal < 5, `was ${Math.round(distOnWaal)} km`);
 
-const distFarFromWaal = distanceToWaterGeometry(53.2, 6.5, waalFeature);
+const distFarFromWaal = distanceToFeatureGeometry(53.2, 6.5, waalFeature);
 expect('Groningen → ver van Waal (> 100 km)', distFarFromWaal > 100, `was ${Math.round(distFarFromWaal)} km`);
 
-section('distanceToWaterGeometry() — Polygon');
+section('distanceToFeatureGeometry() — Polygon');
 
 const noordzeeFeature = {
   geometry: {
@@ -636,10 +579,10 @@ const noordzeeFeature = {
   },
 };
 
-const distInNoordzee = distanceToWaterGeometry(52.0, 3.7, noordzeeFeature);
+const distInNoordzee = distanceToFeatureGeometry(52.0, 3.7, noordzeeFeature);
 expect('Punt in Noordzee → 0 km', distInNoordzee === 0, `was ${Math.round(distInNoordzee)} km`);
 
-const distOutsideNoordzee = distanceToWaterGeometry(52.37, 4.90, noordzeeFeature);
+const distOutsideNoordzee = distanceToFeatureGeometry(52.37, 4.90, noordzeeFeature);
 expect('Amsterdam → buiten Noordzee (> 0 km)', distOutsideNoordzee > 0, `was ${Math.round(distOutsideNoordzee)} km`);
 
 section('pointInPolygon()');
