@@ -53,6 +53,9 @@
   text-align: center;
 }
 
+/* ── Feedback-form layout (type-row → textarea → naam → btn-row) ── */
+#fb-form { display: flex; flex-direction: column; gap: 10px; }
+
 /* ── Inputs (feedback textarea + name) ── */
 #fb-desc, #fb-name {
   width: 100%;
