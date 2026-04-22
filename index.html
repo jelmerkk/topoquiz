@@ -5,7 +5,7 @@
 <script>if(location.hostname==='jelmerkk.github.io')location.replace('https://www.topoquiz.com/');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Topografie Quiz – Oefen topografie voor de bovenbouw (groep 5 t/m 8)</title>
-<meta name="version" content="2.25.3">
+<meta name="version" content="2.25.4">
 <meta name="description" content="Oefen topografie voor de bovenbouw (groep 5 t/m 8): provincies, steden, Europa, wereldlanden, gebergten en wateren — meerkeuze of zelf typen op een interactieve kaart.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.topoquiz.com/">
@@ -352,11 +352,14 @@ const polygonTypes = {
       peakDefault:  PEAK_DEFAULT,  peakHighlight:  PEAK_HIGHLIGHT,  peakMastered:  PEAK_MASTERED,
     },
     nameKey: 'name',
-    // #116: adaptieve fit — geen harde per-type zoom-cap. fitBounds berekent
-    // de optimale zoom voor item-bounds + padding in de huidige container.
-    // Safety-cap 12 voorkomt dat een mini-eiland (Schiermonnikoog als future
-    // item) naar straatniveau zoomt. Oude waarde 6 capte provincies te ver uit.
-    highlightZoom: 12,
+    // #116 → #119: cap verlaagd van 12 naar 9. Regel (user #119): "volledige
+    // polygoon zichtbaar + genoeg context om de vraag te beantwoorden". In
+    // testomgeving klapt fitBounds natuurlijk op zoom 7-8 voor NL-provincies,
+    // maar op iOS Safari met address-bar-animaties kan de container-size
+    // kortstondig kleiner zijn waardoor Leaflet zich vergist en naar zoom 10-12
+    // zoomt — dan valt de provincie buiten beeld. Cap 9 vangt die edge-case af
+    // zonder de gebruikelijke fit te beperken.
+    highlightZoom: 9,
     highlightPadding: [60, 60],
     animate: true,
     // Fuzzy/peak (ellips/driehoek) niet strakker inzoomen dan set-default;
@@ -1496,7 +1499,7 @@ function selectLevel(setNumber) {
 }
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
-const APP_VERSION = 'v2.25.3';
+const APP_VERSION = 'v2.25.4';
 const FB_ENDPOINT = 'https://docs.google.com/forms/d/e/1FAIpQLSfnhQtTQ63otSzqHKqQPGcyTvhhlztr6IQNHMD3Zwg_f7gU7Q/formResponse';
 let fbType = 'Bug 🐛';
 
