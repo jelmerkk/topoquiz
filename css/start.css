@@ -21,11 +21,11 @@
   border-bottom: var(--border-thick);
   padding: 18px 20px 16px;
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 14px;
-  align-items: center;
-  position: relative;  /* anchor voor .home-settings-btn */
+  grid-template-columns: 1fr auto auto;  /* text | cogwheel | xp-card */
+  gap: 10px;
+  align-items: stretch;                    /* cog + xp matchen elkaar in hoogte */
 }
+.home-header-text { align-self: center; }
 .home-title {
   font-family: var(--font-display);
   font-size: var(--fs-30);
