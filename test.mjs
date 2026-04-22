@@ -387,23 +387,12 @@ for (const item of dp8full) {
     expectedPool.some(p => p.name === item.name && p === item));
 }
 
-// ── Kaart-klik modus — pure logica (gespiegeld vanuit index.html) ─────────────
-
-const CLICK_CORRECT_KM = 20;
-const CLICK_CLOSE_KM   = 60;
-
-// Gespiegel van index.html — houd synchroon met implementatie.
-// Signature: clickResult(distKm, setNumber)
-// - Leest clickCorrectKm/clickCloseKm uit SETS[setNumber] als die bestaan
-// - Anders: fitOnStart halveert de drempel (bestaand gedrag)
-// - Geen setNumber: gebruikt globale defaults
+// ── Kaart-klik modus — pure logica uit src/game/click.js (#95) ─────────────
+// Lokale adapter: tests nemen setNumber (leesbaar), click.js neemt set-config.
+import { clickResult as pureClickResult } from './src/game/click.js';
 function clickResult(distKm, setNumber) {
-  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
-  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
-  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
-  if (distKm < correctKm) return 'correct';
-  if (distKm < closeKm)   return 'close';
-  return 'wrong';
+  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : undefined;
+  return pureClickResult(distKm, set);
 }
 
 section('haversine()');
