@@ -259,16 +259,3 @@
   transform: translateY(1px);
   box-shadow: 0 1px 0 var(--color-ink);
 }
-/* Home: paper-card naast .home-xp in de header-grid, zelfde visuele taal
-   (border-thick + radius-10 + shadow-sm) zodat cog en XP-card als paar lezen. */
-.home-settings-btn {
-  border: var(--border-thick);
-  border-radius: var(--radius-10);
-  padding: 0;
-  width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-18);
-  align-self: stretch;                  /* volle header-hoogte, matcht .home-xp */
-}
