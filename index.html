@@ -223,9 +223,11 @@
   import { renderLevelSelect } from './src/screens/levelselect.js';
   import { renderModeSelect } from './src/screens/modeselect.js';
   import { showPhaseTransition } from './src/screens/phase-transition.js';
+  import { renderEnd } from './src/screens/end.js';
   window.renderLevelSelect = renderLevelSelect;
   window.renderModeSelect = renderModeSelect;
   window.showPhaseTransition = showPhaseTransition;
+  window.renderEnd = renderEnd;
 
   // Simpele re-exports (zelfde signatuur als inline defs).
   Object.assign(window, text, geo, smooth, shapes, {
@@ -1397,66 +1399,31 @@ const router = (() => {
 })();
 
 function showEnd() {
+  // Side-effects blijven hier (state + storage + tracking); pure view-werk
+  // is verhuisd naar src/screens/end.js (#96 increment 4).
   _trackQuiz('complete');
   quizStartTime = null;
   clearSavedProgress(); // quiz voltooid: voortgang niet meer nodig
-  applyVisibility('end');
-  // #102: body.on-end → zand-bg + plain title-bar op end-scherm.
-  document.body.classList.remove('on-home');
-  document.body.classList.remove('on-mode-select');
-  document.body.classList.add('on-end');
-  const total = cumulativeOk + cumulativeErr;
-  const pct   = total ? Math.round(cumulativeOk / total * 100) : 100;
-  const _endSet  = SETS[selectedSet];
-  const _endIsMixed = _endSet.kind === 'dailyBonus';
-  const _endIsPhased = _endSet.kind === 'phased';
-  const _endIsSimple = _endSet.kind === 'simple';
-  const _endQts  = _endIsPhased ? _endSet.phases.map(p => p.quizType) : [_endSet.quizType];
-  const isProvince = _endIsSimple && _endSet.quizType === 'province';
-  const isWater    = _endIsSimple && _endSet.quizType === 'water';
 
-  const isDaily = _endIsMixed && _endSet.variant === 'daily';
+  const _endSet = SETS[selectedSet];
+  const total   = cumulativeOk + cumulativeErr;
+  const pct     = total ? Math.round(cumulativeOk / total * 100) : 100;
+  const isDaily = _endSet.kind === 'dailyBonus' && _endSet.variant === 'daily';
+
+  let correctDaily = 0;
+  let emojiDaily = '';
   if (isDaily) {
     const results = activeCities.map(c => dailyAnswers[dailyAnswerKey(c)] === true);
-    const correct = results.filter(Boolean).length;
-    const emoji   = dailyResultEmoji(results);
-    try { localStorage.setItem(dailyStorageKey(), emoji); } catch (_) {}
-    // Wording neutraal — daily bevat niet meer alléén steden (issue #80).
-    document.getElementById('end-text').innerHTML =
-      `<strong>${correct} van de ${activeCities.length}</strong> meteen goed geraden! 🗺️`;
-    document.getElementById('daily-emoji').textContent = emoji;
-    document.getElementById('daily-share-wrap').style.display = 'block';
-    document.getElementById('rating-wrap').style.display = 'none';
-    document.getElementById('end-stars').style.display = 'none';
-  } else {
-    document.getElementById('daily-share-wrap').style.display = 'none';
-    document.getElementById('rating-wrap').style.display = '';
-    document.getElementById('end-stars').style.display = '';
-    document.getElementById('end-text').innerHTML =
-      _endIsMixed
-        ? `Je hebt alle <strong>${activeCities.length} items</strong> in de bonus gespeeld! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : _endIsPhased
-        ? `Je hebt alle fases van <strong>${_endSet.name}</strong> voltooid! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`
-        : `Je kent nu alle <strong>${activeCities.length} ${isProvince ? 'provincies' : isWater ? 'wateren' : 'plaatsen'}</strong>! 🗺️<br>Je had ${cumulativeOk} van de ${total} goed — ${pct}% raak! 🎯`;
+    correctDaily  = results.filter(Boolean).length;
+    emojiDaily    = dailyResultEmoji(results);
+    try { localStorage.setItem(dailyStorageKey(), emojiDaily); } catch (_) {}
   }
 
-  if (!isDaily) {
-    // Sterren: 3 = geen fouten, 2 = ≥80%, 1 = altijd
-    const stars = cumulativeErr === 0 ? 3 : pct >= 80 ? 2 : 1;
-    const starsEl = document.getElementById('end-stars');
-    starsEl.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-      const s = document.createElement('span');
-      s.textContent = i < stars ? '⭐' : '☆';
-      s.style.animationDelay = `${i * 250}ms`;
-      s.style.animation = `star-pop 0.5s ease-out ${i * 250}ms forwards`;
-      starsEl.appendChild(s);
-    }
-    // Reset rating widget
-    document.getElementById('rating-btns').style.display    = 'flex';
-    document.getElementById('rating-question').style.display = 'block';
-    document.getElementById('rating-thanks').style.display   = 'none';
-  }
+  window.renderEnd({
+    set: _endSet, activeCities, total, pct, cumulativeOk, cumulativeErr,
+    isDaily, correctDaily, emojiDaily,
+    applyVisibility,
+  });
 }
 
 function rateQuiz(score) {
