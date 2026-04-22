@@ -315,3 +315,50 @@ body.in-quiz {
   100% { transform: scale(1); }
 }
 .streak-bump { animation: streak-bump 0.3s ease-out; }
+
+/* ── Tablet split-view (#105) ────────────────────────────────────────────
+   ≥768px (én viewport-hoogte ≥600 om iPhone-landscape uit te sluiten):
+   body.in-quiz wordt een 2-koloms CSS-grid. Kaart komt links (1.25fr),
+   question-box rechts (1fr). score-bar, title-bar en hard-panel spannen
+   beide kolommen. Op mobile blijft de bestaande flex-column-layout (score
+   boven kaart, kaart boven vraag).
+
+   app.css zet body als flex-column; wij overrijden dat hier met display:
+   grid alleen tijdens `body.in-quiz`. Home/mode-select/end blijven flex.
+
+   De max-widths op #title-bar, #map-wrap, #question-box, #score-bar en
+   #hard-panel uit app.css zijn in split-view onnodig (kolommen bepalen de
+   breedte) en moeten daarom op `none`. Body krijgt zelf een max-width
+   voor de container.
+
+   Desktop-dashboard (#106) zal deze layout op ≥1280px overrijden met een
+   3-koloms variant zodra #104 XP/badges levert.
+*/
+@media (min-width: 768px) and (min-height: 600px) {
+  body.in-quiz {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title    title"
+      "score    score"
+      "map      question"
+      "hard     hard";
+    column-gap: 14px;
+    row-gap: 12px;
+    max-width: 1140px;
+    margin: 0 auto;
+    align-items: start;
+    justify-items: stretch;
+  }
+  body.in-quiz #title-bar    { grid-area: title;    max-width: none; width: 100%; }
+  body.in-quiz #score-bar    { grid-area: score;    max-width: none; width: 100%; }
+  body.in-quiz #map-wrap     { grid-area: map;      max-width: none; width: 100%; align-self: stretch; }
+  body.in-quiz #question-box { grid-area: question; max-width: none; width: 100%; align-self: start; }
+  body.in-quiz #hard-panel   { grid-area: hard;     max-width: none; width: 100%; }
+
+  /* Map cel vult de 1fr row-hoogte; zonder deze override zou #leaflet-map
+     via de app.css clamp-regel op een vaste hoogte springen en de kolom
+     onder-/overlopen. */
+  body.in-quiz #leaflet-map { height: 100%; }
+}
