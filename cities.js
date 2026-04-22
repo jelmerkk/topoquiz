@@ -907,8 +907,13 @@ const WORLD_BOUNDS = [[-60, -180], [75, 180]];
 // `kind` wordt door de factory gestempeld; consumenten switchen op `kind`
 // i.p.v. ad-hoc null-checks op `phases`/`daily`/`bonus`. DailyBonus onderscheidt
 // daily vs bonus via `variant: 'daily' | 'bonus'`.
-function simpleSet({ name, quizType, group, fitOnStart = false, clickCorrectKm, clickCloseKm }) {
-  return { kind: 'simple', name, quizType, fitOnStart, group, clickCorrectKm, clickCloseKm };
+function simpleSet({ name, quizType, group, fitOnStart = false, mastery = 1, clickCorrectKm, clickCloseKm }) {
+  // mastery=1 default: 1× correct → polygon wordt groen, teller "x/12 geleerd"
+  // loopt direct op. Vóór dit default viel simpleSet terug op MASTERY_MC=3 —
+  // dan moet je elke provincie 3× goed raden voor hij groen wordt, terwijl
+  // phasedSet (5.8, 8.1…) 1× gebruikt. Asymmetrie voelt als bug, vandaar
+  // expliciete gelijktrekking met phasedSet/dailyBonusSet.
+  return { kind: 'simple', name, quizType, fitOnStart, group, mastery, clickCorrectKm, clickCloseKm };
 }
 function phasedSet({ name, group, bounds, clickCorrectKm, clickCloseKm, mastery = 1, phases }) {
   return { kind: 'phased', name, group, bounds, clickCorrectKm, clickCloseKm, mastery, phases };
@@ -1189,3 +1194,9 @@ function cityRadius(city) {
 
 // Node.js-compatibiliteit voor tests (wordt genegeerd door de browser)
 if (typeof module !== 'undefined') module.exports = { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS };
+// Browser: `const` op top-level komt NIET op window terecht (anders dan `var`
+// of een `function` declaratie). De module-script in index.html (#95) leest
+// deze namen via `window.X` om ze aan de pure-logica modules door te geven —
+// daarom hier expliciet hijsen. Tests die `page.evaluate(() => ALL_CITIES)`
+// gebruiken blijven werken (bare-name lookup vindt de const óók, net als nu).
+else Object.assign(globalThis, { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS });

@@ -137,3 +137,19 @@ test('#80: bonus groep 8 zoomt naar item (geen NL-fallback)', async ({ page }) =
   expect(center[1]).toBeGreaterThan(40);
   expect(center[1]).toBeLessThan(50);
 });
+
+// Regressie: na #116 werd highlightZoom per-type verhoogd naar 12 zodat
+// fitBounds adaptief kan zoomen. Voor daily/bonus (gemengde pool, geen
+// phase-context) geeft dat een hobbelig rit: kleine provincie klapt naar
+// zoom 12, volgende vraag zakt weer naar zoom 5. Cap op 8 matcht flyTo
+// voor `place` en houdt de zoomervaring consistent binnen dezelfde sessie.
+test('#116 / #80: bonus groep 5 start niet dieper dan zoom 8', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.group-btn', { hasText: '5' }).click();
+  await page.locator('.mode-btn.bonus-btn').click();
+  await page.waitForSelector('#question-text');
+  // Wacht tot de start-fit tot rust komt (geen actieve animatie).
+  await page.waitForTimeout(800);
+  const zoom = await page.evaluate(() => map.getZoom());
+  expect(zoom).toBeLessThanOrEqual(8);
+});

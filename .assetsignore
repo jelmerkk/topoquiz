@@ -11,7 +11,7 @@ tests/
 .claude/
 
 # Test + tooling-bestanden
-test.js
+test.mjs
 playwright.config.js
 package.json
 package-lock.json

@@ -5,8 +5,8 @@
   "main": "cities.js",
   "scripts": {
     "test": "npm run test:coverage && npx playwright test",
-    "test:unit": "node test.js",
-    "test:coverage": "c8 --include=cities.js --lines=100 --functions=100 --branches=50 --check-coverage node test.js",
+    "test:unit": "node test.mjs",
+    "test:coverage": "c8 --include=cities.js --lines=100 --functions=100 --branches=50 --check-coverage node test.mjs",
     "test:e2e": "npx playwright test"
   },
   "repository": {

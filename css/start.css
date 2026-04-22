@@ -24,7 +24,6 @@
   grid-template-columns: 1fr auto;
   gap: 14px;
   align-items: center;
-  position: relative;  /* anchor voor .home-settings-btn */
 }
 .home-title {
   font-family: var(--font-display);

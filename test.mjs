@@ -1,51 +1,24 @@
 #!/usr/bin/env node
 // Topografie Quiz — lokale testsuite
-// Gebruik: node test.js
+// Gebruik: node test.mjs
+//
+// ESM-module (#95). cities.js is nog CommonJS (geladen als browser-global
+// via <script src="cities.js">); we lezen 'm in via createRequire. Nieuwe
+// src/game/*.js modules zijn ESM en worden via `import` ingelezen.
 
-'use strict';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const require = createRequire(import.meta.url);
+// ESM kent geen __dirname — zelf recreëren t.b.v. fs.readFileSync-calls verderop.
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { ALL_CITIES, ALL_PROVINCES, ALL_WATERS, ALL_COUNTRIES, SETS, DAILY_FORMAT, BONUS_FORMAT, cityRadius, NL_BOUNDS, EU_BOUNDS, WORLD_BOUNDS } = require('./cities.js');
 
-// ── Pure logic (gespiegeld vanuit index.html) ─────────────────
-// Houd synchroon met de implementatie in index.html.
-
-function normalize(s) {
-  return s.toLowerCase().trim().replace(/['\-\s]/g, '');
-}
-
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1]
-        ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function typoThreshold(normalizedName) {
-  const l = normalizedName.length;
-  if (l <= 4) return 0;
-  if (l <= 8) return 1;
-  return 2;
-}
-
-function matchInput(input, city) {
-  const normInput = normalize(input);
-  if (!normInput) return false;
-  const allNames = [city.name, ...(city.aliases || [])];
-  for (const name of allNames) {
-    if (normalize(name) === normInput) return 'exact';
-  }
-  for (const name of allNames) {
-    const normName = normalize(name);
-    const dist = levenshtein(normInput, normName);
-    if (dist <= typoThreshold(normName)) return 'close';
-  }
-  return false;
-}
+// ── Pure logic — direct uit src/game/*.js (geen mirror meer, #95) ────
+import { normalize, levenshtein, typoThreshold, matchInput } from './src/game/text.js';
+import { haversine, pointToSegmentDist, pointInPolygon, distanceToFeatureGeometry } from './src/game/geo.js';
 
 // ── Test framework ────────────────────────────────────────────
 
@@ -218,39 +191,31 @@ expect('Leeg antwoord → false',                     matchInput('', amsterdam) 
 expect('Korte naam (Oss): geen typfouten toegestaan → false bij 1 fout',
   matchInput('Oss', oss) === 'exact' && matchInput('Osl', oss) === false);
 
-// ── Daily Challenge — pure logica (gespiegeld vanuit index.html) ──────────────
+// ── Daily Challenge — pure logica uit src/game/daily.js (#95) ────────────────
+// daily.js exporteert `dateSeed(dateStr, group?)` (2-arg) en `dailyCities`/
+// pool-builders met een expliciete `data`-parameter. Voor lees­baarheid van
+// de bestaande tests binden we `data` hier één keer en leveren we dunne
+// adapters in de oude 1- / 2-arg signatuur.
+import {
+  makeRng,
+  dateSeed as _dateSeed,
+  seededShuffle,
+  poolForType as _poolForType,
+  buildMixedPool as _buildMixedPool,
+  dailyPool as _dailyPool,
+  dailyCities as _dailyCities,
+  dailyResultEmoji,
+} from './src/game/daily.js';
 
-function makeRng(seed) {
-  let s = seed;
-  return function() {
-    s = (s + 0x6D2B79F5) | 0;
-    let t = Math.imul(s ^ s >>> 15, s | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
+const gameData = { ALL_CITIES, ALL_COUNTRIES, ALL_WATERS, ALL_PROVINCES, SETS, DAILY_FORMAT, BONUS_FORMAT };
 
-function dateSeed(dateStr) {
-  return dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
-}
-
-function seededShuffle(arr, rng) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function dailyCities(dateStr) {
-  const rng = makeRng(dateSeed(dateStr));
-  return seededShuffle(ALL_CITIES, rng).slice(0, 10);
-}
-
-function dailyResultEmoji(results) {
-  return results.map(r => r ? '🟢' : '🔴').join('');
-}
+// Legacy 1-arg variant voor de pre-#80 tests.
+function dateSeed(dateStr)          { return _dateSeed(dateStr); }
+function dateSeedG(dateStr, group)  { return _dateSeed(dateStr, group); }
+function poolForType(type, group)   { return _poolForType(type, group, gameData); }
+function buildMixedPool(fmt, group, rng) { return _buildMixedPool(fmt, group, rng, gameData); }
+function dailyPool(dateStr, group)  { return _dailyPool(dateStr, group, gameData); }
+function dailyCities(dateStr)       { return _dailyCities(dateStr, ALL_CITIES); }
 
 section('makeRng() — seeded pseudo-random generator');
 
@@ -295,40 +260,7 @@ expect('Gemengd resultaat klopt',    dailyResultEmoji([true,false,true]) === '�
 expect('10 resultaten → 10 emoji',   dailyResultEmoji(Array(10).fill(true)).length === 20); // 10 × 2-byte emoji
 
 // ── Issue #80: per-groep daily/bonus met mixed types ─────────────────────────
-// Gespiegelde pure-logica implementatie (parallel aan index.html).
-
-function dateSeedG(dateStr, group) {
-  const dNum = dateStr.split('-').reduce((acc, n) => acc * 10000 + parseInt(n, 10), 0);
-  if (group == null) return dNum;
-  return (dNum * 31 + Number(group)) | 0;
-}
-
-function poolForType(type, group) {
-  const inGroup = item => item.sets?.some(s => SETS[s]?.group === group);
-  if (type === 'place')   return ALL_CITIES.filter(inGroup);
-  if (type === 'country') return ALL_COUNTRIES.filter(inGroup);
-  if (type === 'water')   return ALL_WATERS.filter(inGroup);
-  if (type === 'region')  return ALL_PROVINCES.filter(inGroup);
-  return [];
-}
-
-function buildMixedPool(fmt, group, rng) {
-  const out = [];
-  // Dedupeer over types heen op naam (zie index.html).
-  const usedNames = new Set();
-  for (const { type, count } of fmt) {
-    const pool = poolForType(type, group).filter(p => !usedNames.has(p.name));
-    const picks = seededShuffle(pool, rng).slice(0, count);
-    for (const it of picks) { it._itemType = type; out.push(it); usedNames.add(it.name); }
-  }
-  return seededShuffle(out, rng);
-}
-
-function dailyPool(dateStr, group) {
-  const fmt = DAILY_FORMAT[group];
-  if (!fmt) return [];
-  return buildMixedPool(fmt, group, makeRng(dateSeedG(dateStr, group)));
-}
+// Implementatie in src/game/daily.js; adapters hierboven.
 
 section('DAILY_FORMAT / BONUS_FORMAT — configuratie per groep');
 
@@ -414,33 +346,12 @@ for (const item of dp8full) {
     expectedPool.some(p => p.name === item.name && p === item));
 }
 
-// ── Kaart-klik modus — pure logica (gespiegeld vanuit index.html) ─────────────
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-const CLICK_CORRECT_KM = 20;
-const CLICK_CLOSE_KM   = 60;
-
-// Gespiegel van index.html — houd synchroon met implementatie.
-// Signature: clickResult(distKm, setNumber)
-// - Leest clickCorrectKm/clickCloseKm uit SETS[setNumber] als die bestaan
-// - Anders: fitOnStart halveert de drempel (bestaand gedrag)
-// - Geen setNumber: gebruikt globale defaults
+// ── Kaart-klik modus — pure logica uit src/game/click.js (#95) ─────────────
+// Lokale adapter: tests nemen setNumber (leesbaar), click.js neemt set-config.
+import { clickResult as pureClickResult } from './src/game/click.js';
 function clickResult(distKm, setNumber) {
-  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : {};
-  const correctKm = set.clickCorrectKm ?? (set.fitOnStart ? CLICK_CORRECT_KM / 2 : CLICK_CORRECT_KM);
-  const closeKm   = set.clickCloseKm   ?? (set.fitOnStart ? CLICK_CLOSE_KM / 2   : CLICK_CLOSE_KM);
-  if (distKm < correctKm) return 'correct';
-  if (distKm < closeKm)   return 'close';
-  return 'wrong';
+  const set = (typeof setNumber === 'number' && SETS[setNumber]) ? SETS[setNumber] : undefined;
+  return pureClickResult(distKm, set);
 }
 
 section('haversine()');
@@ -583,57 +494,9 @@ const count67 = ALL_CITIES.filter(c => c.sets.includes(67)).length;
 expect(`Set 67 heeft precies ${SET67_VERWACHT.length} steden`, count67 === SET67_VERWACHT.length,
   `heeft er ${count67}`);
 
-// ── distanceToWater — pure logica ────────────────────────────
+// ── distanceToFeatureGeometry — pure logica (src/game/geo.js) ─
 
-// Gespiegel vanuit index.html — houd synchroon met implementatie.
-
-function pointToSegmentDist(lat, lon, lat1, lon1, lat2, lon2) {
-  const dx = lat2 - lat1, dy = lon2 - lon1;
-  const lenSq = dx * dx + dy * dy;
-  let t = lenSq === 0 ? 0 : ((lat - lat1) * dx + (lon - lon1) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  return haversine(lat, lon, lat1 + t * dx, lon1 + t * dy);
-}
-
-function pointInPolygon(lat, lon, coords) {
-  // coords zijn [lon, lat] (GeoJSON-volgorde)
-  let inside = false;
-  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-    const lon1 = coords[i][0], lat1 = coords[i][1];
-    const lon2 = coords[j][0], lat2 = coords[j][1];
-    if (((lat1 > lat) !== (lat2 > lat)) &&
-        (lon < (lon2 - lon1) * (lat - lat1) / (lat2 - lat1) + lon1)) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-function distanceToWaterGeometry(lat, lon, feature) {
-  const geom = feature.geometry;
-  const coords = geom.coordinates;
-  if (geom.type === 'Polygon') {
-    if (pointInPolygon(lat, lon, coords[0])) return 0;
-    let minDist = Infinity;
-    const ring = coords[0];
-    for (let i = 0; i < ring.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, ring[i][1], ring[i][0], ring[i+1][1], ring[i+1][0]);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-  if (geom.type === 'LineString') {
-    let minDist = Infinity;
-    for (let i = 0; i < coords.length - 1; i++) {
-      const d = pointToSegmentDist(lat, lon, coords[i][1], coords[i][0], coords[i+1][1], coords[i+1][0]);
-      if (d < minDist) minDist = d;
-    }
-    return minDist;
-  }
-  return Infinity;
-}
-
-section('distanceToWaterGeometry() — LineString');
+section('distanceToFeatureGeometry() — LineString');
 
 const waalFeature = {
   geometry: {
@@ -644,13 +507,13 @@ const waalFeature = {
   },
 };
 
-const distOnWaal = distanceToWaterGeometry(51.85, 5.30, waalFeature);
+const distOnWaal = distanceToFeatureGeometry(51.85, 5.30, waalFeature);
 expect('Punt op de Waal → < 5 km', distOnWaal < 5, `was ${Math.round(distOnWaal)} km`);
 
-const distFarFromWaal = distanceToWaterGeometry(53.2, 6.5, waalFeature);
+const distFarFromWaal = distanceToFeatureGeometry(53.2, 6.5, waalFeature);
 expect('Groningen → ver van Waal (> 100 km)', distFarFromWaal > 100, `was ${Math.round(distFarFromWaal)} km`);
 
-section('distanceToWaterGeometry() — Polygon');
+section('distanceToFeatureGeometry() — Polygon');
 
 const noordzeeFeature = {
   geometry: {
@@ -664,10 +527,10 @@ const noordzeeFeature = {
   },
 };
 
-const distInNoordzee = distanceToWaterGeometry(52.0, 3.7, noordzeeFeature);
+const distInNoordzee = distanceToFeatureGeometry(52.0, 3.7, noordzeeFeature);
 expect('Punt in Noordzee → 0 km', distInNoordzee === 0, `was ${Math.round(distInNoordzee)} km`);
 
-const distOutsideNoordzee = distanceToWaterGeometry(52.37, 4.90, noordzeeFeature);
+const distOutsideNoordzee = distanceToFeatureGeometry(52.37, 4.90, noordzeeFeature);
 expect('Amsterdam → buiten Noordzee (> 0 km)', distOutsideNoordzee > 0, `was ${Math.round(distOutsideNoordzee)} km`);
 
 section('pointInPolygon()');
@@ -2392,18 +2255,18 @@ section('SETS — behavior snapshot (regressie-oracle voor #93)');
 // Let op: dit is de GEWENSTE snapshot — embedded literal, geen compute uit
 // SETS. Drift vs huidige SETS = test rood = expliciete review nodig.
 const SETS_BEHAVIOR_SNAPSHOT = {
-  54: { name: '5.4 – Provincies',                    quizTypes: ['province'],                         group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  55: { name: '5.5 – Provinciehoofdsteden',          quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  56: { name: '5.6 – Grote steden',                  quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  57: { name: '5.7 – Wateren',                       quizTypes: ['water'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  54: { name: '5.4 – Provincies',                    quizTypes: ['province'],                         group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  55: { name: '5.5 – Provinciehoofdsteden',          quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  56: { name: '5.6 – Grote steden',                  quizTypes: ['place'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  57: { name: '5.7 – Wateren',                       quizTypes: ['water'],                            group: 5,    fitOnStart: false, hasBounds: false, clickCorrectKm: 20,  clickCloseKm: 60,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
   58: { name: '5.8 – Onze buren',                    quizTypes: ['country','place'],                  group: 5,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 2 },
-  61: { name: '6.1 – Overijssel',                    quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  62: { name: '6.2 – Zeeland',                       quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  63: { name: '6.3 – Groningen en Drenthe',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  64: { name: '6.4 – Flevoland en Utrecht',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  65: { name: '6.5 – Noord-Brabant en Limburg',      quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  66: { name: '6.6 – Zuid-Holland',                  quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
-  67: { name: '6.7 – Noord-Holland',                 quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: null, isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  61: { name: '6.1 – Overijssel',                    quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  62: { name: '6.2 – Zeeland',                       quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  63: { name: '6.3 – Groningen en Drenthe',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  64: { name: '6.4 – Flevoland en Utrecht',          quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  65: { name: '6.5 – Noord-Brabant en Limburg',      quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  66: { name: '6.6 – Zuid-Holland',                  quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
+  67: { name: '6.7 – Noord-Holland',                 quizTypes: ['place'],                            group: 6,    fitOnStart: true,  hasBounds: false, clickCorrectKm: 10,  clickCloseKm: 30,  mastery: 1   , isMixed: false, isDaily: false, isBonus: false, phaseCount: 0 },
   71: { name: '7.1 – Landen en hoofdsteden',         quizTypes: ['country','place'],                  group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 100, clickCloseKm: 300, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 2 },
   72: { name: '7.2 – België en Luxemburg',           quizTypes: ['province','place','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 40,  clickCloseKm: 120, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },
   73: { name: '7.3 – Frankrijk, Spanje en Portugal', quizTypes: ['place','province','water'],         group: 7,    fitOnStart: false, hasBounds: true,  clickCorrectKm: 80,  clickCloseKm: 240, mastery: 1,    isMixed: false, isDaily: false, isBonus: false, phaseCount: 3 },

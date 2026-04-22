@@ -259,11 +259,3 @@
   transform: translateY(1px);
   box-shadow: 0 1px 0 var(--color-ink);
 }
-/* Home: absoluut rechtsboven binnen .home-header. */
-.home-settings-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 2px 8px;
-  font-size: var(--fs-16);
-}

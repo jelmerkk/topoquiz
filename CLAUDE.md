@@ -44,7 +44,7 @@ Elke commit eindigt met: `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com
 
 ## TDD
 Test-first, zonder uitzonderingen:
-1. Schrijf de falende test (unit in `test.js`, of E2E in `tests/*.spec.js`). Verifieer dat hij rood is.
+1. Schrijf de falende test (unit in `test.mjs`, of E2E in `tests/*.spec.js`). Verifieer dat hij rood is.
 2. Schrijf minimale implementatie tot groen.
 3. Refactor met groene tests als vangnet.
 
@@ -57,7 +57,7 @@ Rode tests door ontbrekende toekomstige features zijn OK — niet met workaround
 | Data (cities, sets, provincies, wateren, landen) | `cities.js` |
 | Kaartdata | `provincie_2023.geojson`, `wateren.geojson`, `gewesten.geojson`, `landen-europa.geojson` |
 | OSM fetch-pipelines | `data/fetch-*.js` (rate-limited Overpass) + `data/process-*.js` (chain + RDP) |
-| Unit tests | `test.js` |
+| Unit tests | `test.mjs` |
 | E2E tests | `tests/*.spec.js` |
 | Deploy-workflow | `.github/workflows/e2e.yml` |
 
