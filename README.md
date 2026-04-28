@@ -1,5 +1,17 @@
 # Topografie Quiz
 
+> ## ⚠️ Deze repo is verhuisd
+>
+> Het project leeft sinds april 2026 niet meer op GitHub.
+> Nieuwe code, issues en releases staan op **Codeberg**:
+>
+> ### → [codeberg.org/jelmerk/topoquiz](https://codeberg.org/jelmerk/topoquiz)
+>
+> Deze GitHub-repo is **gearchiveerd** en wordt niet meer bijgewerkt.
+> Issues hier worden niet meer gelezen — open ze op Codeberg.
+
+---
+
 Een topografie-oefentool voor groep 5–8, gebaseerd op de Geobas-methode. Kinderen leren plaatsen, provincies, landen, wateren en meer via meerkeuze, typen of klikken op de kaart — met spaced repetition.
 
 **Live:** [topoquiz.com](https://www.topoquiz.com) — geen buildstap vereist.
