@@ -1,10 +1,13 @@
-# Cloudflare Pages preview voor elke push naar dev.
-# Vervangt de CF-Pages Git-integratie (die Codeberg-repos niet ondersteunt).
+# Cloudflare Workers preview voor elke push naar dev.
+# Vervangt de oude CF-Pages Git-integratie (die Codeberg-repos niet
+# ondersteunt) én de Pages-deploy die niet meer werkt — de productie-
+# Worker `topoquiz` (Static Assets via wrangler.jsonc) is canonical.
 #
-# Draait op onze self-hosted runner, niet in een Playwright-image —
-# lichte node:20 is genoeg voor alleen wrangler pages deploy.
-# Geen tests hier: de dev-preview is voor visuele verificatie, niet
-# voor CI-gate. Tests draaien pas op staging (e2e.yml).
+# `wrangler versions upload` publisht een preview-versie van de Worker
+# zonder het production-traffic te verplaatsen. Het commando print de
+# preview-URL (vorm: <hash>-topoquiz.jelmer-fff.workers.dev) — die check
+# je voor visuele verificatie. Geen tests hier: dev-preview is voor
+# user-akkoord, e2e.yml is de CI-gate.
 
 name: Dev preview
 
@@ -21,10 +24,13 @@ jobs:
       - uses: https://code.forgejo.org/actions/checkout@v4
 
       - name: Install wrangler
-        run: npm install -g wrangler@3
+        run: npm install -g wrangler@4
 
-      - name: Deploy dev preview
+      - name: Upload dev preview version
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: wrangler pages deploy . --project-name=topoquiz --branch=dev
+        run: |
+          wrangler versions upload \
+            --message="dev push: ${{ github.sha }}" \
+            --tag="dev-${GITHUB_SHA::7}"

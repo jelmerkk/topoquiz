@@ -6,8 +6,10 @@
 #   - push naar staging: volledige pipeline (test → merge → deploy)
 #   - pull_request naar main: alleen test-job (sanity-check van merges)
 #
-# Deploy-flow: staging-groen → merge naar main → rsync naar Uberspace →
-# wrangler pages deploy naar Cloudflare Pages main-branch.
+# Deploy-flow: staging-groen → merge naar main → rsync naar Uberspace
+# (www.topoquiz.com nginx) + `wrangler deploy` naar Cloudflare Workers
+# Static Assets (topoquiz.jelmer-fff.workers.dev). Beide deploys parallel —
+# Uberspace blijft prod-canonical, Worker is mirror/backup.
 
 name: E2E Tests
 
@@ -136,12 +138,12 @@ jobs:
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./ "${{ vars.UBERSPACE_SSH_USER }}@${{ vars.UBERSPACE_SSH_HOST }}:${{ vars.UBERSPACE_DEPLOY_PATH }}/"
 
-      - name: Cloudflare Pages deploy (main)
-        # Vervangt de CF-Pages git-integration die op Codeberg niet werkt.
-        # wrangler-v3 heeft `pages deploy` (v4 verplaatst naar `wrangler pages`).
+      - name: Cloudflare Workers deploy (Static Assets)
+        # `wrangler deploy` leest wrangler.jsonc + assets.directory en publisht
+        # de Worker `topoquiz` naar topoquiz.jelmer-fff.workers.dev.
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npm install -g wrangler@3
-          wrangler pages deploy . --project-name=topoquiz --branch=main
+          npm install -g wrangler@4
+          wrangler deploy
