@@ -6,8 +6,10 @@
 #   - push naar staging: volledige pipeline (test → merge → deploy)
 #   - pull_request naar main: alleen test-job (sanity-check van merges)
 #
-# Deploy-flow: staging-groen → merge naar main → rsync naar Uberspace →
-# wrangler pages deploy naar Cloudflare Pages main-branch.
+# Deploy-flow: staging-groen → merge naar main → rsync naar Uberspace
+# (www.topoquiz.com nginx) + `wrangler deploy` naar Cloudflare Workers
+# Static Assets (topoquiz.jelmer-fff.workers.dev). Beide deploys parallel —
+# Uberspace blijft prod-canonical, Worker is mirror/backup.
 
 name: E2E Tests
 
@@ -49,6 +51,22 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+
+      - name: Notify ntfy on test failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "${NTFY_TOPIC:-}" ]; then echo "NTFY_TOPIC unset, skipping notify"; exit 0; fi
+          msg=$(printf 'Branch: %s\nCommit: %s\n\nPlaywright/unit tests failed — see playwright-report artifact.' \
+            "${{ github.ref_name }}" "${{ github.sha }}")
+          curl --silent --show-error \
+            -H "Title: Codeberg CI failed — tests" \
+            -H "Priority: high" \
+            -H "Tags: warning,test_tube" \
+            -H "Click: https://codeberg.org/jelmerk/topoquiz/actions" \
+            -d "$msg" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
 
   deploy:
     needs: test
@@ -136,12 +154,47 @@ jobs:
             -e "ssh -i ~/.ssh/id_ed25519" \
             ./ "${{ vars.UBERSPACE_SSH_USER }}@${{ vars.UBERSPACE_SSH_HOST }}:${{ vars.UBERSPACE_DEPLOY_PATH }}/"
 
-      - name: Cloudflare Pages deploy (main)
-        # Vervangt de CF-Pages git-integration die op Codeberg niet werkt.
-        # wrangler-v3 heeft `pages deploy` (v4 verplaatst naar `wrangler pages`).
+      - name: Cloudflare Workers deploy (Static Assets)
+        # `wrangler deploy` leest wrangler.jsonc + assets.directory en publisht
+        # de Worker `topoquiz` naar topoquiz.jelmer-fff.workers.dev.
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npm install -g wrangler@3
-          wrangler pages deploy . --project-name=topoquiz --branch=main
+          npm install -g wrangler@4
+          wrangler deploy
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          mkdir -p /tmp/ci-logs
+          cp /root/.config/.wrangler/logs/*.log /tmp/ci-logs/ 2>/dev/null || true
+          echo "branch=${{ github.ref_name }}"   >  /tmp/ci-logs/context.txt
+          echo "sha=${{ github.sha }}"           >> /tmp/ci-logs/context.txt
+          echo "workflow=${{ github.workflow }}" >> /tmp/ci-logs/context.txt
+          echo "run=${{ github.run_number }}"    >> /tmp/ci-logs/context.txt
+
+      - name: Upload logs artifact on failure
+        if: failure()
+        uses: https://code.forgejo.org/actions/upload-artifact@v4
+        with:
+          name: deploy-logs-${{ github.run_number }}
+          path: /tmp/ci-logs/
+          retention-days: 14
+
+      - name: Notify ntfy on failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "${NTFY_TOPIC:-}" ]; then echo "NTFY_TOPIC unset, skipping notify"; exit 0; fi
+          tail_log=$(tail -40 /tmp/ci-logs/*.log 2>/dev/null | head -c 1500 || echo "(no wrangler log captured)")
+          msg=$(printf 'Branch: %s\nCommit: %s\n\n--- last 40 lines ---\n%s' \
+            "${{ github.ref_name }}" "${{ github.sha }}" "$tail_log")
+          curl --silent --show-error \
+            -H "Title: Codeberg CI failed — e2e/deploy" \
+            -H "Priority: high" \
+            -H "Tags: warning,fire" \
+            -H "Click: https://codeberg.org/jelmerk/topoquiz/actions" \
+            -d "$msg" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
