@@ -4,7 +4,7 @@ Referentie: het volledige plan staat in
 `~/.claude/plans/optimized-finding-taco.md`. Dit bestand is de
 working-tracker: wat is af, wat staat open, hoe verder.
 
-**Laatste update:** 2026-04-22 — Fase 1 + 2 + 3 + 4 afgerond, klaar voor cutover-weekend.
+**Laatste update:** 2026-04-28 — Pre-cutover health-check uitgevoerd, alles aan Codeberg-zijde staat klaar voor cutover.
 
 ## Status per fase
 
@@ -15,7 +15,7 @@ working-tracker: wat is af, wat staat open, hoe verder.
 | 2 — Repo-import | ✅ klaar | 118 issues, 30 tags, nummers behouden |
 | 3 — Workflow-rewrite | ✅ klaar | `.forgejo/workflows/e2e.yml` + `dev-preview.yml` (commit 8073536) |
 | 4 — Skill + docs | ✅ klaar | `gh` → `tea`, `scripts/forgejo-run-watch.sh`, CLAUDE.md, README, package.json |
-| 5 — Cutover | ⏳ niet begonnen | Remote switch, GitHub archive, CF-Pages git-integration loskoppelen |
+| 5 — Cutover | 🟡 prep groen | Pre-flight check OK; resterend: CF-disconnect + remote switch + push + GitHub-archive |
 | 6 — Cleanup | ⏳ niet begonnen | Secrets opruimen, allowlist |
 
 ## Wat is werkend
@@ -160,20 +160,42 @@ Uitgevoerd op dev-branch (nog niet in productie tot cutover):
 
 ## Fase 5 — Cutover-weekend
 
-Volgorde strikt, elke stap blocker voor volgende:
+### Pre-cutover health-check (2026-04-28, ✅ alles groen)
 
-1. Fase 0–4 af, Codeberg-secrets + vars staan.
-2. Repo geïmporteerd, runner online.
-3. CF-Pages git-integration **loskoppelen** in CF-dashboard (project
-   blijft bestaan voor `wrangler` deploys).
-4. Lokale remote switchen:
+Geverifieerd vóór de cutover via `tea actions` + Codeberg API:
+
+- **Repo-state:** `default_branch=dev`, `has_actions=true`, niet gearchiveerd, geen mirror, 10 open issues.
+- **Secrets gezet** (4/4):
+  `UBERSPACE_SSH_KEY`, `CODEBERG_PUSH_TOKEN`,
+  `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+- **Vars gezet** (3/3):
+  `UBERSPACE_SSH_HOST=kochab.uberspace.de`,
+  `UBERSPACE_SSH_USER=starbase`,
+  `UBERSPACE_DEPLOY_PATH=/var/www/virtual/starbase/topoquiz.com`.
+- **Runner argo-1:** status `idle`, image v12.9.0, labels `self-hosted, argo, docker`. User-scope.
+- **Workflow-files:** `.forgejo/workflows/e2e.yml` + `dev-preview.yml` parsen, geen tabs.
+- **`scripts/forgejo-run-watch.sh`:** `bash -n` OK, exit-bit gezet, dry-run polt elke 15s tegen Codeberg-API met tea-token.
+- **Wrangler 4.86.0** lokaal geïnstalleerd (niet ingelogd — niet nodig, workflow gebruikt secret).
+- **CF Pages-project `topoquiz`** bestaat al (huidige prod-host via GitHub git-integration). Cutover = git-integration loskoppelen, niet project recreaten.
+
+### Volgorde
+
+Strikt, elke stap blocker voor volgende:
+
+1. ✅ Fase 0–4 af, Codeberg-secrets + vars staan, runner idle (geverifieerd).
+2. CF-Pages git-integration **loskoppelen** in CF-dashboard (Settings →
+   Builds & deployments → Disconnect). Project zelf blijft bestaan.
+3. Lokale remote switchen:
    ```bash
    git remote rename origin github
    git remote add origin git@codeberg.org:jelmerk/topoquiz.git
    git fetch origin
    git branch --set-upstream-to=origin/dev dev
+   git branch --set-upstream-to=origin/staging staging
+   git branch --set-upstream-to=origin/main main
    ```
-5. Push `dev` → eerste Forgejo pipeline-run, CF-preview werkt.
+4. Push alle branches: `git push origin dev staging main` + `git push origin --tags`.
+5. Push `dev` (no-op commit of bestaande HEAD) → eerste Forgejo pipeline-run, CF-preview werkt.
 6. Push `staging` → full e2e + rsync + CF prod-deploy.
 7. Groen? → GitHub-repo archiveren, README-forward committen.
 
