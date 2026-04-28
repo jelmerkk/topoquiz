@@ -52,6 +52,22 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
+      - name: Notify ntfy on test failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "${NTFY_TOPIC:-}" ]; then echo "NTFY_TOPIC unset, skipping notify"; exit 0; fi
+          msg=$(printf 'Branch: %s\nCommit: %s\n\nPlaywright/unit tests failed — see playwright-report artifact.' \
+            "${{ github.ref_name }}" "${{ github.sha }}")
+          curl --silent --show-error \
+            -H "Title: Codeberg CI failed — tests" \
+            -H "Priority: high" \
+            -H "Tags: warning,test_tube" \
+            -H "Click: https://codeberg.org/jelmerk/topoquiz/actions" \
+            -d "$msg" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
+
   deploy:
     needs: test
     runs-on: self-hosted
@@ -147,3 +163,38 @@ jobs:
         run: |
           npm install -g wrangler@4
           wrangler deploy
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          mkdir -p /tmp/ci-logs
+          cp /root/.config/.wrangler/logs/*.log /tmp/ci-logs/ 2>/dev/null || true
+          echo "branch=${{ github.ref_name }}"   >  /tmp/ci-logs/context.txt
+          echo "sha=${{ github.sha }}"           >> /tmp/ci-logs/context.txt
+          echo "workflow=${{ github.workflow }}" >> /tmp/ci-logs/context.txt
+          echo "run=${{ github.run_number }}"    >> /tmp/ci-logs/context.txt
+
+      - name: Upload logs artifact on failure
+        if: failure()
+        uses: https://code.forgejo.org/actions/upload-artifact@v4
+        with:
+          name: deploy-logs-${{ github.run_number }}
+          path: /tmp/ci-logs/
+          retention-days: 14
+
+      - name: Notify ntfy on failure
+        if: failure()
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "${NTFY_TOPIC:-}" ]; then echo "NTFY_TOPIC unset, skipping notify"; exit 0; fi
+          tail_log=$(tail -40 /tmp/ci-logs/*.log 2>/dev/null | head -c 1500 || echo "(no wrangler log captured)")
+          msg=$(printf 'Branch: %s\nCommit: %s\n\n--- last 40 lines ---\n%s' \
+            "${{ github.ref_name }}" "${{ github.sha }}" "$tail_log")
+          curl --silent --show-error \
+            -H "Title: Codeberg CI failed — e2e/deploy" \
+            -H "Priority: high" \
+            -H "Tags: warning,fire" \
+            -H "Click: https://codeberg.org/jelmerk/topoquiz/actions" \
+            -d "$msg" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
